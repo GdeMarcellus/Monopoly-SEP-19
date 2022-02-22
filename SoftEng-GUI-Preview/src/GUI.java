@@ -65,6 +65,8 @@ public class GUI extends Application {
         });
         introduction.showAndWait();
     }
+    vnsdnveiszvne
+    soivneszvkne
     public void gameBoard()
     {
         Stage gameboard = new Stage();
