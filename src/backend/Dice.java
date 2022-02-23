@@ -3,11 +3,11 @@ package backend;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Dice {
-    int numDice; //Number of dice
-    int diceMin; //smallest num on dice
-    int diceMax; //largest num on dice
+    private int numDice; //Number of dice
+    private int diceMin; //smallest num on dice
+    private int diceMax; //largest num on dice
 
-    int dice[]; //array of dice
+    private int dice[]; //array of dice
 
     public Dice(int numDice, int diceMin, int diceMax){
         this.numDice = numDice;
