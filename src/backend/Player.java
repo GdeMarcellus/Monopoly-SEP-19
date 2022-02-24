@@ -1,13 +1,42 @@
 package backend;
 
 public abstract class Player {
-    /*
-    int position
-    int balance
-    int numDoubles
-    array[max properties] properties
-    array[max no. cards] cardHand
 
-     */
+    private int position;
+    private int balance;
+    private int numDoubles;
+
+    public Player() {
+        this.position = 0;
+        this.balance = 0;
+        this.numDoubles = 0;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
+    }
+
+    public int getNumDoubles() {
+        return numDoubles;
+    }
+
+    public void setNumDoubles(int numDoubles) {
+        this.numDoubles = numDoubles;
+    }
+
+
+
 
 }
