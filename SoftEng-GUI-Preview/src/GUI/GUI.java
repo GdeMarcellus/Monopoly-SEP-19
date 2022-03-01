@@ -31,8 +31,9 @@ import java.util.Random;
 public class GUI extends Application {
     private final Button dice1 = new Button();
     private final Button dice2 = new Button();
-    private Label inspect = new Label();
+    private final Label inspect = new Label();
     private final ArrayList<Image> facePNG = dice();
+    private final Circle playerTest = new Circle();
     public static void main(String []args)
     {
         launch();
@@ -41,6 +42,10 @@ public class GUI extends Application {
     {
         gameBoard();
     }
+
+    /**
+     *
+     */
     public void start_screen()
     {
         //Setting up Stages
@@ -86,13 +91,16 @@ public class GUI extends Application {
     {
         inspect.setPrefHeight(600);
         inspect.setPrefWidth(150);
-        Circle playerTest = new Circle();
+        inspect.setStyle("-fx-font-size: 20;" +
+                "fx-border-color:Black");
         playerTest.setStroke(Color.BLACK);
         playerTest.setStyle("-fx-background-color: Blue");
+        playerTest.setRadius(20);
         Stage gameboard = new Stage();
         //Creating and setting up the game board (using a GridPane)
         GridPane board = createBoard();
-        playerTest.setCenterX(board.getCellBounds(0,0).getCenterX());
+        playerTest.setTranslateX(board.getCellBounds(0,0).getMinX());
+        playerTest.setTranslateY(board.getCellBounds(0,0).getCenterY());
         board.setAlignment(Pos.CENTER);
         //Creating a title for the scene
         Text title = createText("Property Tycoon", 50, Color.BLACK,"arial");
@@ -106,7 +114,7 @@ public class GUI extends Application {
         //Creating text for the player section of the board
         Text players = createText("Players",40,Color.BLACK,"arial");
         //Creating a VBox to store and show player info
-        VBox playerList = new VBox(players,getPlayerInfo());
+        VBox playerList = new VBox(players,getPlayerInfo(3));
         playerList.setAlignment(Pos.CENTER);
         //Creating HBox to store and show the player controls
         HBox controls = new HBox(controlButtons());
@@ -136,6 +144,13 @@ public class GUI extends Application {
         //Setting up Buy button
         Button Buy = new Button("Buy");
         Buy.setPrefSize(100,50);
+        Button move = new Button("Move");
+        move.setPrefSize(100,50);
+        move.setOnAction(e ->
+        {
+           playerTest.setTranslateX(playerTest.getTranslateX()+10);
+           playerTest.setTranslateY(playerTest.getTranslateY()+10);
+        });
         //Setting up Skip button
         Button Skip = new Button("Skip");
         Skip.setPrefSize(100,50);
@@ -158,7 +173,7 @@ public class GUI extends Application {
         Button Build = new Button("Build");
         Build.setPrefSize(100,50);
         //Setting up HBox to finalize the controls
-        HBox final_control = new HBox(Buy,Skip,roll,Build);
+        HBox final_control = new HBox(move,Buy,Skip,roll,Build);
         final_control.setAlignment(Pos.CENTER);
         final_control.setSpacing(100);
         return final_control;
@@ -168,13 +183,23 @@ public class GUI extends Application {
      *
      * @return Returns a ListView for all the player information
      */
-    private ListView<String> getPlayerInfo()
+    private ListView<String> getPlayerInfo(int playerNo)
     {
         //Temporary ListView, String type will change later
         ListView<String> player = new ListView<>();
-        for (int i = 0; i < 3; i++)
-        {
-            player.getItems().add(String.valueOf(i));
+        for (int j = 0; j<playerNo; j++)
+            {
+            StringBuilder playerInfo = new StringBuilder();
+            for (int i = 0; i < 3; i++) {
+                if (i == 0) {
+                    playerInfo.append("Player Name: " + i + "\n");
+                } else if (i == 1) {
+                    playerInfo.append("Money: " + i + "\n");
+                } else {
+                    playerInfo.append("Buildings owned: " + i + "\n");
+                }
+            }
+            player.getItems().add(String.valueOf(playerInfo));
         }
         return player;
     }
@@ -278,7 +303,8 @@ public class GUI extends Application {
                    {
 
                        inspect.setWrapText(true);
-                       inspect.setText(location);
+                       inspect.setText("Tile Name: ???" + '\n' + "Owner: ???" + '\n' + "Building Level: ???"+
+                               '\n' + location);
                    });
                    insert.setStyle("-fx-background-color: Transparent");
                    insert.setGraphic(set);
@@ -343,14 +369,6 @@ public class GUI extends Application {
                    dice2.setStyle("-fx-background-color: Transparent");
                    dice2.setPadding(Insets.EMPTY);
                    gridPane.add(dice2,6,8);
-               }
-               //
-               else
-               {
-                   //Creating an empty button (for any tile that is not used)
-                   Button empty = new Button();
-                   empty.setStyle("-fx-background-color: Transparent");
-                   gridPane.add(empty,i,j);
                }
             }
         }
