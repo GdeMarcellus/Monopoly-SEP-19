@@ -26,6 +26,10 @@ public abstract class Player {
         }
     }
 
+    public void toJail() {
+        this.position = 41;
+    }
+
     public int getBalance() {
         return balance;
     }

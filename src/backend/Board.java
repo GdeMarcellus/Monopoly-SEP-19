@@ -44,7 +44,7 @@ public class Board {
             //jail check
             if (players.get(playerIndex).getNumDoubles() == 3) {
                 //send to jail (tile 41)
-                players.get(playerIndex).setPosition(41);
+                players.get(playerIndex).toJail();
                 rolledDouble = false;
             }
         }
