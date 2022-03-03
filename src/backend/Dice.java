@@ -1,13 +1,15 @@
 package backend;
 
+import java.util.ArrayList;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Dice {
-    private int numDice; //Number of dice
-    private int diceMin; //smallest num on dice
-    private int diceMax; //largest num on dice
+    int numDice; //Number of dice
+    int diceMin; //smallest num on dice
+    int diceMax; //largest num on dice
 
-    private int dice[]; //array of dice
+    ArrayList<Integer> dice = new ArrayList<>(); //array of dice
 
     public Dice(int numDice, int diceMin, int diceMax){
         this.numDice = numDice;
@@ -17,21 +19,18 @@ public class Dice {
 
     /**
      * Sets each 'dice' in the array to a randInt between diceMin & diceMax (inclusive)
-     * @param void
-     * @return void
      */
     public void rollDice() {
         for (int i = 0; i < numDice; i++) {
-            dice[i] = ThreadLocalRandom.current().nextInt(diceMin, diceMax + 1);
+            dice.add(ThreadLocalRandom.current().nextInt(diceMin, diceMax + 1));
         }
     }
 
     /***
      * returns array of dice (intergers)
-     * @param void
      * @return array of dice (intergers)
      */
-    public int[] getDiceValues() {
+    public ArrayList<Integer> getDiceValues() {
         return dice;
     }
 

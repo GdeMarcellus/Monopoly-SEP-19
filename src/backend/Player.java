@@ -17,7 +17,13 @@ public abstract class Player {
     }
 
     public void setPosition(int position) {
-        this.position = position;
+        //check position not beyond board limits
+        if (this.position + position > 40) {
+            this.position = position % 40;
+        }
+        else {
+            this.position = position;
+        }
     }
 
     public int getBalance() {
@@ -35,8 +41,4 @@ public abstract class Player {
     public void setNumDoubles(int numDoubles) {
         this.numDoubles = numDoubles;
     }
-
-
-
-
 }
