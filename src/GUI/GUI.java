@@ -7,33 +7,32 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.util.ArrayList;
 import java.util.Random;
 
-
 public class GUI extends Application {
     private final Button dice1 = new Button();
+    private final Button[] tiles = new Button[40];
     private final Button dice2 = new Button();
     private final Label inspect = new Label();
     private final ArrayList<Image> facePNG = dice();
     private final Circle playerTest = new Circle();
+    private  final Stage gameboard = new Stage();
     public static void main(String []args)
     {
         launch();
@@ -44,7 +43,9 @@ public class GUI extends Application {
     }
 
     /**
-     *
+     * The start_screen method, represents the first screen the user will see
+     * It contains a flashy title, and players are allowed to move to the next stage
+     * By pressing the Enter button
      */
     public void start_screen()
     {
@@ -84,8 +85,6 @@ public class GUI extends Application {
 
     /**
      * the gameBoard method is used to create the GUI of the main boardGame for the user
-     *
-     * @return void
      */
     public void gameBoard()
     {
@@ -96,11 +95,10 @@ public class GUI extends Application {
         playerTest.setStroke(Color.BLACK);
         playerTest.setStyle("-fx-background-color: Blue");
         playerTest.setRadius(20);
-        Stage gameboard = new Stage();
         //Creating and setting up the game board (using a GridPane)
         GridPane board = createBoard();
-        playerTest.setTranslateX(board.getCellBounds(0,0).getMinX());
-        playerTest.setTranslateY(board.getCellBounds(0,0).getCenterY());
+        playerTest.setTranslateX(tiles[1].getBoundsInLocal().getCenterX());
+        playerTest.setTranslateY(tiles[1].getLayoutBounds().getCenterY());
         board.setAlignment(Pos.CENTER);
         //Creating a title for the scene
         Text title = createText("Property Tycoon", 50, Color.BLACK,"arial");
@@ -129,15 +127,15 @@ public class GUI extends Application {
         main.setTop(title);
         main.setCenter(new StackPane(board,playerTest));
         main.setLeft(playerList);
-        BorderPane.setAlignment(left,Pos.CENTER);
+        BorderPane.setAlignment(left,Pos.CENTER_RIGHT);
         //Creating a new Scene
         gameboard.setScene(new Scene(main,1500,1000));
         gameboard.showAndWait();
     }
 
     /**
-     *
-     * @return Returning the HBox containign all the contorl buttons for the player
+     * controlButtons is used to create an HBox containing all the controls the user is going to have
+     * @return Returning the HBox containing all the control buttons for the player
      */
     private HBox controlButtons()
     {
@@ -180,7 +178,11 @@ public class GUI extends Application {
     }
 
     /**
-     *
+     * The function getPlayerInfo is used to return all the informations that may be interesting about the player, such as:
+     * - Amount of Money
+     * - Amount of buildings owned
+     * - Name of the user
+     * - If the User is a CPU or Not
      * @return Returns a ListView for all the player information
      */
     private ListView<String> getPlayerInfo(int playerNo)
@@ -205,9 +207,10 @@ public class GUI extends Application {
     }
 
     /**
-     *
-     * @param
-     * @return void
+     * the function mainMenu() is used to create a stage\scene that acts as main Menu of Property Tycoon
+     * so far the menu has:
+     *  3 buttons
+     *  One Animated Title
      */
     public void mainMenu()
     {
@@ -276,6 +279,7 @@ public class GUI extends Application {
     /**
      * The createBoard() method returns a gridPane containing a board with its tiles.
      * It also contains two boxes representing the dices
+     *
      * @return Returns a gridpane, which represents the gaming board with all of its tiles.
      */
     public GridPane createBoard()
@@ -288,6 +292,7 @@ public class GUI extends Application {
         {
             for (int j = 0; j < 10; j++)
             {
+                //The following if statement represents the border of the board
                if(i == 0 || j == 0 || i == 9 || j == 9)
                {
                    //Store image in Image tile
@@ -299,9 +304,28 @@ public class GUI extends Application {
                    set.setFitWidth(60);
                    //Setting up the Button for each tile
                    Button insert = new Button();
+                   tiles[count] = insert;
                    insert.setOnAction(e->
                    {
-
+                       Rectangle cardInfo = new Rectangle(0,0,500,1000);
+                       Text card = new Text();
+                       StackPane cardStack = new StackPane(cardInfo,card);
+                       cardInfo.setFill(new ImagePattern(tile));
+                       Scene cardInfoScene = new Scene(cardStack,300,400);
+                       Stage cardStage = new Stage();
+                       cardStage.setScene(cardInfoScene);
+                       cardStage.show();
+                       cardStack.setOnMouseClicked(a ->
+                       {
+                           cardInfo.setFill(Color.WHITE);
+                           card.setText("Tile Name: ???" + '\n' + "Owner: ???" + '\n' + "Building Level: ???"+
+                                   '\n' + location);
+                           card.setWrappingWidth(100);
+                           cardStack.setOnMouseClicked(b ->
+                           {
+                               cardStage.close();
+                           });
+                       });
                        inspect.setWrapText(true);
                        inspect.setText("Tile Name: ???" + '\n' + "Owner: ???" + '\n' + "Building Level: ???"+
                                '\n' + location);
@@ -312,7 +336,7 @@ public class GUI extends Application {
                    gridPane.add(insert,i,j);
                    count++;
                }
-               //
+               // The following if statement represents two card slots
                else if (i == 2 && j == 4)
                {
                    Button fake = new Button("Card Slot");
@@ -323,6 +347,7 @@ public class GUI extends Application {
                    });
                    gridPane.add(fake,2,4);
                }
+               // The following if statement is used for the bank
                else if (i == 5 && j == 4)
                {
                    Button insert = new Button("Bank");
@@ -334,10 +359,10 @@ public class GUI extends Application {
                        image.show();
                        System.out.println(bankAnimation);
                    });
-
                    gridPane.add(insert,5,4);
                }
-               //
+               // The following if statement represents the second card slot in the middle
+               // of the board
                else if (i == 7 && j == 4)
                {
                    Button fake = new Button("Card Slot 2");
@@ -348,7 +373,7 @@ public class GUI extends Application {
                    });
                    gridPane.add(fake,7,4);
                }
-               //
+               // The following if statement represents the first dice
                else if (i == 3 && j == 8)
                {
                    ImageView face1 = new ImageView(facePNG.get(0));
@@ -359,7 +384,7 @@ public class GUI extends Application {
                    dice1.setPadding(Insets.EMPTY);
                    gridPane.add(dice1,3,8);
                }
-               //
+               // The following if statement represents the second dice
                else if (i == 6 && j == 8)
                {
                    ImageView face = new ImageView(facePNG.get(0));
@@ -374,8 +399,14 @@ public class GUI extends Application {
         }
         return gridPane;
     }
+
+    /**
+     * The dice() function is used to return an arrayList containing all the dice faces
+     * @return ArrayList that returns 6 dice faces as Image variable
+     */
      public ArrayList<Image> dice()
      {
+         //ArrayList used to save all the faces of the dice
          ArrayList<Image> diceFaces = new ArrayList<>();
          for (int i = 0; i<6; i++)
          {
@@ -384,12 +415,12 @@ public class GUI extends Application {
          return diceFaces;
      }
     /**
-     *
-     * @param content
-     * @param size
-     * @param col
-     * @param font
-     * @return
+     * The function createText() is used to simplify the creation of text in the program
+     * @param content String of the new Text
+     * @param size Size of the font
+     * @param col colour of the font
+     * @param font font name for the new Text
+     * @return Returns Text with all the correct attributes
      */
     public Text createText(String content, int size, Color col, String font)
     {
