@@ -4,7 +4,6 @@ import javafx.animation.*;
 import javafx.application.Application;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -24,28 +23,30 @@ import java.util.Random;
 
 public class GUI extends Application {
     private final Button dice1 = new Button();
+    private boolean inspectWindow = false;
     private final ArrayList<Button> tiles = new ArrayList<>();
     private final Button dice2 = new Button();
     private final Label inspect = new Label();
     private final ArrayList<Image> facePNG = dice();
     private final Circle playerTest = new Circle();
-    private  final Stage gameboard = new Stage();
+    private  final Stage gameBoard = new Stage();
     private Text moneyUser;
     private Text playerTurnText;
     private final int[] moneyAmount = new int[3];
     private ListView<String> playerInfo;
     private int playerTurn = 0;
     private int tileNum = 1;
-    private GridPane board = createBoard();
+    private final GridPane board = createBoard();
     private StackPane boardAndPlayer;
 
     public static void main(String []args)
     {
         launch();
     }
+
     public void start(Stage primaryStage)
     {
-        gameBoard();
+        start_screen();
     }
 
     /**
@@ -90,7 +91,7 @@ public class GUI extends Application {
                 mainMenu();
             }
         });
-        introduction.showAndWait();
+        introduction.show();
     }
 
     /**
@@ -173,7 +174,8 @@ public class GUI extends Application {
 
         //Creating text for the player section of the board
         Text players = createText("Players",40,Color.BLACK,"arial");
-        playerInfo = getPlayerInfo(3);
+        int numOfPlayers = 3;
+        playerInfo = getPlayerInfo(numOfPlayers);
         //Start selection with the first element in the list
         playerInfo.getSelectionModel().select(0);
         playerInfo.setMouseTransparent(true);
@@ -190,7 +192,7 @@ public class GUI extends Application {
         controls.setMinHeight(100);
 
         //Right side of board
-        //Working on the right side of the gameboard
+        //Working on the right side of the game-board
         Text idk = createText("Bank",40,Color.BLACK,"arial");
         VBox bankSide = new VBox(idk, bankAnimation,playerTurnText,moneyCounter,moneyUser);
         bankSide.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
@@ -210,8 +212,8 @@ public class GUI extends Application {
 
         Scene finalScene = new Scene(main,1500,1000);
         //Creating a new Scene
-        gameboard.setScene(finalScene);
-        gameboard.showAndWait();
+        gameBoard.setScene(finalScene);
+        gameBoard.showAndWait();
     }
 
     /**
@@ -316,7 +318,7 @@ public class GUI extends Application {
     }
 
     /**
-     * The function getPlayerInfo is used to return all the informations that may be interesting about the player, such as:
+     * The function getPlayerInfo is used to return all the information that may be interesting about the player, such as:
      * - Amount of Money
      * - Amount of buildings owned
      * - Name of the user
@@ -356,7 +358,7 @@ public class GUI extends Application {
         Stage mainMenu = new Stage();
         //Creating exit button
         Button exit = new Button("Exit");
-        exit.setOnAction( e -> {System.exit(0);});
+        exit.setOnAction( e -> System.exit(0));
         //Main Text set up
         Text main_Text = createText("Main Menu",50,Color.BLACK,"arial");
         BorderPane.setAlignment(main_Text,Pos.CENTER);
@@ -412,20 +414,20 @@ public class GUI extends Application {
         main.setCenter(main_buttons);
         main.setTop(title);
         mainMenu.setScene(new Scene(main,1500,1000));
-        mainMenu.showAndWait();
+        mainMenu.show();
     }
 
     /**
      * The createBoard() method returns a gridPane containing a board with its tiles.
      * It also contains two boxes representing the dices
      *
-     * @return Returns a gridpane, which represents the gaming board with all of its tiles.
+     * @return Returns a grid pane, which represents the gaming board with all of its tiles.
      */
     public GridPane createBoard()
     {
         //count is used to keep track of the png in the Base folder
         int count = 1;
-        //Creating gridpane to store the board
+        //Creating grid pane to store the board
         GridPane gridPane = new GridPane();
         for (int i = 0; i < 10; i++)
         {
@@ -513,10 +515,24 @@ public class GUI extends Application {
         return gridPane;
     }
 
+    /**
+     * This method is simply used to save some space.
+     * @param count
+     * @param gridPane
+     * @param i
+     * @param j
+     * @param tile
+     * @param location
+     * @param set
+     * @return
+     */
     private int getCount(int count, GridPane gridPane, int i, int j, Image tile, String location, ImageView set) {
         Button insert = new Button();
         insert.setOnAction(e->
         {
+            if (!inspectWindow)
+            {
+            inspectWindow = true;
             Rectangle cardInfo = new Rectangle(0,0,500,1000);
             Text card = new Text();
             StackPane cardStack = new StackPane(cardInfo,card);
@@ -527,18 +543,20 @@ public class GUI extends Application {
             cardStage.show();
             cardStack.setOnMouseClicked(a ->
             {
-                cardInfo.setFill(Color.WHITE);
-                card.setText("Tile Name: ???" + '\n' + "Owner: ???" + '\n' + "Building Level: ???"+
-                        '\n' + location);
-                card.setWrappingWidth(100);
-                cardStack.setOnMouseClicked(b ->
-                {
-                    cardStage.close();
-                });
+                    cardInfo.setFill(Color.WHITE);
+                    card.setText("Tile Name: ???" + '\n' + "Owner: ???" + '\n' + "Building Level: ???" +
+                                 '\n' + location);
+                    card.setWrappingWidth(100);
+                    cardStack.setOnMouseClicked(b ->
+                    {
+                        inspectWindow = false;
+                        cardStage.close();
+                    });
             });
             inspect.setWrapText(true);
             inspect.setText("Tile Name: ???" + '\n' + "Owner: ???" + '\n' + "Building Level: ???"+
                     '\n' + location);
+            }
         });
         insert.setStyle("-fx-background-color: Transparent");
         insert.setGraphic(set);
@@ -551,6 +569,7 @@ public class GUI extends Application {
 
     /**
      * The dice() function is used to return an arrayList containing all the dice faces
+     *
      * @return ArrayList that returns 6 dice faces as Image variable
      */
      public ArrayList<Image> dice()
@@ -563,6 +582,7 @@ public class GUI extends Application {
          }
          return diceFaces;
      }
+
     /**
      * The function createText() is used to simplify the creation of text in the program
      * @param content String of the new Text
@@ -579,6 +599,15 @@ public class GUI extends Application {
         returnText.setSelectionFill(col);
         return returnText;
     }
+
+    /**
+     * getCoordinates() is used to get the coordinates of the desired tile. It is useful to easily move the player
+     * to the desired location. (currently not working as intended)
+     *
+     * @param axis The axis needed (X or Y)
+     * @param tileNum The number of the tile
+     * @return Returns the X or Y coordinate
+     */
     public double getCoordinates(char axis, int tileNum)
     {
         Button currTile = tiles.get(tileNum);
