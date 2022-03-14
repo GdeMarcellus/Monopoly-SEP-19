@@ -60,9 +60,46 @@ public class Board {
      * @param dices the size 2 array containing the dice
      * @return boolean true if both dice are the same, unless player sent to jail
      */
-    private boolean check_double(ArrayList<Integer> dices){
+    public boolean check_double(ArrayList<Integer> dices){
         boolean returnValue = dices.get(0) == dices.get(1);
         return returnValue;
+    }
+
+    /**
+     * Returns amount remaining if player purchased property
+     * @param playerIndex index of player making the purchase
+     * @param tileIndex index of tile being purchased
+     */
+    public int remainingBalance(int playerIndex, int tileIndex) {
+        return players.get(playerIndex).getBalance() -
+                ((Property) tiles[tileIndex]).getPrice();
+    }
+
+    /**
+     * facilitates the purchase ofa given property by a given player
+     * @param playerIndex index of player making the purchase
+     * @param tileIndex index of tile being purchased
+     * @return money outstanding after purchase (player couldn't afford purchase)
+     */
+
+    public int purchase(int playerIndex, int tileIndex) {
+        //For readability
+        Property property = (Property)tiles[tileIndex];
+        Player player = players.get(playerIndex);
+
+        //take money owed from player
+        int outstanding = property.getPrice() - players.get(playerIndex).removeMoney(property.getPrice());
+
+        //Pay available funds to property owner
+
+        property.getOwner().addMoney(property.getPrice() - outstanding);
+
+        //property ownership transferred to player
+        property.getOwner().removeProperty(property);
+        property.setOwner(player);
+        player.addProperty(property);
+
+        return outstanding;
     }
 
     public Tile[] getTiles() {
