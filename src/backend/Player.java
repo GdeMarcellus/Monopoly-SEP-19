@@ -1,10 +1,13 @@
 package backend;
 
+import java.util.ArrayList;
+
 public abstract class Player {
 
     private int position;
     private int balance;
     private int numDoubles;
+    private ArrayList<Property> properties;
 
     public Player() {
         this.position = 0;
@@ -45,4 +48,33 @@ public abstract class Player {
     public void setNumDoubles(int numDoubles) {
         this.numDoubles = numDoubles;
     }
+
+    public boolean addMoney(int money) {
+        return true;
+    }
+
+    public int removeMoney(int money){
+        return 0;
+    }
+
+    public int getMoney() {
+        return 0;
+    }
+
+    public  Boolean addProperty(Property property) {
+        return true;
+    }
+
+    public Boolean removeProperty(Property property){
+        return true;
+    }
+
+    public ArrayList<Property> getProperties(){
+        return new ArrayList<Property>();
+    }
+
+    public boolean hasProperty(Property property){
+        return true;
+    }
+
 }
