@@ -49,24 +49,39 @@ public abstract class Player {
         this.numDoubles = numDoubles;
     }
 
-    public boolean addMoney(int money) {
-        return true;
+    public void addMoney(int money) {
+        balance += money;
     }
 
     public int removeMoney(int money){
-        return 0;
+        int returnvalue = 0;
+        if (balance >= money){
+            returnvalue = money;
+            balance -= money;
+        }
+        else {
+            returnvalue = balance;
+            balance = 0;
+        }
+        return returnvalue;
     }
 
     public int getMoney() {
-        return 0;
+        return balance;
     }
 
-    public  Boolean addProperty(Property property) {
-        return true;
+    public void addProperty(Property property) {
+        properties.add(property);
     }
 
     public Boolean removeProperty(Property property){
-        return true;
+       if (properties.contains(property)){
+           properties.remove(property);
+           return true;
+        }
+       else{
+           return false;
+       }
     }
 
     public ArrayList<Property> getProperties(){
@@ -74,7 +89,7 @@ public abstract class Player {
     }
 
     public boolean hasProperty(Property property){
-        return true;
+        return properties.contains(property);
     }
 
 }
