@@ -13,6 +13,7 @@ public abstract class Player {
         this.position = 0;
         this.balance = 0;
         this.numDoubles = 0;
+        this.properties = new ArrayList<Property>();
     }
 
     public int getPosition() {
@@ -85,7 +86,7 @@ public abstract class Player {
     }
 
     public ArrayList<Property> getProperties(){
-        return new ArrayList<Property>();
+        return properties;
     }
 
     public boolean hasProperty(Property property){
