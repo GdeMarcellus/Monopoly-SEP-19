@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="32e47ab8-f877-4d6e-b3f8-a116575cf414" name="Changes" comment="New Changes : Fixed all errors and typos (Added more comments)" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/.." value="Sprint-1" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="UPDATE_TYPE" value="REBASE" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="25Tqge3ru48IvtEBgDL2fYybVej" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="extract.method.default.visibility" value="private" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/GUI/Base" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.2" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/GUI/Base" />
+      <recent name="$PROJECT_DIR$/src" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/GUI" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="GUI" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="GUI.GUI" />
+      <module name="SoftEng-GUI-Preview" />
+      <option name="VM_PARAMETERS" value="--module-path $USER_HOME$/Downloads/javafx-sdk-17.0.2/lib --add-modules=javafx.controls" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.GUI" />
+        <item itemvalue="Application.GUI" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="32e47ab8-f877-4d6e-b3f8-a116575cf414" name="Changes" comment="" />
+      <created>1645561536641</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1645561536641</updated>
+      <workItem from="1645561537752" duration="767000" />
+      <workItem from="1645631947724" duration="2153000" />
+      <workItem from="1645726160088" duration="6388000" />
+      <workItem from="1645743655981" duration="6642000" />
+      <workItem from="1645982525625" duration="5995000" />
+      <workItem from="1646080270787" duration="2815000" />
+      <workItem from="1646405497653" duration="2758000" />
+      <workItem from="1646512024055" duration="4763000" />
+      <workItem from="1646585625594" duration="2801000" />
+      <workItem from="1646610168812" duration="1210000" />
+      <workItem from="1646673720008" duration="5153000" />
+      <workItem from="1646758643046" duration="2508000" />
+      <workItem from="1646771226436" duration="7919000" />
+      <workItem from="1646841132339" duration="1000" />
+      <workItem from="1646841217791" duration="1786000" />
+      <workItem from="1646847501393" duration="1788000" />
+      <workItem from="1646851119237" duration="4154000" />
+      <workItem from="1646939473575" duration="9905000" />
+      <workItem from="1647105960616" duration="614000" />
+      <workItem from="1647107772161" duration="56000" />
+      <workItem from="1647107834215" duration="1502000" />
+      <workItem from="1647121468393" duration="4000" />
+      <workItem from="1647121488170" duration="68000" />
+      <workItem from="1647812398306" duration="179000" />
+    </task>
+    <task id="LOCAL-00001" summary="Test Commit #1">
+      <created>1645561691365</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1645561691365</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Test Commit #2">
+      <created>1645562063561</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1645562063561</updated>
+    </task>
+    <task id="LOCAL-00003" summary="New Changes (Bank and Dices) #Comments Missing">
+      <created>1645750328651</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1645750328651</updated>
+    </task>
+    <task id="LOCAL-00004" summary="New Changes (Player Movement) #Comments Missing">
+      <created>1646152940651</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1646152940651</updated>
+    </task>
+    <task id="LOCAL-00005" summary="New Changes (Tile Selection) #Commented">
+      <created>1646601247435</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1646601247435</updated>
+    </task>
+    <task id="LOCAL-00006" summary="New Changes : Bank">
+      <created>1646939639498</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1646939639499</updated>
+    </task>
+    <task id="LOCAL-00007" summary="New Changes : Fixed all errors and typos (Added more comments)">
+      <created>1647018236707</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1647018236707</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="origin/Backend-Sprint1" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Test Commit #1" />
+    <MESSAGE value="Test Commit #2" />
+    <MESSAGE value="New Changes (Bank and Dices) #Comments Missing" />
+    <MESSAGE value="New Changes (Player Movement) #Comments Missing" />
+    <MESSAGE value="New Changes (Tile Selection) #Commented" />
+    <MESSAGE value="New Changes : Bank" />
+    <MESSAGE value="New Changes : Fixed all errors and typos (Added more comments)" />
+    <option name="LAST_COMMIT_MESSAGE" value="New Changes : Fixed all errors and typos (Added more comments)" />
+  </component>
+</project>
