@@ -1,6 +1,6 @@
 package backend;
 
-public class Building extends Property{
+public class TileBuilding extends TileProperty {
 
     private String hexColour;
 

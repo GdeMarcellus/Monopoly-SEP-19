@@ -2,7 +2,7 @@ package backend;
 
 import java.util.ArrayList;
 
-public class Property extends Tile {
+public class TileProperty extends Tile {
 
     private int price;
     private String name;

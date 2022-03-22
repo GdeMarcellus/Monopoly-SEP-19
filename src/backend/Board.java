@@ -72,7 +72,7 @@ public class Board {
      */
     public int remainingBalance(int playerIndex, int tileIndex) {
         return players.get(playerIndex).getBalance() -
-                ((Property) tiles[tileIndex]).getPrice();
+                ((TileProperty) tiles[tileIndex]).getPrice();
     }
 
     /**
@@ -84,7 +84,7 @@ public class Board {
 
     public int purchase(int playerIndex, int tileIndex) {
         //For readability
-        Property property = (Property)tiles[tileIndex];
+        TileProperty property = (TileProperty)tiles[tileIndex];
         Player player = players.get(playerIndex);
 
         //take money owed from player
