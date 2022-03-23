@@ -15,6 +15,9 @@ public class Dice {
         this.numDice = numDice;
         this.diceMin = diceMin;
         this.diceMax = diceMax;
+        for (int i = 0; i < numDice; i++) {
+            dice.add(0);
+        }
     }
 
     /**
@@ -22,7 +25,7 @@ public class Dice {
      */
     public void rollDice() {
         for (int i = 0; i < numDice; i++) {
-            dice.add(ThreadLocalRandom.current().nextInt(diceMin, diceMax + 1));
+            dice.set(ThreadLocalRandom.current().nextInt(diceMin, diceMax + 1), i);
         }
     }
 
