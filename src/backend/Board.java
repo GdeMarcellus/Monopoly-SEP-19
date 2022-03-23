@@ -65,6 +65,10 @@ public class Board {
         return returnValue;
     }
 
+    public int getPlayerNum()
+    {
+        return players.size();
+    }
     /**
      * Returns amount remaining if player purchased property
      * @param playerIndex index of player making the purchase

@@ -1,56 +1,63 @@
 package GUI;
 
-import backend.*;
-import javafx.animation.*;
+import backend.Board;
+import backend.Dice;
+import backend.HumanPlayer;
+import backend.Property;
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.FillTransition;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
-import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
-//TODO: Implement Board Class
-//TODO: Implement Player Class
-//TODO: Implement Dice Class
-//TODO: Implement Tile Class
-//TODO: Implement Utility Class
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class GUI extends Application {
 
     //Backend
-    private final Tile[] tiles_for_board = new Tile[41];
-    private int playerTileNum;
-    private int player_Index;
+    private HashMap<Integer, Color> player_Index;
+    private Text[] cardInfo_Text;
+    private GridPane board;
 
+    //Player
     private StackPane final_main;
-    private final Dice dices = new Dice(2,0,5);
+    PlayerInformation[] playerInformation;
+
+    //Dice Variables
+    private final Dice dices = new Dice(2,1,6);
     private final Button dice1 = new Button();
+    private final Button dice2 = new Button();
+    private final ArrayList<Image> facePNG = getDiceFaces();
+
     private boolean inspectWindow = false;
     private final ArrayList<Button> tiles = new ArrayList<>();
-    private final Button dice2 = new Button();
-    private final Label inspect = new Label();
-    private final ArrayList<Image> facePNG = dice();
-    private final Circle playerTest = new Circle();
     private  final Stage gameBoard_GUI = new Stage();
     private Board gameBoard = new Board();
-    private Text moneyUser;
+    private Text moneyOfPlayer;
     private Text playerTurnText;
-    private ListView<String> playerInfo = new ListView<>();
+    private ListView<Text> playerInfo = new ListView<>();
     private int playerTurn = 0;
-    private final GridPane board = createBoard();
-    private StackPane boardAndPlayer;
     private boolean finishedTurn = false;
 
     public static void main(String []args)
@@ -129,8 +136,8 @@ public class GUI extends Application {
                     -fx-font-size: 30;""");
 
         //Name of the user
-        moneyUser = new Text(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-        moneyUser.setStyle("""
+        moneyOfPlayer = new Text(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+        moneyOfPlayer.setStyle("""
                 -fx-padding: 8 15 15 15;
                     -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
                     -fx-background-radius: 8;
@@ -142,7 +149,7 @@ public class GUI extends Application {
                     -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
                     -fx-font-weight: bold;
                     -fx-font-size: 50;""");
-        moneyUser.setTextAlignment(TextAlignment.CENTER);
+        moneyOfPlayer.setTextAlignment(TextAlignment.CENTER);
 
         //Next
         playerTurnText = new Text("Player Turn:  " +(playerTurn+1));
@@ -160,8 +167,9 @@ public class GUI extends Application {
                     -fx-font-size: 30;""");
 
         //Creating and setting up the game board (using a GridPane)
-        playerTest.setRadius(20);
+        board = createBoard();
         board.setAlignment(Pos.CENTER);
+
         //Creating a title for the scene
         Text title = createText("Property Tycoon", 50, Color.BLACK,"arial");
         HBox top= new HBox(title);
@@ -178,12 +186,11 @@ public class GUI extends Application {
 
         //Creating text for the player section of the board
         Text players = createText("Players",40,Color.BLACK,"arial");
-        playerInfo = getPlayerInfo(player_Index);
+
         //Start selection with the first element in the list
         playerInfo.getSelectionModel().select(0);
         playerInfo.setMouseTransparent(true);
-
-        VBox playerList = new VBox(players,playerInfo);
+        VBox playerList = new VBox(players);
         playerList.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         playerList.setAlignment(Pos.CENTER);
 
@@ -197,12 +204,11 @@ public class GUI extends Application {
         //Right side of board
         //Working on the right side of the game-board
         Text idk = createText("Bank",40,Color.BLACK,"arial");
-        VBox bankSide = new VBox(idk, playerTurnText,moneyCounter,moneyUser);
+        VBox bankSide = new VBox(idk, playerTurnText,moneyCounter, moneyOfPlayer);
         bankSide.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         bankSide.setAlignment(Pos.CENTER);
         bankSide.setSpacing(30);
 
-        System.out.println(playerInfo.getItems());
         //Setting up the main BorderPane of the scene
         BorderPane main = new BorderPane();
         main.setRight(bankSide);
@@ -211,13 +217,27 @@ public class GUI extends Application {
         board.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         main.setCenter(board);
         main.setLeft(playerList);
-        final_main = new StackPane(main,playerTest);
+         final_main = new StackPane(main);
+        for(int i =0 ; i < playerInformation.length; i++)
+        {
+            final_main.getChildren().add(playerInformation[i].getPlayerToken());
+            playerInformation[i].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(i).getPosition(),i));
+            playerInformation[i].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(i).getPosition(),i));
+        }
+
+        playerInfo = new ListView<>();
+        for (int i = 0; i < gameBoard.getPlayerNum(); i++)
+        {
+            playerInfo.getItems().add(i,getPlayerInfo(i));
+        }
+        playerInfo.getItems().get(0).setStroke(playerInformation[0].playerColor);
+        playerList.getChildren().add(playerInfo);
         BorderPane.setAlignment(bankSide,Pos.CENTER_RIGHT);
 
         Scene finalScene = new Scene(final_main,1500,1000);
         //Creating a new Scene
         gameBoard_GUI.setScene(finalScene);
-        gameBoard_GUI.showAndWait();
+        gameBoard_GUI.show();
     }
 
     /**
@@ -229,34 +249,7 @@ public class GUI extends Application {
         //Pause transition taken from https://stackoverflow.com/questions/55768170/temporarily-change-color-of-a-button-when-clicked
 
         PauseTransition transition = new PauseTransition(Duration.seconds(0.5));
-        transition.setOnFinished(event -> moneyUser.setFill(Color.BLACK));
-
-        //Money up button (for Testing)
-        Button moneyUp = new Button("Money Up");
-        moneyUp.setOnAction(e ->
-        {
-            //Start of animation
-            e.consume();
-            moneyUser.setFill(Color.GREEN);
-            transition.playFromStart();
-            gameBoard.getPlayer(playerTurn).addMoney(100);
-            moneyUser.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-
-        });
-
-        //Money up button (for Testing)
-        Button moneyDown = new Button("Money Down");
-        moneyDown.setOnAction(e ->
-        {
-            //Start of animation
-            e.consume();
-            moneyUser.setFill(Color.RED);
-            transition.playFromStart();
-
-            //Adding money and updating text
-            gameBoard.getPlayer(playerTurn).removeMoney(100);
-            moneyUser.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-        });
+        transition.setOnFinished(event -> moneyOfPlayer.setFill(Color.BLACK));
 
         //Setting up Buy button
         Button Buy = new Button("Buy");
@@ -271,8 +264,24 @@ public class GUI extends Application {
             }
             else
             {
-                int moneyGiventoBank = gameBoard.purchase(player_Index,gameBoard.getPlayer(playerTurn).getPosition());
-                moneyUser.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                if(gameBoard.remainingBalance(playerTurn,gameBoard.getPlayer(playerTurn).getPosition()) < 0)
+                {
+                    Alert d = new Alert(AlertType.WARNING);
+                    d.setContentText("Can't Afford");
+                    d.show();
+                }
+                else
+                {
+                    //Pay Price
+                    gameBoard.purchase(playerTurn,gameBoard.getPlayer(playerTurn).getPosition());
+                    //Set Owner of tile bought
+                    ((Property) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]).setOwner(gameBoard.getPlayer(playerTurn));
+
+                    //Change GUI
+                    moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                    moneyOfPlayer.setFill(Color.RED);
+                    transition.playFromStart();
+                }
             }
         });
         //Setting up move button
@@ -282,26 +291,31 @@ public class GUI extends Application {
                 {
                     if (!finishedTurn) {
                     dices.rollDice();
-                    ImageView first = new ImageView(facePNG.get(dices.getDiceValues().get(0)));
+                    ImageView first = new ImageView(facePNG.get(dices.getDiceValues().get(0)-1));
                     first.setFitWidth(60);
                     first.setFitHeight(60);
                     dice1.setGraphic(first);
-                    ImageView second = new ImageView(facePNG.get(dices.getDiceValues().get(1)));
+                    ImageView second = new ImageView(facePNG.get(dices.getDiceValues().get(1)-1));
                     second.setFitWidth(60);
                     second.setFitHeight(60);
                     dice2.setGraphic(second);
+                    int dieValues = dices.getDiceValues().get(0) + dices.getDiceValues().get(1);
                     if (Objects.equals(dices.getDiceValues().get(0), dices.getDiceValues().get(1)))
                     {
+                        gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
+                        playerInformation[playerTurn].getPlayerToken().setLayoutY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                        playerInformation[playerTurn].getPlayerToken().setLayoutX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                         finishedTurn = false;
                     }
                     else
                     {
-                        int dieValues = dices.getDiceValues().get(0) + dices.getDiceValues().get(1);
-                        gameBoard.getPlayer(playerTurn).setPosition(dieValues);
-                        System.out.println(gameBoard.getPlayer(playerTurn).getPosition());
+                        System.out.println(tiles.get(playerTurn).getBoundsInLocal());
+                        System.out.println(tiles.get(playerTurn).getLayoutBounds());
+                        System.out.println(tiles.get(playerTurn).getBoundsInParent());
+                        gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
                         finishedTurn = true;
-                        playerTest.setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition()));
-                        playerTest.setTranslateY(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition()));
+                        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                     }
                     }
                 }
@@ -311,31 +325,46 @@ public class GUI extends Application {
         Button newTurn = new Button("Next Turn");
         newTurn.setOnAction(e->
         {
-            if (playerTurn+1 >= playerInfo.getItems().size())
+            if (!finishedTurn)
             {
-                playerTurn = 0;
+                Alert d = new Alert(AlertType.WARNING);
+                d.setContentText("Roll dies and move before playing another action!");
+                d.show();
             }
             else
             {
-                playerTurn += 1;
+                playerInfo.getItems().get(playerTurn).setStroke(Color.BLACK);
+                playerInfo.getItems().remove(playerTurn);
+                playerInfo.getItems().add(playerTurn,getPlayerInfo(playerTurn));
+                if (playerTurn+1 >= gameBoard.getPlayerNum())
+                {
+                    playerTurn = 0;
+                }
+                else
+                {
+                    playerTurn += 1;
+                }
+                playerInfo.getItems().get(playerTurn).setStroke(playerInformation[playerTurn].playerColor);
+                playerInfo.refresh();
+                playerTurnText.setText(("Player Turn:  " +(playerTurn + 1)));
+                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                finishedTurn = false;
             }
-            playerInfo.getSelectionModel().select(playerTurn);
-            playerInfo = getPlayerInfo(player_Index);
-            playerTurnText.setText(("Player Turn:  " +(playerTurn + 1)));
-            moneyUser.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-            finishedTurn = false;
         });
-
-        //Setting up Skip button
-        Button Skip = new Button("Skip");
-        Skip.setPrefSize(100,50);
 
         //Setting up Build button
         Button Build = new Button("Build");
         Build.setPrefSize(100,50);
+        Build.setOnAction(e ->
+        {
+            if(finishedTurn)
+            {
+                //TODO: Sprint 3 Buy Building
+            }
+        });
 
         //Setting up HBox to finalize the controls
-        HBox final_control = new HBox(newTurn,move,Buy,Skip,Build,moneyUp,moneyDown);
+        HBox final_control = new HBox(newTurn,move,Buy,Build);
         final_control.setAlignment(Pos.CENTER);
         final_control.setSpacing(100);
         return final_control;
@@ -349,17 +378,11 @@ public class GUI extends Application {
      * - If the User is a CPU or Not
      * @return Returns a ListView for all the player information
      */
-    private ListView<String> getPlayerInfo(int playerNo)
+    private Text getPlayerInfo(int playerNo)
     {
-        ListView<String> player = new ListView<>();
-        for (int j = 0; j<playerNo; j++)
-            {
-                String playerInfos = "Player Number: " + (j+1) + "\n" +
-                        "Player Deposit: " + gameBoard.getPlayer(j).getBalance() + "\n" +
-                        "Number of properties owned: " + gameBoard.getPlayer(j).getProperties().size() + "\n";
-                player.getItems().add(playerInfos);
-            }
-        return player;
+        return new Text("Player Number: " + playerNo  + "\n" +
+                "Player Deposit: " + gameBoard.getPlayer(playerNo).getBalance() + "\n" +
+                "Number of properties owned: " + gameBoard.getPlayer(playerNo).getProperties().size() + "\n");
     }
 
     /**
@@ -419,7 +442,6 @@ public class GUI extends Application {
                 -fx-font-size: 8em;""".indent(4));
         settings_button.setOnAction(e ->
                 {
-                System.out.println("Second Works");
                 mainMenu.close();
                 });
         HBox title =  new HBox(main_Text, exit);
@@ -461,13 +483,21 @@ public class GUI extends Application {
 
     public HBox playerWindows()
     {
-        String[] colors = new String[5];
+        player_Index = new HashMap<>();
+        AtomicInteger playerNumber = new AtomicInteger();
+        String[] colors_String = new String[5];
+        colors_String[0] = "blue";
+        colors_String[1] = "orange";
+        colors_String[2] = "red";
+        colors_String[3] = "green";
+        colors_String[4] = "purple";
+        Color[] colors_Color = new Color[5];
+        colors_Color[0] = Color.BLUE;
+        colors_Color[1] = Color.ORANGE;
+        colors_Color[2] = Color.RED;
+        colors_Color[3] = Color.GREEN;
+        colors_Color[4] = Color.PURPLE;
         boolean[] selected = new boolean[5];
-        colors[0] = "blue";
-        colors[1] = "orange";
-        colors[2] = "red";
-        colors[3] = "green";
-        colors[4] = "purple";
         HBox playerWindows = new HBox();
         Button[] playerWindowArray = new Button[5];
         for (int i = 0; i < 5; i++)
@@ -491,10 +521,11 @@ public class GUI extends Application {
                     playerWindow.setStyle("\n" +
                             "    -fx-background-color:transparent ;\n" +
                             "    -fx-background-radius:0;\n" +
-                            "    -fx-border-color:" + colors[colorNum] +";\n" +
+                            "    -fx-border-color:" + colors_String[colorNum] +";\n" +
                             "    -fx-border-width: 10 10 10 10;\n");
                   selected[colorNum] = true;
-                  player_Index++;
+                  player_Index.put(Integer.valueOf(String.valueOf(playerNumber)), colors_Color[colorNum]);
+                  playerNumber.getAndIncrement();
                 }
                 else
                 {
@@ -506,7 +537,8 @@ public class GUI extends Application {
                         -fx-border-width: 10 10 10 10;
                     """);
                     selected[colorNum] = false;
-                    player_Index--;
+                    player_Index.remove(Integer.valueOf(String.valueOf(playerNumber)));
+                    playerNumber.getAndDecrement();
                 }
             });
             playerWindowArray[i] = playerWindow;
@@ -514,16 +546,41 @@ public class GUI extends Application {
         }
         return playerWindows;
     }
+
+    /**
+     *
+     */
     public void setupPlaySession()
     {
        gameBoard = new Board();
-       playerTileNum = 0;
-       for (int i = 0; i < player_Index; i++)
+       playerInformation = new PlayerInformation[player_Index.size()];
+       for (int i = 0; i < player_Index.size(); i++)
        {
+           int playerNum = i;
            gameBoard.addPlayer(new HumanPlayer());
            gameBoard.getPlayer(i).addMoney(1000);
+           playerInformation[i] = new PlayerInformation(player_Index.get(i),i);
+           playerInformation[i].getPlayerToken().setOnMouseClicked(e ->
+           {
+               Alert listOfBuildings = new Alert(AlertType.INFORMATION);
+               listOfBuildings.setHeaderText("Property List Of: " + (playerInformation[playerNum].getPlayerNumber()+1));
+               listOfBuildings.setContentText(getPropertyString(playerNum));
+               listOfBuildings.show();
+           });
        }
     }
+
+    public String getPropertyString(int playerNum)
+    {
+
+        StringBuilder list_of_properties = new StringBuilder();
+        for(int i = 0; i < gameBoard.getPlayer(playerNum).getProperties().size(); i++)
+        {
+            list_of_properties.append((i+1) + " : " + gameBoard.getPlayer(playerNum).getProperties().get(i) + "\n");
+        }
+        return String.valueOf(list_of_properties);
+    }
+
     /**
      * The createBoard() method returns a gridPane containing a board with its tiles.
      * It also contains two boxes representing the dices
@@ -532,44 +589,89 @@ public class GUI extends Application {
      */
     public GridPane createBoard()
     {
-        Tile[] gameTiles = new Tile[41];
+        HumanPlayer bank = new HumanPlayer();
+        cardInfo_Text = new Text[41];
+        Property[] gameTiles = new Property[41];
         //count is used to keep track of the png in the Base folder
         int count = 1;
         //Creating grid pane to store the board
         GridPane gridPane = new GridPane();
+
+        //Top side of the board (0,i)
+        for(int i = 0; i < 11; i++)
+        {
+            gameTiles[count-1] = new Property();
+            gameTiles[count-1].setPrice(100);
+            gameTiles[count-1].setOwner(bank);
+            //Store image in Image tile
+            Image tile = new Image("file:resources/Base/" + count + ".png");
+            //String location used to test button functionality
+            String location = 0 + "  " + i + "\nName: " + tile.getUrl();
+            ImageView set = new ImageView(tile);
+            set.setFitHeight(80);
+            set.setFitWidth(80);
+            //Setting up the Button for each tile
+            count = getCount(count, gridPane, 0, i, tile, location, set);
+        }
+
+        //Right side of the board (i,9)
+        for(int i = 1; i < 10; i++)
+        {
+
+            gameTiles[count-1] = new Property();
+            gameTiles[count-1].setPrice(100);
+            gameTiles[count-1].setOwner(bank);
+            //Store image in Image tile
+            Image tile = new Image("file:resources/Base/" + count + ".png");
+            //String location used to test button functionality
+            String location = i + "  " + 9 + "\nName: " + tile.getUrl();
+            ImageView set = new ImageView(tile);
+            set.setFitHeight(80);
+            set.setFitWidth(80);
+            //Setting up the Button for each tile
+            count = getCount(count, gridPane, i, 10, tile, location, set);
+        }
+
+        //Bottom side of the board
+        for(int i = 10; i >= 0; i--)
+        {
+            gameTiles[count-1] = new Property();
+            gameTiles[count-1].setPrice(100);
+            gameTiles[count-1].setOwner(bank);
+            //Store image in Image tile
+            Image tile = new Image("file:resources/Base/" + count + ".png");
+            //String location used to test button functionality
+            String location = 9 + "  " + i + "\nName: " + tile.getUrl();
+            ImageView set = new ImageView(tile);
+            set.setFitHeight(80);
+            set.setFitWidth(80);
+            //Setting up the Button for each tile
+            count = getCount(count, gridPane, 10, i, tile, location, set);
+
+        }
+
+        //Left side of the board
+        for(int i = 9; i > 0; i--)
+        {
+            gameTiles[count-1] = new Property();
+            gameTiles[count-1].setOwner(bank);
+            gameTiles[count-1].setPrice(100);
+            //Store image in Image tile
+            Image tile = new Image("file:resources/Base/" + count + ".png");
+            //String location used to test button functionality
+            String location = i + "  " + 0 + "\nName: " + tile.getUrl();
+            ImageView set = new ImageView(tile);
+            set.setFitHeight(80);
+            set.setFitWidth(80);
+            //Setting up the Button for each tile
+            count = getCount(count, gridPane, i, 0, tile, location, set);
+        }
         for (int i = 0; i < 10; i++)
         {
             for (int j = 0; j < 10; j++)
             {
-                if (i == 0 && j == 0 || i == 9 && j == 0 ||i == 0 && j == 9 ||i == 9 && j == 9)
-                {
-                    gameTiles[count] = new Tile();
-                    //Store image in Image tile
-                    Image tile = new Image("file:resources/Base/" + count + ".png");
-                    //String location used to test button functionality
-                    String location = i + "  " + j + "\nName: " + tile.getUrl();
-                    ImageView set = new ImageView(tile);
-                    set.setFitHeight(80);
-                    set.setFitWidth(80);
-                    //Setting up the Button for each tile
-                    count = getCount(count, gridPane, i, j, tile, location, set);
-                }
-               //The following if statement represents the border of the board
-               else if(i == 0 || j == 0 || i == 9 || j == 9)
-               {
-                   gameTiles[count] = new Tile();
-                   //Store image in Image tile
-                   Image tile = new Image("file:resources/Base/" + count + ".png");
-                   //String location used to test button functionality
-                   String location = i + "  " + j + "\nName: " + tile.getUrl();
-                   ImageView set = new ImageView(tile);
-                   set.setFitHeight(80);
-                   set.setFitWidth(80);
-                   //Setting up the Button for each tile
-                   count = getCount(count, gridPane, i, j, tile, location, set);
-               }
                // The following if statement represents two card slots
-               else if (i == 2 && j == 4)
+                if (i == 2 && j == 4)
                {
                    Button fake = new Button("Card Slot");
                    fake.setOnAction(e ->
@@ -593,6 +695,7 @@ public class GUI extends Application {
                    });
                    gridPane.add(fake,7,4);
                }
+
                // The following if statement represents the first dice
                else if (i == 3 && j == 8)
                {
@@ -604,6 +707,7 @@ public class GUI extends Application {
                    dice1.setPadding(Insets.EMPTY);
                    gridPane.add(dice1,3,8);
                }
+
                // The following if statement represents the second dice
                else if (i == 6 && j == 8)
                {
@@ -615,6 +719,8 @@ public class GUI extends Application {
                    dice2.setPadding(Insets.EMPTY);
                    gridPane.add(dice2,6,8);
                }
+
+               //The else statement represents the blank spots in the middle of the board
                else
                {
                    Button empty = new Button();
@@ -640,6 +746,7 @@ public class GUI extends Application {
      * @return
      */
     private int getCount(int count, GridPane gridPane, int i, int j, Image tile, String location, ImageView set) {
+        int cardNum = count;
         Button insert = new Button();
         insert.setOnAction(e->
         {
@@ -647,8 +754,8 @@ public class GUI extends Application {
             {
             inspectWindow = true;
             Rectangle cardInfo = new Rectangle(0,0,500,1000);
-            Text card = new Text();
-            StackPane cardStack = new StackPane(cardInfo,card);
+            cardInfo_Text[cardNum] = new Text();
+            StackPane cardStack = new StackPane(cardInfo,cardInfo_Text[cardNum]);
             cardInfo.setFill(new ImagePattern(tile));
             Scene cardInfoScene = new Scene(cardStack,300,400);
             Stage cardStage = new Stage();
@@ -657,18 +764,13 @@ public class GUI extends Application {
             cardStack.setOnMouseClicked(a ->
             {
                     cardInfo.setFill(Color.WHITE);
-                    card.setText("Tile Name: ???" + '\n' + "Owner: ???" + '\n' + "Building Level: ???" +
-                                 '\n' + location);
-                    card.setWrappingWidth(100);
+                    updateCardInfo(cardNum);
                     cardStack.setOnMouseClicked(b ->
                     {
                         inspectWindow = false;
                         cardStage.close();
                     });
             });
-            inspect.setWrapText(true);
-            inspect.setText("Tile Name: ???" + '\n' + "Owner: ???" + '\n' + "Building Level: ???"+
-                    '\n' + location);
             }
         });
         insert.setStyle("-fx-background-color: Transparent");
@@ -680,12 +782,19 @@ public class GUI extends Application {
         return count;
     }
 
+    public void updateCardInfo(int cardNum)
+    {
+        cardInfo_Text[cardNum].setText("Property Name:"  + ((Property) gameBoard.getTiles()[cardNum]).getName()  +
+                '\n' + "Price of Property: " + ((Property) gameBoard.getTiles()[cardNum]).getPrice() +
+                '\n' + "Owner: " + ((Property) gameBoard.getTiles()[cardNum]).getOwner() + '\n' );
+        cardInfo_Text[cardNum].setWrappingWidth(100);
+    }
     /**
      * The dice() function is used to return an arrayList containing all the dice faces
      *
      * @return ArrayList that returns 6 dice faces as Image variable
      */
-     public ArrayList<Image> dice()
+     public ArrayList<Image> getDiceFaces()
      {
          //ArrayList used to save all the faces of the dice
          ArrayList<Image> diceFaces = new ArrayList<>();
@@ -721,20 +830,16 @@ public class GUI extends Application {
      * @param tileNum The number of the tile
      * @return Returns the X or Y coordinate
      */
-    public double getCoordinates(char axis, int tileNum)
+    public double getCoordinates(char axis, int tileNum, int playerNumber)
     {
-        Button currTile = tiles.get(tileNum);
-        System.out.println(currTile.getLayoutX());
-        System.out.println(currTile.getLayoutY());
         double location = 0;
-        Bounds screenBounds = final_main.localToScreen(board.localToScreen(currTile.getBoundsInLocal()));
         if (axis == 'X')
         {
-           location =  screenBounds.getMinX();
+                location =  board.getChildren().get(tileNum).getLayoutX() - 440 + (playerNumber*10);
         }
         else if (axis == 'Y')
         {
-            location = screenBounds.getMinY();
+                location =  board.getChildren().get(tileNum).getLayoutY() - 440+ (playerNumber*10);
         }
         return location;
     }
