@@ -11,12 +11,10 @@ import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -29,6 +27,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -58,6 +57,10 @@ public class GUI extends Application {
     private ListView<Text> playerInfo = new ListView<>();
     private int playerTurn = 0;
     private boolean finishedTurn = false;
+    private boolean getBoughtProperty = false;
+    private String[] colors_String;
+    private Alert auctionWindow;
+    private boolean playerBoughtProperty = false;
 
     public static void main(String []args)
     {
@@ -216,7 +219,7 @@ public class GUI extends Application {
         board.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         main.setCenter(board);
         main.setLeft(playerList);
-         final_main = new StackPane(main);
+        final_main = new StackPane(main);
         for(int i =0 ; i < playerInformation.length; i++)
         {
             final_main.getChildren().add(playerInformation[i].getPlayerToken());
@@ -239,6 +242,69 @@ public class GUI extends Application {
         gameBoard_GUI.show();
     }
 
+    public Node  auctionNode()
+    {
+        ListView<TextField> playerBid = new ListView<>();
+        BorderPane mainAuctionPane = new BorderPane();
+        ImageView auctionPropertyIcon = new ImageView(new Image("file: resources/Base/" + gameBoard.getPlayer(playerTurn).getPosition() + ".png"));
+        GridPane playerAndText = new GridPane();
+        Text titleAuction = createText("Auction House!",100,Color.BLACK,"arial");
+        VBox titleAndProperty = new VBox(titleAuction,auctionPropertyIcon);
+        mainAuctionPane.setTop(titleAndProperty);
+        for (int i = 0; i < gameBoard.getPlayerNum();i++)
+        {
+            Button playerIcon = new Button();
+            playerIcon.setMinWidth(50);
+            playerIcon.setStyle("" +
+                    "-fx-background-color: " + playerInformation[i].playerColor_String);
+            playerAndText.add(playerIcon,i,0);
+        }
+        for (int i = 0; i < gameBoard.getPlayerNum();i++)
+        {
+            TextField answer = new TextField();
+            answer.setEditable(false);
+            playerBid.getItems().add(answer);
+            playerAndText.add(answer,i,1);
+        }
+        playerBid.getSelectionModel().select(0);
+        playerBid.getSelectionModel().getSelectedItem().setEditable(true);
+        HBox controlsAuction = new HBox();
+        Button nextPlayer =  new Button("Next Player!");
+        nextPlayer.setOnAction(e ->
+        {
+            if (playerBid.getSelectionModel().getSelectedIndex() == gameBoard.getPlayerNum() - 1)
+            {
+                int higherPlayer = 0;
+                int higherBid = 0;
+                for(int i = 0; i < playerBid.getItems().size(); i++)
+                {
+                    if( higherBid < Integer.parseInt(playerBid.getItems().get(i).getText()))
+                    {
+                      higherBid =   Integer.parseInt(playerBid.getItems().get(i).getText());
+                      higherPlayer = i;
+                    }
+                }
+                gameBoard.getPlayer(higherPlayer).addProperty((Property) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]);
+                gameBoard.getPlayer(higherPlayer).removeMoney(higherBid);
+                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(higherPlayer).getBalance()));
+                Alert auctionWinner = new Alert(AlertType.INFORMATION);
+                auctionWinner.setContentText("Winner of Auction is: " + (playerInformation[higherPlayer].getPlayerNumber() + 1));
+                auctionWinner.show();
+                auctionWindow.close();
+            }
+            else
+            {
+                playerBid.getSelectionModel().getSelectedItem().setEditable(false);
+                playerBid.getSelectionModel().selectNext();
+                playerBid.getSelectionModel().getSelectedItem().setEditable(true);
+            }
+        });
+        controlsAuction.getChildren().add(nextPlayer);
+        auctionWindow.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        mainAuctionPane.setBottom(controlsAuction);
+        mainAuctionPane.setCenter(playerAndText);
+        return mainAuctionPane;
+    }
     /**
      * controlButtons is used to create an HBox containing all the controls the user is going to have
      * @return Returning the HBox containing all the control buttons for the player
@@ -280,6 +346,7 @@ public class GUI extends Application {
                     moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                     moneyOfPlayer.setFill(Color.RED);
                     transition.playFromStart();
+                    playerBoughtProperty = true;
                 }
             }
         });
@@ -332,6 +399,12 @@ public class GUI extends Application {
             }
             else
             {
+            if(!playerBoughtProperty)
+            {
+                auctionWindow = new Alert(AlertType.NONE);
+                auctionWindow.setGraphic(auctionNode());
+                auctionWindow.show();
+            }
                 playerInfo.getItems().get(playerTurn).setStroke(Color.BLACK);
                 playerInfo.getItems().remove(playerTurn);
                 playerInfo.getItems().add(playerTurn,getPlayerInfo(playerTurn));
@@ -348,6 +421,7 @@ public class GUI extends Application {
                 playerTurnText.setText(("Player Turn:  " +(playerTurn + 1)));
                 moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                 finishedTurn = false;
+                playerBoughtProperty = false;
             }
         });
 
@@ -484,7 +558,7 @@ public class GUI extends Application {
     {
         player_Index = new HashMap<>();
         AtomicInteger playerNumber = new AtomicInteger();
-        String[] colors_String = new String[5];
+        colors_String = new String[5];
         colors_String[0] = "blue";
         colors_String[1] = "orange";
         colors_String[2] = "red";
@@ -558,7 +632,7 @@ public class GUI extends Application {
            int playerNum = i;
            gameBoard.addPlayer(new HumanPlayer());
            gameBoard.getPlayer(i).addMoney(1000);
-           playerInformation[i] = new PlayerInformation(player_Index.get(i),i);
+           playerInformation[i] = new PlayerInformation(colors_String[i],player_Index.get(i),i);
            playerInformation[i].getPlayerToken().setOnMouseClicked(e ->
            {
                Alert listOfBuildings = new Alert(AlertType.INFORMATION);
