@@ -12,6 +12,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -27,7 +28,6 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,7 +59,7 @@ public class GUI extends Application {
     private boolean finishedTurn = false;
     private boolean getBoughtProperty = false;
     private String[] colors_String;
-    private Alert auctionWindow;
+    private Stage auctionWindow;
     private boolean playerBoughtProperty = false;
 
     public static void main(String []args)
@@ -242,11 +242,82 @@ public class GUI extends Application {
         gameBoard_GUI.show();
     }
 
+    public Node selectPlayer()
+    {
+        BorderPane mainPane = new BorderPane();
+        GridPane playerToChoose = new GridPane();
+        Text title = createText("Choose a Player to Trade with!",50,Color.BLACK,"arial");
+        BorderPane.setAlignment(title,Pos.CENTER);
+        mainPane.setTop(title);
+        for (int i = 0; i < gameBoard.getPlayerNum(); i++)
+        {
+            if (!(playerTurn == i))
+            {
+                int playerNum = i;
+                Button playerIcon = new Button();
+                playerIcon.setOnAction(e ->
+                {
+                    Stage tradeStage = new Stage();
+                    tradeStage.setScene(new Scene((Parent) tradeP2P(playerNum),800,800));
+                    tradeStage.show();
+                });
+                playerIcon.setMinWidth(100);
+                playerIcon.setMinHeight(100);
+                playerIcon.setStyle("" +
+                        "-fx-background-color: " + playerInformation[i].playerColor_String);
+                playerToChoose.add(playerIcon,i,0);
+            }
+        }
+        playerToChoose.setPadding(new Insets(50));
+        mainPane.setCenter(playerToChoose);
+        playerToChoose.setAlignment(Pos.CENTER);
+        return mainPane;
+    }
+    public Node tradeP2P(int playerToTradeWith)
+    {
+        BorderPane mainPane = new BorderPane();
+        GridPane playerAndProperties = new GridPane();
+        Button playerIcon = new Button();
+        playerIcon.setOnAction(e ->
+        {
+        });
+        playerIcon.setMinWidth(50);
+        playerIcon.setStyle("" +
+                "-fx-background-color: " + playerInformation[playerToTradeWith].playerColor_String);
+        ListView<String> playerIconProperties = new ListView<>();
+        for (int i = 0; i < gameBoard.getPlayer(playerToTradeWith).getProperties().size(); i++)
+        {
+            playerIconProperties.getItems().add(gameBoard.getPlayer(playerToTradeWith).getProperties().get(i).toString());
+        }
+
+
+        Button playerIcon2 = new Button();
+        playerIcon2.setOnAction(e ->
+        {
+        });
+        playerIcon2.setMinWidth(50);
+        playerIcon2.setStyle("" +
+                "-fx-background-color: " + playerInformation[playerTurn].playerColor_String);
+
+        ListView<String> playerIcon2Properties = new ListView<>();
+        for (int i = 0; i < gameBoard.getPlayer(playerTurn).getProperties().size(); i++)
+        {
+            playerIcon2Properties.getItems().add(gameBoard.getPlayer(playerTurn).getProperties().get(i).toString());
+        }
+
+        playerAndProperties.add(playerIcon,0,0);
+        playerAndProperties.add(playerIconProperties,0,1);
+        playerAndProperties.add(playerIcon2,1,0);
+        playerAndProperties.add(playerIcon2Properties,1,1);
+        mainPane.setCenter(playerAndProperties);
+        return mainPane;
+    }
     public Node  auctionNode()
     {
         ListView<TextField> playerBid = new ListView<>();
         BorderPane mainAuctionPane = new BorderPane();
-        ImageView auctionPropertyIcon = new ImageView(new Image("file: resources/Base/" + gameBoard.getPlayer(playerTurn).getPosition() + ".png"));
+        Image tile = new Image("file:resources/Base/" + gameBoard.getPlayer(playerTurn).getPosition() + ".png");
+        ImageView auctionPropertyIcon = new ImageView(tile);
         GridPane playerAndText = new GridPane();
         Text titleAuction = createText("Auction House!",100,Color.BLACK,"arial");
         VBox titleAndProperty = new VBox(titleAuction,auctionPropertyIcon);
@@ -272,16 +343,27 @@ public class GUI extends Application {
         Button nextPlayer =  new Button("Next Player!");
         nextPlayer.setOnAction(e ->
         {
-            if (playerBid.getSelectionModel().getSelectedIndex() == gameBoard.getPlayerNum() - 1)
+            if(playerBid.getItems().get(playerBid.getSelectionModel().getSelectedIndex()).getText().equals(""))
             {
+                Alert missingNum = new Alert(AlertType.WARNING);
+                missingNum.setContentText("Please only Insert a number!");
+                missingNum.show();
+            }
+
+            //Does not work (Check if the player can pay the amount bidded)
+            else if (Integer.parseInt(playerBid.getItems().get(playerBid.getSelectionModel().getSelectedIndex()).getText()) < gameBoard.getPlayer(playerBid.getSelectionModel().getSelectedIndex()).getBalance()) {
+                {
+                    Alert bidTooHigh = new Alert(AlertType.WARNING);
+                    bidTooHigh.setContentText("Please bid only what you own!");
+                    bidTooHigh.show();
+                }
+            } else if (playerBid.getSelectionModel().getSelectedIndex() == gameBoard.getPlayerNum() - 1) {
                 int higherPlayer = 0;
                 int higherBid = 0;
-                for(int i = 0; i < playerBid.getItems().size(); i++)
-                {
-                    if( higherBid < Integer.parseInt(playerBid.getItems().get(i).getText()))
-                    {
-                      higherBid =   Integer.parseInt(playerBid.getItems().get(i).getText());
-                      higherPlayer = i;
+                for (int i = 0; i < playerBid.getItems().size(); i++) {
+                    if (higherBid < Integer.parseInt(playerBid.getItems().get(i).getText())) {
+                        higherBid = Integer.parseInt(playerBid.getItems().get(i).getText());
+                        higherPlayer = i;
                     }
                 }
                 gameBoard.getPlayer(higherPlayer).addProperty((Property) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]);
@@ -291,18 +373,21 @@ public class GUI extends Application {
                 auctionWinner.setContentText("Winner of Auction is: " + (playerInformation[higherPlayer].getPlayerNumber() + 1));
                 auctionWinner.show();
                 auctionWindow.close();
-            }
-            else
-            {
+            } else {
                 playerBid.getSelectionModel().getSelectedItem().setEditable(false);
                 playerBid.getSelectionModel().selectNext();
                 playerBid.getSelectionModel().getSelectedItem().setEditable(true);
             }
         });
         controlsAuction.getChildren().add(nextPlayer);
-        auctionWindow.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         mainAuctionPane.setBottom(controlsAuction);
+        titleAuction.setTextAlignment(TextAlignment.CENTER);
+        titleAndProperty.setAlignment(Pos.CENTER);
+        BorderPane.setAlignment(titleAndProperty,Pos.CENTER);
         mainAuctionPane.setCenter(playerAndText);
+        controlsAuction.setAlignment(Pos.CENTER);
+        playerAndText.setAlignment(Pos.CENTER);
+        BorderPane.setAlignment(playerAndText, Pos.CENTER);
         return mainAuctionPane;
     }
     /**
@@ -401,8 +486,8 @@ public class GUI extends Application {
             {
             if(!playerBoughtProperty)
             {
-                auctionWindow = new Alert(AlertType.NONE);
-                auctionWindow.setGraphic(auctionNode());
+                auctionWindow = new Stage();
+                auctionWindow.setScene(new Scene((Parent) auctionNode(),800,800));
                 auctionWindow.show();
             }
                 playerInfo.getItems().get(playerTurn).setStroke(Color.BLACK);
@@ -436,8 +521,14 @@ public class GUI extends Application {
             }
         });
 
+        Button trade = new Button("Trade");
+        {
+            Stage tradeStage = new Stage();
+            tradeStage.setScene(new Scene((Parent) selectPlayer(), 800,800));
+            tradeStage.show();
+        }
         //Setting up HBox to finalize the controls
-        HBox final_control = new HBox(newTurn,move,Buy,Build);
+        HBox final_control = new HBox(newTurn,move,Buy,Build, trade);
         final_control.setAlignment(Pos.CENTER);
         final_control.setSpacing(100);
         return final_control;
