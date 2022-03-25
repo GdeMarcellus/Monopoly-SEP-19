@@ -9,6 +9,7 @@ public abstract class Player {
     private int numDoubles;
     private ArrayList<TileProperty> properties;
 
+
     public Player() {
         this.position = 0;
         this.balance = 0;
@@ -20,34 +21,34 @@ public abstract class Player {
         return position;
     }
 
-    public void setPosition(int position) {
+    public boolean setPosition(int position) {
         //check position not beyond board limits
+        boolean passedGo = false;
+        if (position < this.position){
+            passedGo = true;
+        }
         if (this.position + position > 40) {
             this.position = position % 40;
         }
         else {
             this.position = position;
         }
+        return passedGo;
+
     }
 
+    /**
+     * @param position
+     */
+    public void jump(int position){
+        this.position = position;
+    }
+
+    /**
+     *
+     */
     public void toJail() {
         this.position = 41;
-    }
-
-    public int getBalance() {
-        return balance;
-    }
-
-    public void setBalance(int balance) {
-        this.balance = balance;
-    }
-
-    public int getNumDoubles() {
-        return numDoubles;
-    }
-
-    public void setNumDoubles(int numDoubles) {
-        this.numDoubles = numDoubles;
     }
 
     public void addMoney(int money) {
@@ -65,6 +66,22 @@ public abstract class Player {
             balance = 0;
         }
         return returnvalue;
+    }
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
+    }
+
+    public int getNumDoubles() {
+        return numDoubles;
+    }
+
+    public void setNumDoubles(int numDoubles) {
+        this.numDoubles = numDoubles;
     }
 
     public int getMoney() {
