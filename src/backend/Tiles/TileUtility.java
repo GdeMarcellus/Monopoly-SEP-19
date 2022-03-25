@@ -1,4 +1,8 @@
-package backend;
+package backend.Tiles;
+
+import backend.Exception.IsMortgagedException;
+import backend.Exception.PropertyDevelopedException;
+import backend.Player.Player;
 
 import java.util.ArrayList;
 

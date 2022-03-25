@@ -1,5 +1,12 @@
 package backend;
 
+import backend.Exception.*;
+import backend.Player.HumanPlayer;
+import backend.Player.Player;
+import backend.Tiles.Tile;
+import backend.Tiles.TileFreeParking;
+import backend.Tiles.TileProperty;
+
 import java.util.ArrayList;
 
 public class Board {
@@ -191,7 +198,7 @@ public class Board {
      * @throws NonPropertyTileException if tile not a player own-able tile
      */
 
-    public int payRent(int playerIndex, int tileIndex, ArrayList<Integer> dice) throws NonPropertyTileException {
+    public int payRent(int playerIndex, int tileIndex, ArrayList<Integer> dice) throws NonPropertyTileException, IsMortgagedException {
         //Check tile is ownable by player
         if (!(tiles[tileIndex] instanceof TileProperty)) {
             throw new NonPropertyTileException();

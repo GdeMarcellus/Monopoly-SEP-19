@@ -1,4 +1,6 @@
-package backend;
+package backend.Player;
+
+import backend.Tiles.TileProperty;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,6 @@
-package backend;
+package backend.Tiles;
+
+import backend.Player.Player;
 
 public class TileGo extends Tile{
     private int goMoney = 200;

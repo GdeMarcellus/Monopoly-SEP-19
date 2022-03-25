@@ -1,4 +1,7 @@
-package backend;
+package backend.Tiles;
+
+import backend.Exception.*;
+import backend.Player.Player;
 
 import java.util.ArrayList;
 

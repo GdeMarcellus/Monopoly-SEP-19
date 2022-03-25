@@ -1,8 +1,13 @@
-package backend;
+package backend.Tiles;
+
+import backend.Exception.InsufficientFundsException;
+import backend.Exception.IsMortgagedException;
+import backend.Exception.PropertyDevelopedException;
+import backend.Player.Player;
 
 import java.util.ArrayList;
 
-public class TileProperty extends Tile {
+public abstract class TileProperty extends Tile {
 
     private int price;
     private String name;
