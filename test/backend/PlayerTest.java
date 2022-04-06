@@ -1,5 +1,8 @@
 package backend;
 
+import backend.Player.HumanPlayer;
+import backend.Player.Player;
+import backend.Tiles.TileProperty;
 import org.junit.Before;
 import org.junit.Test;
 

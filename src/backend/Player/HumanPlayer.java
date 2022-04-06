@@ -1,4 +1,4 @@
-package backend;
+package backend.Player;
 
 public class HumanPlayer extends Player {
 

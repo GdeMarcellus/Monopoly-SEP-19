@@ -1,5 +1,13 @@
 package backend;
 
+import backend.Exception.*;
+import backend.Player.HumanPlayer;
+import backend.Player.Player;
+import backend.Tiles.Tile;
+import backend.Tiles.TileBuilding;
+import backend.Tiles.TileFreeParking;
+import backend.Tiles.TileProperty;
+
 import java.util.ArrayList;
 
 public class Board {
@@ -17,9 +25,6 @@ public class Board {
      */
     public Board() {
         this.tiles = new Tile[41] ;
-        for (Tile current: tiles) {
-            current = new Tile();
-        }
         this.players = new ArrayList<>();
         //TODO bank player class?
         this.bank = new HumanPlayer();
@@ -143,13 +148,15 @@ public class Board {
             throw new OwnershipException();
         }
 
-        //check not developed
-        if (property.getDevelopment() != 0) {
-            throw new PropertyDevelopedException();
+        if (property instanceof TileBuilding) {
+            //check not developed
+            if (((TileBuilding) property).getDevelopment() != 0) {
+                throw new PropertyDevelopedException();
+            }
         }
 
         //check mortgage
-        if (property.getMortgaged()){
+        if (property.isMortgaged()){
             moneyOwed = property.getPrice() / 2;
         }
         else {
@@ -193,9 +200,10 @@ public class Board {
      * @param dice dice values
      * @return Payment outstanding, 0 if rent fully paid
      * @throws NonPropertyTileException if tile not a player own-able tile
+     * @throws IsMortgagedException if tile mortgaged
      */
 
-    public int payRent(int playerIndex, int tileIndex, ArrayList<Integer> dice) throws NonPropertyTileException {
+    public int payRent(int playerIndex, int tileIndex, ArrayList<Integer> dice) throws NonPropertyTileException, IsMortgagedException {
         //Check tile is ownable by player
         if (!(tiles[tileIndex] instanceof TileProperty)) {
             throw new NonPropertyTileException();

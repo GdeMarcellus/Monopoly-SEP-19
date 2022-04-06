@@ -1,4 +1,4 @@
-package backend;
+package backend.Exception;
 
 public class NonPropertyTileException extends Exception{
 }
