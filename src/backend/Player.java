@@ -7,13 +7,13 @@ public abstract class Player {
     private int position;
     private int balance;
     private int numDoubles;
-    private ArrayList<Property> properties;
+    private ArrayList<TileProperty> properties;
 
     public Player() {
         this.position = 0;
         this.balance = 0;
         this.numDoubles = 0;
-        this.properties = new ArrayList<Property>();
+        this.properties = new ArrayList<TileProperty>();
     }
 
     public int getPosition() {
@@ -71,11 +71,11 @@ public abstract class Player {
         return balance;
     }
 
-    public void addProperty(Property property) {
+    public void addProperty(TileProperty property) {
         properties.add(property);
     }
 
-    public Boolean removeProperty(Property property){
+    public Boolean removeProperty(TileProperty property){
        if (properties.contains(property)){
            properties.remove(property);
            return true;
@@ -85,11 +85,11 @@ public abstract class Player {
        }
     }
 
-    public ArrayList<Property> getProperties(){
+    public ArrayList<TileProperty> getProperties(){
         return properties;
     }
 
-    public boolean hasProperty(Property property){
+    public boolean hasProperty(TileProperty property){
         return properties.contains(property);
     }
 

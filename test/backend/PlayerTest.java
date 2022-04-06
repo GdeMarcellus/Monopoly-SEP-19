@@ -3,8 +3,6 @@ package backend;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-
 import static org.junit.Assert.*;
 
 public class    PlayerTest {
@@ -73,13 +71,13 @@ public class    PlayerTest {
 
     @Test
     public void TestGetAddProperty() {
-        Property property = new Property();
+        TileProperty property = new TileProperty();
         player.addProperty(property);
         assertTrue(player.getProperties().contains(property));
     }
     @Test
     public void TestGetRemoveProperty(){
-        Property property = new Property();
+        TileProperty property = new TileProperty();
         player.addProperty(property);
         player.removeProperty(property);
         assertFalse(player.getProperties().contains(property));
@@ -87,13 +85,13 @@ public class    PlayerTest {
     }
     @Test
     public void hasProperty(){
-        Property property = new Property();
+        TileProperty property = new TileProperty();
         player.addProperty(property);
         assertTrue(player.hasProperty(property));
     }
     @Test
     public void hasProperty2(){
-        Property property = new Property();
+        TileProperty property = new TileProperty();
         assertFalse(player.hasProperty(property));
     }
 }
