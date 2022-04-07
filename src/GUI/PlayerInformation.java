@@ -20,6 +20,11 @@ public class PlayerInformation {
         return playerColor;
     }
 
+    public String getPlayerColor_String()
+    {
+        return playerColor_String;
+    }
+
     public int getPlayerNumber() {
         return playerNumber;
     }
