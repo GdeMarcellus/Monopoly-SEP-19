@@ -16,7 +16,7 @@ public class Board {
     private ArrayList<Player> players;
     private Player bank;
     private int maxDoubles = 3;
-    private ArrayList<Integer> auctionBids;
+    private final ArrayList<Integer> auctionBids = new ArrayList<>();
     private int freeParkingPos = 20;
 
     /**
