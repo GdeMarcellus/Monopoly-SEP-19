@@ -565,11 +565,11 @@ public class GUI extends Application {
         });
 
         Button trade = new Button("Trade");
-        {
+        trade.setOnAction(e ->{
             Stage tradeStage = new Stage();
             tradeStage.setScene(new Scene((Parent) selectPlayer(), 800,800));
             tradeStage.show();
-        }
+        });
         //Setting up HBox to finalize the controls
         HBox final_control = new HBox(newTurn,move,Buy,Build, trade);
         final_control.setAlignment(Pos.CENTER);
@@ -825,12 +825,11 @@ public class GUI extends Application {
             //Store image in Image tile
             Image tile = new Image("file:resources/Base/" + count + ".png");
             //String location used to test button functionality
-            String location = 0 + "  " + i + "\nName: " + tile.getUrl();
             ImageView set = new ImageView(tile);
             set.setFitHeight(150);
             set.setFitWidth(150);
             //Setting up the Button for each tile
-            count = getCount(count, gridPane, 0, i, tile, location, set);
+            count = getCount(count, gridPane, 0, i, tile);
         }
 
         //Right side of the board (i,9)
@@ -842,12 +841,11 @@ public class GUI extends Application {
             //Store image in Image tile
             Image tile = new Image("file:resources/Base/" + count + ".png");
             //String location used to test button functionality
-            String location = i + "  " + 9 + "\nName: " + tile.getUrl();
             ImageView set = new ImageView(tile);
             set.setFitHeight(150);
             set.setFitWidth(150);
             //Setting up the Button for each tile
-            count = getCount(count, gridPane, i, 10, tile, location, set);
+            count = getCount(count, gridPane, i, 10, tile);
         }
 
         //Bottom side of the board
@@ -859,12 +857,11 @@ public class GUI extends Application {
             //Store image in Image tile
             Image tile = new Image("file:resources/Base/" + count + ".png");
             //String location used to test button functionality
-            String location = 9 + "  " + i + "\nName: " + tile.getUrl();
             ImageView set = new ImageView(tile);
             set.setFitHeight(150);
             set.setFitWidth(150);
             //Setting up the Button for each tile
-            count = getCount(count, gridPane, 10, i, tile, location, set);
+            count = getCount(count, gridPane, 10, i, tile);
 
         }
 
@@ -877,12 +874,11 @@ public class GUI extends Application {
             //Store image in Image tile
             Image tile = new Image("file:resources/Base/" + count + ".png");
             //String location used to test button functionality
-            String location = i + "  " + 0 + "\nName: " + tile.getUrl();
             ImageView set = new ImageView(tile);
             set.setFitHeight(150);
             set.setFitWidth(150);
             //Setting up the Button for each tile
-            count = getCount(count, gridPane, i, 0, tile, location, set);
+            count = getCount(count, gridPane, i, 0, tile);
         }
         for (int i = 0; i < 10; i++)
         {
@@ -953,11 +949,9 @@ public class GUI extends Application {
      * @param i
      * @param j
      * @param tile
-     * @param location
-     * @param set
      * @return
      */
-    private int getCount(int count, GridPane gridPane, int i, int j, Image tile, String location, ImageView set) {
+    private int getCount(int count, GridPane gridPane, int i, int j, Image tile) {
         int cardNum = count;
         Button insert = new Button();
         insert.setMinWidth(50);
@@ -966,25 +960,23 @@ public class GUI extends Application {
         {
             if (!inspectWindow)
             {
-            inspectWindow = true;
-            Rectangle cardInfo = new Rectangle(0,0,500,1000);
-            cardInfo_Text[cardNum] = new Text();
-            StackPane cardStack = new StackPane(cardInfo,cardInfo_Text[cardNum]);
-            cardInfo.setFill(new ImagePattern(tile));
-            Scene cardInfoScene = new Scene(cardStack,300,400);
-            Stage cardStage = new Stage();
-            cardStage.setScene(cardInfoScene);
-            cardStage.show();
-            cardStack.setOnMouseClicked(a ->
-            {
-                    cardInfo.setFill(Color.WHITE);
-                    updateCardInfo(cardNum);
-                    cardStack.setOnMouseClicked(b ->
-                    {
-                        inspectWindow = false;
-                        cardStage.close();
-                    });
-            });
+                VBox cardInfoIDK = new VBox();
+                cardInfoIDK.setStyle("-fx-background-color: linear-gradient(to bottom, red 20%, white 0%);");
+                //Second Layer
+                Text nameOfProperty = createText("Name of Property!",50,Color.BLACK,"arial");
+                cardInfoIDK.getChildren().add(nameOfProperty);
+                Text infoOfProperty = createText("Info of Property!",30,Color.BLACK,"arial");
+                cardInfoIDK.getChildren().add(infoOfProperty);
+                inspectWindow = true;
+                Scene cardInfoScene = new Scene(cardInfoIDK, 300, 400);
+                Stage cardStage = new Stage();
+                cardStage.setScene(cardInfoScene);
+                cardStage.show();
+                cardInfoIDK.setOnMouseClicked(a ->
+                {
+                    inspectWindow = false;
+                    cardStage.close();
+                });
             }
         });
         insert.setStyle("-fx-background-color: blue");
@@ -993,7 +985,6 @@ public class GUI extends Application {
         count++;
         return count;
     }
-
     /**
      * updateCardInfo() is a method that will update the info of a tile (such as a different owner etc...)
      *
