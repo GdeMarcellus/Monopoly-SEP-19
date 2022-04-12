@@ -25,9 +25,11 @@ public class TileUtility extends TileProperty {
             int amountOutstanding = 0;
             if (ownsNeighborhood()){
                 amountOutstanding = player.removeMoney(10 * diceRoll);
+                getOwner().addMoney((10 * diceRoll) - amountOutstanding);
             }
             else {
                 amountOutstanding = player.removeMoney(4 * diceRoll);
+                getOwner().addMoney((4 * diceRoll) - amountOutstanding);
             }
             return amountOutstanding;
         }

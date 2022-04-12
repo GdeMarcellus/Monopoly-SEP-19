@@ -36,8 +36,10 @@ public class TileBuilding extends TileProperty {
             int amountOutstanding;
             if (development == 0 && ownsNeighborhood()) {
                 amountOutstanding = player.removeMoney(rent.get(0) * 2);
+                getOwner().addMoney((rent.get(0) * 2) - amountOutstanding);
             } else {
                 amountOutstanding = player.removeMoney(rent.get(development));
+                getOwner().addMoney(rent.get(development) - amountOutstanding);
             }
             return amountOutstanding;
         }
@@ -117,7 +119,7 @@ public class TileBuilding extends TileProperty {
      * calculate the largest development difference in the neighborhood
      * @return Maximum dvelopment difference
      */
-    private int developmentDifference(){
+    public int developmentDifference(){
         int maxDiff = 0;
         for (TileProperty each: getNeighborhood()) {
             for (TileProperty other: getNeighborhood()) {

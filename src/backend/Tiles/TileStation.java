@@ -34,6 +34,7 @@ public class TileStation extends TileProperty{
                 }
             }
             amountOutstanding = player.removeMoney(rent.get(ownedStation));
+            getOwner().addMoney(rent.get(ownedStation) - amountOutstanding);
             return amountOutstanding;
         }
         else {

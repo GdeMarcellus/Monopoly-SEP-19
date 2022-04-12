@@ -60,7 +60,6 @@ public abstract class Player {
     public int removeMoney(int money){
         int returnvalue = 0;
         if (balance >= money){
-            returnvalue = money;
             balance -= money;
         }
         else {
