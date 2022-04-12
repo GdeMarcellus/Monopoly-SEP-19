@@ -27,9 +27,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.ImagePattern;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -196,7 +193,7 @@ public class GUI extends Application {
         title_mainAnimation.play();
 
         //Creating text for the player section of the board
-        Text players = createText("Players",40,Color.BLACK,"arial");
+        Text players = createText("LeaderBoard",40,Color.BLACK,"arial");
 
         //Start selection with the first element in the list
         playerInfo.getSelectionModel().select(0);
@@ -396,6 +393,7 @@ public class GUI extends Application {
         BorderPane.setAlignment(playerAndText, Pos.CENTER);
         return mainAuctionPane;
     }
+
     /**
      * controlButtons is used to create an HBox containing all the controls the user is going to have
      * @return Returning the HBox containing all the control buttons for the player
@@ -449,6 +447,8 @@ public class GUI extends Application {
                 {
                     if (!finishedTurn) {
                     dices.rollDice();
+                        System.out.println(dices.getDiceValues().get(0));
+                        System.out.println(dices.getDiceValues().get(1));
                     ImageView first = new ImageView(facePNG.get(dices.getDiceValues().get(0)-1));
                     first.setFitWidth(60);
                     first.setFitHeight(60);
@@ -467,9 +467,6 @@ public class GUI extends Application {
                     }
                     else
                     {
-                        System.out.println(tiles.get(playerTurn).getBoundsInLocal());
-                        System.out.println(tiles.get(playerTurn).getLayoutBounds());
-                        System.out.println(tiles.get(playerTurn).getBoundsInParent());
                         gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
                         finishedTurn = true;
                         playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
@@ -587,7 +584,7 @@ public class GUI extends Application {
      */
     private Text getPlayerInfo(int playerNo)
     {
-        return new Text("Player Number: " + playerNo  + "\n" +
+        return new Text("Player Number: " + (playerNo + 1)  + "\n" +
                 "Player Deposit: " + gameBoard.getPlayer(playerNo).getBalance() + "\n" +
                 "Number of properties owned: " + gameBoard.getPlayer(playerNo).getProperties().size() + "\n");
     }
@@ -624,7 +621,7 @@ public class GUI extends Application {
                         radial-gradient(center 50% 50%, radius 100%, #d86e3a, #c54e2c);
                     -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
                     -fx-font-weight: bold;
-                    -fx-font-size: 8em;""");
+                    -fx-font-size: 5em;""");
         quick_game_button.setPrefWidth(500);
         quick_game_button.setPrefHeight(200);
         quick_game_button.setOnAction(e ->
@@ -646,10 +643,11 @@ public class GUI extends Application {
                     radial-gradient(center 50% 50%, radius 100%, #d86e3a, #c54e2c);
                 -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
                 -fx-font-weight: bold;
-                -fx-font-size: 8em;""".indent(4));
+                -fx-font-size: 5em;""".indent(4));
         settings_button.setOnAction(e ->
                 {
                 mainMenu.close();
+                settings();
                 });
         HBox title =  new HBox(main_Text, exit);
         title.setAlignment(Pos.TOP_CENTER);
@@ -662,21 +660,48 @@ public class GUI extends Application {
         mainMenu.show();
     }
 
+    public void settings()
+    {
+        Stage settings_Stage = new Stage();
+        BorderPane mainPane = new BorderPane();
+        VBox settingOptions = new VBox();
+        settingOptions.setAlignment(Pos.CENTER);
+        mainPane.setCenter(settingOptions);
+        Button goBack = new Button("Back!");
+        goBack.setOnAction(e ->
+        {
+            settings_Stage.close();
+            mainMenu();
+        });
+        settingOptions.getChildren().add(goBack);
+        settings_Stage.setScene(new Scene(mainPane,1500,1000));
+        settings_Stage.show();
+    }
+
     public void playerSelection()
     {
+        //Creating mainPane for the Stage
         BorderPane mainPane = new BorderPane();
+
+        //Title Set up
         Text title = createText("Select your Player!",40,Color.RED,"arial");
         BorderPane.setAlignment(title,Pos.CENTER);
         mainPane.setTop(title);
+
+        //PlayerWindow Set up
         HBox playerWindow = playerWindows();
         playerWindow.setPadding(new Insets(50));
         playerWindow.setAlignment(Pos.CENTER);
         mainPane.setCenter(playerWindow);
+
+        //Start Game button set up
         Button startGameButton = new Button("Start Game!");
         startGameButton.setPrefSize(100,90);
         BorderPane.setMargin(startGameButton,new Insets(100));
         BorderPane.setAlignment(startGameButton,Pos.CENTER);
         mainPane.setBottom(startGameButton);
+
+        //Creating Stage and setting Scene (Also start game button functionality)
         Stage playerSelection = new Stage();
         playerSelection.setScene(new Scene(mainPane,1500,1000));
         startGameButton.setOnAction(e ->
@@ -697,25 +722,30 @@ public class GUI extends Application {
     {
         player_Index = new HashMap<>();
         AtomicInteger playerNumber = new AtomicInteger();
+        //Colors (String) set up
         colors_String = new String[5];
         colors_String[0] = "blue";
         colors_String[1] = "orange";
         colors_String[2] = "red";
         colors_String[3] = "green";
         colors_String[4] = "purple";
+
+        //Colors (Color) set up
         Color[] colors_Color = new Color[5];
         colors_Color[0] = Color.BLUE;
         colors_Color[1] = Color.ORANGE;
         colors_Color[2] = Color.RED;
         colors_Color[3] = Color.GREEN;
         colors_Color[4] = Color.PURPLE;
+
+        //Creating selected boolean array
         boolean[] selected = new boolean[5];
         HBox playerWindows = new HBox();
         Button[] playerWindowArray = new Button[5];
         for (int i = 0; i < 5; i++)
         {
             selected[i] = false;
-            Button playerWindow = new Button(String.valueOf(i));
+            Button playerWindow = new Button();
             playerWindow.setPrefSize(100,100);
             playerWindow.setPadding(new Insets(30));
             playerWindow.setStyle("""
@@ -1044,11 +1074,11 @@ public class GUI extends Application {
         double location = 0;
         if (axis == 'X')
         {
-                location =  board.getChildren().get(tileNum).getLayoutX() - 440 + (playerNumber*10);
+                location =  board.getChildren().get(tileNum).getLayoutX() - 240 + (playerNumber*10);
         }
         else if (axis == 'Y')
         {
-                location =  board.getChildren().get(tileNum).getLayoutY() - 440+ (playerNumber*10);
+                location =  board.getChildren().get(tileNum).getLayoutY() - 240+ (playerNumber*10);
         }
         return location;
     }
