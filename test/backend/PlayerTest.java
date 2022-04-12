@@ -2,19 +2,34 @@ package backend;
 
 import backend.Player.HumanPlayer;
 import backend.Player.Player;
+import backend.Tiles.TileBuilding;
 import backend.Tiles.TileProperty;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 import static org.junit.Assert.*;
 
 public class    PlayerTest {
 
     Player player;
+    TileProperty property;
 
     @Before
     public void init(){
         player = new HumanPlayer();
+        String hexColour = "#ffffff";
+        ArrayList<Integer> rent = new ArrayList<Integer>();
+        rent.add(10);
+        rent.add(20);
+        rent.add(30);
+        rent.add(40);
+        rent.add(50);
+        int developmentCost = 20;
+        String name = "1";
+        ArrayList<TileProperty> neighborhood = new ArrayList<TileProperty>();
+        property = new TileBuilding(hexColour,rent, developmentCost,0, 10 ,name, null, neighborhood, false);
     }
 
     /**
@@ -74,13 +89,11 @@ public class    PlayerTest {
 
     @Test
     public void TestGetAddProperty() {
-        TileProperty property = new TileProperty();
         player.addProperty(property);
         assertTrue(player.getProperties().contains(property));
     }
     @Test
     public void TestGetRemoveProperty(){
-        TileProperty property = new TileProperty();
         player.addProperty(property);
         player.removeProperty(property);
         assertFalse(player.getProperties().contains(property));
@@ -88,13 +101,11 @@ public class    PlayerTest {
     }
     @Test
     public void hasProperty(){
-        TileProperty property = new TileProperty();
         player.addProperty(property);
         assertTrue(player.hasProperty(property));
     }
     @Test
     public void hasProperty2(){
-        TileProperty property = new TileProperty();
         assertFalse(player.hasProperty(property));
     }
 }
