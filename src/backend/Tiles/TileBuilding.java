@@ -33,14 +33,18 @@ public class TileBuilding extends TileProperty {
     @Override
     public int payRent(Player player, int diceRoll) throws IsMortgagedException {
         if (!isMortgaged()) {
-            int amountOutstanding;
+            int amountOutstanding = 0;
+            int rentValue = 0;
             if (development == 0 && ownsNeighborhood()) {
-                amountOutstanding = player.removeMoney(rent.get(0) * 2);
-                getOwner().addMoney((rent.get(0) * 2) - amountOutstanding);
+                rentValue =  rent.get(0) * 2;
             } else {
-                amountOutstanding = player.removeMoney(rent.get(development));
-                getOwner().addMoney(rent.get(development) - amountOutstanding);
+                rentValue = rent.get(development);
             }
+            int playerPayed = player.removeMoney(rentValue);
+            if (playerPayed < rentValue) {
+                amountOutstanding = rentValue - playerPayed;
+            }
+            getOwner().addMoney(rentValue - amountOutstanding);
             return amountOutstanding;
         }
         else {

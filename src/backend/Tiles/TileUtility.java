@@ -23,14 +23,18 @@ public class TileUtility extends TileProperty {
     public int payRent(Player player, int diceRoll) throws IsMortgagedException {
         if (!isMortgaged()) {
             int amountOutstanding = 0;
+            int rentValue = 0;
             if (ownsNeighborhood()){
-                amountOutstanding = player.removeMoney(10 * diceRoll);
-                getOwner().addMoney((10 * diceRoll) - amountOutstanding);
+                rentValue = 10 * diceRoll;
             }
             else {
-                amountOutstanding = player.removeMoney(4 * diceRoll);
-                getOwner().addMoney((4 * diceRoll) - amountOutstanding);
+                rentValue = 4 * diceRoll;
             }
+            int playerPayed = player.removeMoney(rentValue);
+            if (playerPayed < rentValue) {
+                amountOutstanding = rentValue - playerPayed;
+            }
+            getOwner().addMoney(rentValue - amountOutstanding);
             return amountOutstanding;
         }
         else {
