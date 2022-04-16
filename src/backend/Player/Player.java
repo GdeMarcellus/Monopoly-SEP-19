@@ -23,20 +23,27 @@ public abstract class Player {
         return position;
     }
 
-    public boolean setPosition(int position) {
+    public boolean move(int diceRoll) {
+        boolean passedGo = false;
+
         //check position not beyond board limits
+        if (this.position + diceRoll > 40) {
+            this.position = position % 40;
+            passedGo = true;
+        }
+        else {
+            this.position += diceRoll;
+        }
+        return passedGo;
+    }
+
+    public boolean setPosition(int position) {
         boolean passedGo = false;
         if (position < this.position){
             passedGo = true;
         }
-        if (this.position + position > 40) {
-            this.position = position % 40;
-        }
-        else {
             this.position = position;
-        }
         return passedGo;
-
     }
 
     /**

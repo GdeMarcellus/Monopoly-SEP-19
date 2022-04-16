@@ -335,6 +335,10 @@ public class Board {
         return players.get(index);
     }
 
+    public ArrayList<Player> getPlayers() {
+        return players;
+    }
+
     public void addPlayer(Player newPlayer) {
         this.players.add(newPlayer);
     }

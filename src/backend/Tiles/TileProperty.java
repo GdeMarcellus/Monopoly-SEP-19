@@ -10,14 +10,13 @@ import java.util.ArrayList;
 public abstract class TileProperty extends Tile {
 
     private int price;
-    private String name;
     private Player owner;
     private ArrayList<TileProperty> neighborhood;
     private boolean mortgaged;
 
     public TileProperty(int price, String name, Player owner, ArrayList<TileProperty> neighborhood, boolean mortgaged) {
         this.price = price;
-        this.name = name;
+        this.setName(name);
         this.owner = owner;
         this.neighborhood = neighborhood;
         this.mortgaged = mortgaged;
@@ -98,14 +97,6 @@ public abstract class TileProperty extends Tile {
 
     public int getPrice() {
         return price;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public void addToNeighborhood(TileProperty property) {
