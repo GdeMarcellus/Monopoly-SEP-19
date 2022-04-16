@@ -242,8 +242,9 @@ public class GUI extends Application {
     }
 
     /**
+     * Method used to create the Select Player Node
      *
-     * @return
+     * @return Node (BorderPane) that contains all the functions for the selectPlayer
      */
     public Node selectPlayer()
     {
@@ -307,9 +308,11 @@ public class GUI extends Application {
     }
 
     /**
+     * getTileIndex() gets the index of the requested Tile
      *
-     * @param chosenBuilding
-     * @return
+     * @param chosenBuilding Property Object Selected
+     *
+     * @return tileIndex of chosenBuilding
      */
     private int getTileIndex(TileBuilding chosenBuilding)
     {
@@ -325,6 +328,7 @@ public class GUI extends Application {
     }
 
 
+    /*
     public Node tradeP2P(int playerToTradeWith)
     {
         BorderPane mainPane = new BorderPane();
@@ -364,8 +368,13 @@ public class GUI extends Application {
         mainPane.setCenter(playerAndProperties);
         return mainPane;
     }
+     */
 
-
+    /**
+     * Method used to create Node for the Auction Stage
+     *
+     * @return Node (BorderPane) containing all the functions of the auction
+     */
     public Node  auctionNode()
     {
         ListView<TextField> playerBid = new ListView<>();
@@ -452,6 +461,7 @@ public class GUI extends Application {
         Buy.setPrefSize(100,50);
         Buy.setOnAction(e->
         {
+            //Roll before buying
             if (!finishedTurn)
             {
                 Alert d = new Alert(AlertType.WARNING);
@@ -460,21 +470,35 @@ public class GUI extends Application {
             }
             else
             {
-                if(gameBoard.remainingBalance(playerTurn,gameBoard.getPlayer(playerTurn).getPosition()) < 0)
-                {
-                    Stage mortgage = mortgageStage();
-                    mortgage.show();
-                }
-                else if (((TileBuilding)gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getOwner() != gameBoard.getBank())
+                //If building not owned by bank, building is not purchasable
+                if (((TileBuilding)gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getOwner() != gameBoard.getBank())
                 {
                     Alert alreadyOwned = new Alert(AlertType.WARNING);
-                    alreadyOwned.setContentText("The Bu");
+                    alreadyOwned.setContentText("Property already owned!");
+                    alreadyOwned.show();
                 }
                 else
                 {
                     //Pay Price
-                    gameBoard.purchase(gameBoard.getPlayer(playerTurn), gameBoard.getBank(),
-                                      (TileProperty) gameBoard.getPlayerTile(playerTurn),100);
+                    try
+                    {
+                        gameBoard.playerPurchase(playerTurn,gameBoard.getPlayer(playerTurn).getPosition(),0);
+                    }
+
+                    //Alert created because property is not purchasable
+                    catch (NonPropertyTileException ex)
+                    {
+                        Alert notPropertyAlert = new Alert(AlertType.WARNING);
+                        notPropertyAlert.setContentText("Property not buy-able");
+                        notPropertyAlert.show();
+                    }
+
+                    //Alert created due to insufficient funds
+                    catch (InsufficientFundsException ex)
+                    {
+                        Stage insufficientFundsAlert = mortgageStage();
+                        insufficientFundsAlert.show();
+                    }
 
                     //Set Owner of tile bought
                     ((TileProperty) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]).setOwner(gameBoard.getPlayer(playerTurn));
@@ -635,6 +659,11 @@ public class GUI extends Application {
         return final_control;
     }
 
+    /**
+     * Method used to create the Stage for the Mortgage
+     *
+     * @return Stage of the mortgage options for the player
+     */
     private Stage mortgageStage()
     {
         //Stage and Pane creations
@@ -654,27 +683,33 @@ public class GUI extends Application {
         yes.setMinWidth(100);
         yes.setOnAction(e ->
         {
+
             try
             {
                 ((TileProperty)gameBoard.getPlayerTile(playerTurn)).mortgaged(gameBoard.getBank());
             }
+
+            //Setting up Alert for Mortgage
             catch (IsMortgagedException ex)
             {
-                ex.printStackTrace();
+                Alert isMortgagedAlert = new Alert(AlertType.WARNING);
+                isMortgagedAlert.setContentText("Property is Mortgaged!");
+                isMortgagedAlert.show();
             }
+
+            //Setting up Alert for Property Developed
             catch (PropertyDevelopedException ex)
             {
-                ex.printStackTrace();
+                Alert propertyDevelopedAlert = new Alert(AlertType.WARNING);
+                propertyDevelopedAlert.setContentText("Property has been developed!");
+                propertyDevelopedAlert.show();
             }
             mortgageStage.close();
         });
 
         //Setting up no button
         Button no = new Button("No");
-        no.setOnAction(e ->
-        {
-            mortgageStage.close();
-        });
+        no.setOnAction(e -> mortgageStage.close());
         no.setMinHeight(50);
         no.setMinWidth(100);
 
@@ -746,6 +781,8 @@ public class GUI extends Application {
             mainMenu.close();
             playerSelection();
         });
+
+        //Creating and setting up settings button
         Button settings_button = new Button("Settings");
         settings_button.setPrefWidth(500);
         settings_button.setPrefHeight(200);
@@ -766,17 +803,27 @@ public class GUI extends Application {
                 mainMenu.close();
                 settings();
                 });
+
+        //Creating and Setting up HBox title
         HBox title =  new HBox(main_Text, exit);
         title.setAlignment(Pos.TOP_CENTER);
+
+        //Creating and Setting up VBox main_buttons
         VBox main_buttons = new VBox(quick_game_button,settings_button);
         main_buttons.setAlignment(Pos.CENTER);
         main_buttons.setSpacing(50);
+
+        //Setting up Main
         main.setCenter(main_buttons);
         main.setTop(title);
         mainMenu.setScene(new Scene(main,1500,1000));
         mainMenu.show();
     }
 
+    /**
+     * Method used to create the Stage for the settings of the Property Tycoon Game
+     *
+     */
     public void settings()
     {
         Stage settings_Stage = new Stage();
@@ -795,6 +842,10 @@ public class GUI extends Application {
         settings_Stage.show();
     }
 
+    /**
+     * Creates a Stage for player to be able to select how many player will be playing, and their respective colours.
+     *
+     */
     public void playerSelection()
     {
         //Creating mainPane for the Stage
@@ -910,6 +961,7 @@ public class GUI extends Application {
     /**
      * setupPlaySession() will run before the game begins. This allows the user to choose the number
      * of player before the start of the game.
+     *
      */
     public void setupPlaySession()
     {
@@ -931,6 +983,8 @@ public class GUI extends Application {
                listOfBuildings.show();
            });
        }
+
+       //Creating new player Icon Button
        currPlayerIcon = new Button();
        currPlayerIcon.setMinHeight(100);
        currPlayerIcon.setMinWidth(100);
@@ -938,9 +992,11 @@ public class GUI extends Application {
     }
 
     /**
+     * Gets the list of properties
      *
-     * @param playerNum
-     * @return
+     * @param playerNum Index of player calling the method
+     *
+     * @return String containing all the properties of the player
      */
     public String getPropertyString(int playerNum)
     {
@@ -954,8 +1010,9 @@ public class GUI extends Application {
     }
 
     /**
+     * createTiles() creates a Tile array to be inserted into the Board Object.
      *
-     * @return
+     * @return Tile[] that will be added to the Board Object.
      */
     public Tile[] createTiles()
     {
@@ -1012,34 +1069,6 @@ public class GUI extends Application {
         {
             for (int j = 0; j < 10; j++)
             {
-                /*
-               // The following if statement represents two card slots
-                if (i == 2 && j == 4)
-               {
-                   Button fake = new Button("Card Slot");
-                   fake.setOnAction(e ->
-                   {
-                       Alert a = new Alert(AlertType.CONFIRMATION);
-                       a.show();
-                   });
-                   fake.setPrefSize(70,100);
-                   gridPane.add(fake,2,4);
-               }
-               // The following if statement represents the second card slot in the middle
-               // of the board
-               else if (i == 7 && j == 4)
-               {
-                   Button fake = new Button("Card Slot 2");
-                   fake.setPrefSize(70,100);
-                   fake.setOnAction(e ->
-                   {
-                       Alert a = new Alert(AlertType.CONFIRMATION);
-                       a.show();
-                   });
-                   gridPane.add(fake,7,4);
-               }
-
-                 */
                // The following if statement represents the first dice
                //The else statement represents the blank spots in the middle of the board
                {
@@ -1056,7 +1085,16 @@ public class GUI extends Application {
     }
 
     /**
-     * This method is simply used to save some space.
+     * This method is simply used to save some space. It creates the visualization of a Tile Object.
+     *
+     * @param count The index of the tile being created
+     * @param gridPane the gridPane that will have the tile inserted into
+     * @param i the height of the board
+     * @param j the width of the board
+     * @param tileType type of Tile (Property, Station etc...)
+     * @param size size of said tile
+     *
+     * @return the count index
      */
     private int tileCreation(int count, GridPane gridPane, int i, int j, String tileType,int size) {
         cardInfo_Text[count] = new Text("r");
@@ -1101,7 +1139,9 @@ public class GUI extends Application {
     }
 
     /**
+     * Simple method that creates and returns an HBox containing the dice faces (As Buttons)
      *
+     * @return Returns an HBox containing Buttons dice1 and dice2
      */
     public HBox dices ()
     {
@@ -1195,43 +1235,51 @@ public class GUI extends Application {
     }
 
     /**
-     * 
+     * choosePlayerOrder() is called before the start of the game. The method will allow players to choose the playing
+     * order based on dice rolls. Everyone will be able to roll once, and the order will be from Descending of said value
+     *
      */
     public void choosePlayerOrder()
     {
-        //Initialise up Stage, Scene, BorderPane, VBox
+        //Initialise up Stage, Scene, BorderPane, VBox, ListView
         Stage playerOrderStage = new Stage();
-        Scene playerOrderScene = null;
         BorderPane mainPane = new BorderPane();
         VBox mainControls = new VBox();
-        HashMap<Integer,Integer> playerRoll = new HashMap<>();
         ListView<TextField> playerRollVisuals = new ListView<>();
-        int playerTurn = 0;
 
+        //Preparing titleMenu of the scene
         Text mainTitle = createText("Roll Dices to Choose Player Order!",70,Color.BLACK,"arial");
         mainPane.setTop(mainTitle);
 
-        GridPane players = new GridPane();
+        //Preparing the player icons and associated space to insert roll values
+        GridPane playerInfo_RollVal = new GridPane();
         for (int i = 0; i < gameBoard.getPlayerNum(); i++)
         {
+            //Create text-field to insert roll value
             TextField playerRollTextField = new TextField();
             playerRollTextField.setEditable(false);
             playerRollVisuals.getItems().add(playerRollTextField);
+
+            //Create playerIcon to show player
             Button playerIcon = new Button();
             playerIcon.setMinWidth(100);
             playerIcon.setMinHeight(100);
             playerIcon.setStyle("-fx-background-color: " + playerInformation[i].getPlayerColor_String());
-            players.add(playerIcon,0,i);
-            players.add(playerRollTextField,1,i);
+            playerInfo_RollVal.add(playerIcon,0,i);
+            playerInfo_RollVal.add(playerRollTextField,1,i);
         }
-        mainControls.getChildren().add(players);
         playerRollVisuals.getSelectionModel().select(0);
+
+        //Inserting gridPane into VBox
+        mainControls.getChildren().add(playerInfo_RollVal);
+
 
         //Setup Dice Visuals
         HBox dicesIDK = dices();
         dicesIDK.setAlignment(Pos.CENTER);
         mainControls.getChildren().add(dicesIDK);
 
+        //Preparing Roll Button
         Button roll = new Button("Roll");
         roll.setMinHeight(100);
         roll.setMinHeight(50);
@@ -1248,13 +1296,18 @@ public class GUI extends Application {
             //If last player rolls
             if (playerRollVisuals.getSelectionModel().getSelectedIndex()+1 == gameBoard.getPlayerNum() && !Objects.equals(playerRollVisuals.getSelectionModel().getSelectedItem().getText(), ""))
             {
+                //Create a hashmap to connect playerNumber to their roll value
                 HashMap<Integer, Integer> playerHashMap = new HashMap<>();
                 for (int i = 0; i < playerRollVisuals.getItems().size(); i++)
                 {
                     playerHashMap.put(Integer.valueOf(playerRollVisuals.getItems().get(i).getText()), i);
                 }
+
+                //Create Alert, showing the new ordering
                 Alert done = new Alert(AlertType.CONFIRMATION);
                 done.setContentText(getPlayerOrder(playerHashMap));
+
+                //Once closed, the game will begin
                 done.setOnCloseRequest(a ->
                 {
                     playerOrderStage.close();
@@ -1263,23 +1316,32 @@ public class GUI extends Application {
                 done.show();
             }
         });
-        players.setAlignment(Pos.CENTER);
+        //Adding nodes to VBox
+        playerInfo_RollVal.setAlignment(Pos.CENTER);
         mainControls.getChildren().add(roll);
         mainControls.setAlignment(Pos.CENTER);
         mainPane.setCenter(mainControls);
+
+        //Preparing stage and scene
         playerOrderStage.setScene(new Scene(mainPane,1500,1000));
         playerOrderStage.show();
     }
 
     /**
+     * Simple rollDice() method that roll the dice object, and changes the dice1 and dice2 faces.
      *
      */
     private void rollDices() {
+        //Roll the actual Dice Object
         dices.rollDice();
+
+        //Setup dice1
         ImageView first = new ImageView(facePNG.get(dices.getDiceValues().get(0)-1));
         first.setFitWidth(60);
         first.setFitHeight(60);
         dice1.setGraphic(first);
+
+        //Setup dice2
         ImageView second = new ImageView(facePNG.get(dices.getDiceValues().get(1)-1));
         second.setFitWidth(60);
         second.setFitHeight(60);
@@ -1287,12 +1349,16 @@ public class GUI extends Application {
     }
 
     /**
+     * getPlayerOrder() returns the order (from the highest dice roll values to lowest) in String form
+     * The String return value is temporary
      *
-     * @param playerRolls
-     * @return
+     * @param playerRolls HashMap<Integer,Integer> Where the first value is the dice roll and the second is the player index
+     *
+     * @return Returns a String stating the playing order, based on the HashMap
      */
     public String getPlayerOrder(HashMap<Integer,Integer> playerRolls)
     {
+        //Placeholder
         StringBuilder playerOrder = new StringBuilder();
         PriorityQueue<Integer> playerOrderInt = new PriorityQueue<>(Collections.reverseOrder());
 
