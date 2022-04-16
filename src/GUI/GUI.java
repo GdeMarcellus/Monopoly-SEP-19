@@ -2,10 +2,7 @@ package GUI;
 
 import backend.Board;
 import backend.Dice;
-import backend.Exception.InsufficientFundsException;
-import backend.Exception.IsMortgagedException;
-import backend.Exception.LargeDevelopmentDifferenceException;
-import backend.Exception.PropertyDevelopedException;
+import backend.Exception.*;
 import backend.Player.HumanPlayer;
 import backend.Tiles.Tile;
 import backend.Tiles.TileBuilding;
@@ -245,9 +242,42 @@ public class GUI extends Application {
         gameBoard_GUI.show();
     }
 
+    /**
+     *
+     * @return
+     */
     public Node selectPlayer()
     {
+        PauseTransition transition = new PauseTransition(Duration.seconds(0.5));
+        transition.setOnFinished(event -> moneyOfPlayer.setFill(Color.BLACK));
         ListView<TileBuilding> playerBuildings = new ListView<>();
+        playerBuildings.setOnMouseClicked(e ->
+        {
+            TileBuilding chosenBuilding = playerBuildings.getSelectionModel().getSelectedItem();
+            int tileIndex = getTileIndex(chosenBuilding);
+            try
+            {
+                gameBoard.sellToBank(playerTurn,tileIndex);
+
+                //Change GUI (Money Counter)
+                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                moneyOfPlayer.setFill(Color.GREEN);
+                transition.playFromStart();
+                playerBoughtProperty = true;
+            }
+            catch (OwnershipException ex)
+            {
+                Alert doesNotHaveOwnership = new Alert(AlertType.WARNING);
+                doesNotHaveOwnership.setContentText("Not Owner");
+                doesNotHaveOwnership.show();
+            }
+            catch (PropertyDevelopedException ex)
+            {
+                Alert alreadyDeveloped = new Alert(AlertType.WARNING);
+                alreadyDeveloped.setContentText("Not Developed");
+                alreadyDeveloped.show();
+            }
+        });
         for (int i = 0; i < gameBoard.getPlayer(playerTurn).getProperties().size();i++)
         {
             playerBuildings.getItems().add((TileBuilding) gameBoard.getPlayer(playerTurn).getProperties().get(i));
@@ -265,20 +295,35 @@ public class GUI extends Application {
                 playerIcon.setMinWidth(100);
                 playerIcon.setMinHeight(100);
                 playerIcon.setStyle("" +
-                        "-fx-background-color: " + playerInformation[i].playerColor_String);
+                        "-fx-background-color: " + playerInformation[i].getPlayerColor_String());
+                playerIcon.setAlignment(Pos.CENTER);
                 playerToChoose.add(playerIcon,i,0);
             }
         }
-        Button bankIcon= new Button("Bank");
-        bankIcon.setMinWidth(100);
-        bankIcon.setMinHeight(100);
         playerToChoose.setPadding(new Insets(100));
-        playerToChoose.add(bankIcon,playerTurn+2,0);
         playerToChoose.add(playerBuildings,playerTurn,1);
         playerToChoose.setPadding(new Insets(50));
         mainPane.setCenter(playerToChoose);
         playerToChoose.setAlignment(Pos.CENTER);
         return mainPane;
+    }
+
+    /**
+     *
+     * @param chosenBuilding
+     * @return
+     */
+    private int getTileIndex(TileBuilding chosenBuilding)
+    {
+        Tile[] tiles = gameBoard.getTiles();
+        for (int i = 0; i < tiles.length; i++)
+        {
+            if (tiles[i] == chosenBuilding)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 
 
@@ -368,8 +413,6 @@ public class GUI extends Application {
                 playerBid.getSelectionModel().selectPrevious();
                 playerBid.getSelectionModel().getSelectedItem().setEditable(true);
             }
-            System.out.println(playerBid.getSelectionModel().getSelectedIndex());
-            System.out.println(gameBoard.getPlayerNum());
             if (playerBid.getSelectionModel().getSelectedIndex()+1 == gameBoard.getPlayerNum() && !Objects.equals(playerBid.getSelectionModel().getSelectedItem().getText(), ""))
             {
                 int higherPlayer = gameBoard.auctionHighestBid()[2];
@@ -456,8 +499,6 @@ public class GUI extends Application {
                 {
                     if (!finishedTurn) {
                     dices.rollDice();
-                        System.out.println(dices.getDiceValues().get(0));
-                        System.out.println(dices.getDiceValues().get(1));
                     ImageView first = new ImageView(facePNG.get(dices.getDiceValues().get(0)-1));
                     first.setFitWidth(60);
                     first.setFitHeight(60);
@@ -831,6 +872,11 @@ public class GUI extends Application {
        currPlayerIcon.setStyle("-fx-background-color: " + playerInformation[playerTurn].getPlayerColor_String());
     }
 
+    /**
+     *
+     * @param playerNum
+     * @return
+     */
     public String getPropertyString(int playerNum)
     {
 
@@ -842,6 +888,10 @@ public class GUI extends Application {
         return String.valueOf(list_of_properties);
     }
 
+    /**
+     *
+     * @return
+     */
     public Tile[] createTiles()
     {
         Tile[] gameTiles = new Tile[41];
@@ -851,6 +901,7 @@ public class GUI extends Application {
         }
         return gameTiles;
     }
+
     /**
      * The createBoard() method returns a gridPane containing a board with its tiles.
      * It also contains two boxes representing the dices
@@ -868,21 +919,21 @@ public class GUI extends Application {
         //Top side of the board (0,i)
         for(int i = 0; i < 11; i++)
         {
-            count = tileCreation(count, gridPane, 0, i,"TileBuilding");
+            count = tileCreation(count, gridPane, 0, i,"TileBuilding",50);
         }
 
         //Right side of the board (i,9)
         for(int i = 1; i < 10; i++)
         {
             //Setting up the Button for each tile
-            count = tileCreation(count, gridPane, i, 10,"TileBuilding");
+            count = tileCreation(count, gridPane, i, 10,"TileBuilding",50);
         }
 
         //Bottom side of the board
         for(int i = 10; i >= 0; i--)
         {
             //Setting up the Button for each tile
-            count = tileCreation(count, gridPane, 10, i,"TileBuilding");
+            count = tileCreation(count, gridPane, 10, i,"TileBuilding",50);
 
         }
 
@@ -890,7 +941,7 @@ public class GUI extends Application {
         for(int i = 9; i > 0; i--)
         {
             //Setting up the Button for each tile
-            count = tileCreation(count, gridPane, i, 0,"TileBuilding");
+            count = tileCreation(count, gridPane, i, 0,"TileBuilding",50);
         }
         for (int i = 0; i < 10; i++)
         {
@@ -935,14 +986,14 @@ public class GUI extends Application {
             }
         }
         //no Jail Slot
-        tileCreation(40,gridPane,9,9, "TileFreeParking");
+        tileCreation(40,gridPane,9,9, "TileFreeParking",50);
         return gridPane;
     }
 
     /**
      * This method is simply used to save some space.
      */
-    private int tileCreation(int count, GridPane gridPane, int i, int j, String tileType) {
+    private int tileCreation(int count, GridPane gridPane, int i, int j, String tileType,int size) {
         cardInfo_Text[count] = new Text("r");
         //Store image in Image tile
         Image tile = new Image("file:resources/Base/" + count + ".png");
@@ -953,8 +1004,8 @@ public class GUI extends Application {
         //Setting up the Button for each tile
         int cardNum = count;
         Button insert = new Button(((TileProperty)gameBoard.getTile(count)).getName());
-        insert.setMinWidth(50);
-        insert.setMinHeight(50);
+        insert.setMinWidth(size);
+        insert.setMinHeight(size);
         insert.setOnAction(e->
         {
             if (!inspectWindow)
@@ -1008,6 +1059,7 @@ public class GUI extends Application {
         //return finished HBox
         return new HBox(dice1,dice2);
     }
+
     /**
      * updateCardInfo() is a method that will update the info of a tile (such as a different owner etc...)
      *
@@ -1021,6 +1073,7 @@ public class GUI extends Application {
         cardInfo_Text[tileNum].setWrappingWidth(100);
         return cardInfo_Text[tileNum];
     }
+
     /**
      * The dice() function is used to return an arrayList containing all the dice faces
      *
