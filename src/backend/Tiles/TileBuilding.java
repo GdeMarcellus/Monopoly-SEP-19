@@ -49,15 +49,14 @@ public class TileBuilding extends TileProperty {
     }
 
     /**
-     * @param bank the in-game bank
      * @return amount paid by mortgaging the property
      * @throws IsMortgagedException thrown if the property has a mortgage on it
      * @throws PropertyDevelopedException thrown if the property has houses or hotels
      */
     @Override
-    public int mortgaged(Player bank) throws IsMortgagedException, PropertyDevelopedException {
+    public int mortgage() throws IsMortgagedException, PropertyDevelopedException {
         if (development == 0) {
-            return super.mortgaged(bank);
+            return super.mortgage();
         }
         else{
             throw new PropertyDevelopedException();

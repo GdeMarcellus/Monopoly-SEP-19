@@ -37,9 +37,4 @@ public class TileUtility extends TileProperty {
             throw new IsMortgagedException();
         }
     }
-
-    @Override
-    public int mortgaged(Player bank) throws IsMortgagedException, PropertyDevelopedException {
-        return super.mortgaged(bank);
-    }
 }

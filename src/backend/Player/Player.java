@@ -93,7 +93,7 @@ public abstract class Player {
         properties.add(property);
     }
 
-    public Boolean removeProperty(TileProperty property){
+    public boolean removeProperty(TileProperty property){
        if (properties.contains(property)){
            properties.remove(property);
            return true;
