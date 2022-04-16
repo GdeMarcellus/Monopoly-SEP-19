@@ -323,7 +323,9 @@ public class Board {
         return tiles;
     }
 
-    public void setTiles(Tile[] tiles) {
+    public void setTiles(Tile[] tiles)
+    {
+        System.out.println(tiles[1]);
         this.tiles = tiles;
     }
 

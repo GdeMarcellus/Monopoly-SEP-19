@@ -7,6 +7,7 @@ import backend.Exception.IsMortgagedException;
 import backend.Exception.LargeDevelopmentDifferenceException;
 import backend.Exception.PropertyDevelopedException;
 import backend.Player.HumanPlayer;
+import backend.Tiles.Tile;
 import backend.Tiles.TileBuilding;
 import backend.Tiles.TileProperty;
 import javafx.animation.Animation;
@@ -14,7 +15,7 @@ import javafx.animation.FadeTransition;
 import javafx.animation.FillTransition;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
-import javafx.event.EventHandler;
+import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -29,7 +30,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,8 +43,6 @@ public class GUI extends Application {
     private Text[] cardInfo_Text;
     private GridPane board;
 
-    //Player
-    private StackPane final_main;
     PlayerInformation[] playerInformation;
     Button currPlayerIcon;
 
@@ -55,7 +53,6 @@ public class GUI extends Application {
     private final ArrayList<Image> facePNG = getDiceFaces();
 
     private boolean inspectWindow = false;
-    private final ArrayList<Button> tiles = new ArrayList<>();
     private  final Stage gameBoard_GUI = new Stage();
     private Board gameBoard = new Board();
     private Text moneyOfPlayer;
@@ -63,7 +60,6 @@ public class GUI extends Application {
     private ListView<Text> playerInfo = new ListView<>();
     private int playerTurn = 0;
     private boolean finishedTurn = false;
-    private boolean getBoughtProperty = false;
     private String[] colors_String;
     private Stage auctionWindow;
     private boolean playerBoughtProperty = false;
@@ -175,6 +171,7 @@ public class GUI extends Application {
                     -fx-font-size: 30;""");
 
         //Creating and setting up the game board (using a GridPane)
+        gameBoard.setTiles(createTiles());
         board = createBoard();
         board.setAlignment(Pos.CENTER);
 
@@ -226,10 +223,11 @@ public class GUI extends Application {
         board.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         main.setCenter(board);
         main.setLeft(playerList);
-        final_main = new StackPane(main);
-        for(int i =0 ; i < playerInformation.length; i++)
+        //Player
+        StackPane final_main = new StackPane(main);
+        for (PlayerInformation information : playerInformation)
         {
-            final_main.getChildren().add(playerInformation[i].getPlayerToken());
+            final_main.getChildren().add(information.getPlayerToken());
         }
 
         playerInfo = new ListView<>();
@@ -256,7 +254,7 @@ public class GUI extends Application {
         }
         BorderPane mainPane = new BorderPane();
         GridPane playerToChoose = new GridPane();
-        Text title = createText("Choose a Player to Trade with!",50,Color.BLACK,"arial");
+        Text title = createText("Choose building to trade with the bank!",50,Color.BLACK,"arial");
         BorderPane.setAlignment(title,Pos.CENTER);
         mainPane.setTop(title);
         for (int i = 0; i < gameBoard.getPlayerNum(); i++)
@@ -271,7 +269,7 @@ public class GUI extends Application {
                 playerToChoose.add(playerIcon,i,0);
             }
         }
-        Button  bankIcon= new Button("Bank");
+        Button bankIcon= new Button("Bank");
         bankIcon.setMinWidth(100);
         bankIcon.setMinHeight(100);
         playerToChoose.setPadding(new Insets(100));
@@ -282,6 +280,8 @@ public class GUI extends Application {
         playerToChoose.setAlignment(Pos.CENTER);
         return mainPane;
     }
+
+
     public Node tradeP2P(int playerToTradeWith)
     {
         BorderPane mainPane = new BorderPane();
@@ -338,7 +338,7 @@ public class GUI extends Application {
             Button playerIcon = new Button();
             playerIcon.setMinWidth(50);
             playerIcon.setStyle("" +
-                    "-fx-background-color: " + playerInformation[i].playerColor_String);
+                    "-fx-background-color: " + playerInformation[i].getPlayerColor_String());
             playerAndText.add(playerIcon,i,0);
         }
         for (int i = 0; i < gameBoard.getPlayerNum();i++)
@@ -354,6 +354,7 @@ public class GUI extends Application {
         Button nextPlayer =  new Button("Next Player!");
         nextPlayer.setOnAction(e ->
         {
+            //Check if player has enough funds to place bid
             try {
                 gameBoard.auctionMakeBid(playerBid.getSelectionModel().getSelectedIndex(),Integer.parseInt(playerBid.getItems().get(playerBid.getSelectionModel().getSelectedIndex()).getText()));
                 playerBid.getSelectionModel().getSelectedItem().setEditable(false);
@@ -369,7 +370,7 @@ public class GUI extends Application {
             }
             System.out.println(playerBid.getSelectionModel().getSelectedIndex());
             System.out.println(gameBoard.getPlayerNum());
-            if (playerBid.getSelectionModel().getSelectedIndex() == gameBoard.getPlayerNum())
+            if (playerBid.getSelectionModel().getSelectedIndex()+1 == gameBoard.getPlayerNum() && !Objects.equals(playerBid.getSelectionModel().getSelectedItem().getText(), ""))
             {
                 int higherPlayer = gameBoard.auctionHighestBid()[2];
                 int higherBid = gameBoard.auctionHighestBid()[0];
@@ -420,19 +421,26 @@ public class GUI extends Application {
             {
                 if(gameBoard.remainingBalance(playerTurn,gameBoard.getPlayer(playerTurn).getPosition()) < 0)
                 {
-                    Alert d = new Alert(AlertType.WARNING);
-                    d.setContentText("Can't Afford");
-                    d.show();
+                    Stage mortgage = new Stage();
+                    Scene mortgageScene = createmortgageScene();
+                    mortgage.setScene(mortgageScene);
+                    mortgage.show();
+                }
+                else if (((TileBuilding)gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getOwner() != gameBoard.getBank())
+                {
+                    Alert alreadyOwned = new Alert(AlertType.WARNING);
+                    alreadyOwned.setContentText("The Bu");
                 }
                 else
                 {
-                    //Pay Price (Missing)
-
+                    //Pay Price
+                    gameBoard.purchase(gameBoard.getPlayer(playerTurn), gameBoard.getBank(),
+                                      (TileProperty) gameBoard.getPlayerTile(playerTurn),100);
 
                     //Set Owner of tile bought
                     ((TileProperty) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]).setOwner(gameBoard.getPlayer(playerTurn));
 
-                    //Change GUI
+                    //Change GUI (Money Counter)
                     moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                     moneyOfPlayer.setFill(Color.RED);
                     transition.playFromStart();
@@ -440,6 +448,7 @@ public class GUI extends Application {
                 }
             }
         });
+
         //Setting up move button
         Button move = new Button("Move");
         move.setPrefSize(100,50);
@@ -496,12 +505,7 @@ public class GUI extends Application {
                 auctionWindow.setScene(new Scene((Parent) auctionNode(),800,800));
                 auctionWindow.show();
                 //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
-                auctionWindow.setOnCloseRequest(new EventHandler<WindowEvent>() {
-                    @Override
-                    public void handle(WindowEvent event) {
-                        event.consume();
-                    }
-                });
+                auctionWindow.setOnCloseRequest(Event::consume);
             }
                 playerInfo.getItems().get(playerTurn).setStroke(Color.BLACK);
                 playerInfo.getItems().remove(playerTurn);
@@ -535,7 +539,6 @@ public class GUI extends Application {
                 {
                     try {
                         ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).buyHouse(gameBoard.getBank());
-                        tiles.get(gameBoard.getPlayer(playerTurn).getPosition()).setStyle("-fx-background-color: Orange");
                     } catch (PropertyDevelopedException ex) {
                         Alert exceptionBuild = new Alert(AlertType.WARNING);
                         exceptionBuild.setContentText("The Property has max development!");
@@ -572,6 +575,14 @@ public class GUI extends Application {
         final_control.setAlignment(Pos.CENTER);
         final_control.setSpacing(100);
         return final_control;
+    }
+
+    private Scene createmortgageScene()
+    {
+        BorderPane mainPane = new BorderPane();
+        Text idk = new Text("main text");
+        mainPane.setCenter(idk);
+        return new Scene(mainPane,800,800);
     }
 
     /**
@@ -714,9 +725,10 @@ public class GUI extends Application {
     }
 
     /**
-     * playerWindows() creates an HBOX with windows for all the possible players
      *
-     * @return return the HBOX with the five different type of players
+     * playerWindows() creates an HBox with windows for all the possible players
+     *
+     * @return return the HBox with the five different type of players
      */
     public HBox playerWindows()
     {
@@ -804,7 +816,7 @@ public class GUI extends Application {
            int playerNum = i;
            gameBoard.addPlayer(new HumanPlayer());
            gameBoard.getPlayer(i).addMoney(1000);
-           playerInformation[i] = new PlayerInformation(colors_String[i],player_Index.get(i),i);
+           playerInformation[i] = new PlayerInformation(player_Index.get(i).toString(),player_Index.get(i),i);
            playerInformation[i].getPlayerToken().setOnMouseClicked(e ->
            {
                Alert listOfBuildings = new Alert(AlertType.INFORMATION);
@@ -825,11 +837,20 @@ public class GUI extends Application {
         StringBuilder list_of_properties = new StringBuilder();
         for(int i = 0; i < gameBoard.getPlayer(playerNum).getProperties().size(); i++)
         {
-            list_of_properties.append((i+1) + " : " + gameBoard.getPlayer(playerNum).getProperties().get(i) + "\n");
+            list_of_properties.append(i + 1).append(" : ").append(gameBoard.getPlayer(playerNum).getProperties().get(i)).append("\n");
         }
         return String.valueOf(list_of_properties);
     }
 
+    public Tile[] createTiles()
+    {
+        Tile[] gameTiles = new Tile[41];
+        for (int i = 0; i < 41; i ++)
+        {
+            gameTiles[i] = new TileBuilding("#0000FF",new ArrayList<>(), 100,1000,100,"idk", gameBoard.getBank(), new ArrayList<>(),false);
+        }
+        return gameTiles;
+    }
     /**
      * The createBoard() method returns a gridPane containing a board with its tiles.
      * It also contains two boxes representing the dices
@@ -838,77 +859,38 @@ public class GUI extends Application {
      */
     public GridPane createBoard()
     {
-        HumanPlayer bank = new HumanPlayer();
         cardInfo_Text = new Text[41];
-        TileBuilding[] gameTiles = new TileBuilding[41];
         //count is used to keep track of the png in the Base folder
-        int count = 1;
+        int count = 0;
         //Creating grid pane to store the board
         GridPane gridPane = new GridPane();
 
         //Top side of the board (0,i)
         for(int i = 0; i < 11; i++)
         {
-            gameTiles[count-1] = new TileBuilding("#0000FF",new ArrayList<Integer>(), 100,1000,100,"idk",bank,new ArrayList<TileProperty>(),false);
-            gameTiles[count-1].setPrice(100);
-            gameTiles[count-1].setOwner(bank);
-            //Store image in Image tile
-            Image tile = new Image("file:resources/Base/" + count + ".png");
-            //String location used to test button functionality
-            ImageView set = new ImageView(tile);
-            set.setFitHeight(150);
-            set.setFitWidth(150);
-            //Setting up the Button for each tile
-            count = getCount(count, gridPane, 0, i, tile);
+            count = tileCreation(count, gridPane, 0, i,"TileBuilding");
         }
 
         //Right side of the board (i,9)
         for(int i = 1; i < 10; i++)
         {
-            gameTiles[count-1] = new TileBuilding("#0000FF",new ArrayList<Integer>(), 100,1000,100,"idk",bank,new ArrayList<TileProperty>(),false);
-            gameTiles[count-1].setPrice(100);
-            gameTiles[count-1].setOwner(bank);
-            //Store image in Image tile
-            Image tile = new Image("file:resources/Base/" + count + ".png");
-            //String location used to test button functionality
-            ImageView set = new ImageView(tile);
-            set.setFitHeight(150);
-            set.setFitWidth(150);
             //Setting up the Button for each tile
-            count = getCount(count, gridPane, i, 10, tile);
+            count = tileCreation(count, gridPane, i, 10,"TileBuilding");
         }
 
         //Bottom side of the board
         for(int i = 10; i >= 0; i--)
         {
-            gameTiles[count-1] = new TileBuilding("#0000FF",new ArrayList<Integer>(), 100,1000,100,"idk",bank,new ArrayList<TileProperty>(),false);
-            gameTiles[count-1].setPrice(100);
-            gameTiles[count-1].setOwner(bank);
-            //Store image in Image tile
-            Image tile = new Image("file:resources/Base/" + count + ".png");
-            //String location used to test button functionality
-            ImageView set = new ImageView(tile);
-            set.setFitHeight(150);
-            set.setFitWidth(150);
             //Setting up the Button for each tile
-            count = getCount(count, gridPane, 10, i, tile);
+            count = tileCreation(count, gridPane, 10, i,"TileBuilding");
 
         }
 
         //Left side of the board
         for(int i = 9; i > 0; i--)
         {
-            gameTiles[count-1] = new TileBuilding("#0000FF",new ArrayList<Integer>(), 100,1000,100,"idk",bank,new ArrayList<TileProperty>(),false);
-            gameTiles[count-1].setPrice(100);
-            gameTiles[count-1].setOwner(bank);
-            //Store image in Image tile
-            Image tile = new Image("file:resources/Base/" + count + ".png");
-            //String location used to test button functionality
-            ImageView set = new ImageView(tile);
-            set.setFitHeight(150);
-            set.setFitWidth(150);
             //Setting up the Button for each tile
-            count = getCount(count, gridPane, i, 0, tile);
+            count = tileCreation(count, gridPane, i, 0,"TileBuilding");
         }
         for (int i = 0; i < 10; i++)
         {
@@ -952,38 +934,25 @@ public class GUI extends Application {
                }
             }
         }
-        gameBoard.setTiles(gameTiles);
+        //no Jail Slot
+        tileCreation(40,gridPane,9,9, "TileFreeParking");
         return gridPane;
     }
 
-    public HBox dices ()
-    {
-        ImageView face1 = new ImageView(facePNG.get(0));
-        dice1.setGraphic(face1);
-        face1.setFitHeight(60);
-        face1.setFitWidth(60);
-        dice1.setStyle("-fx-background-color: Transparent");
-        dice1.setPadding(Insets.EMPTY);
-        ImageView face = new ImageView(facePNG.get(0));
-        dice2.setGraphic(face);
-        face.setFitHeight(60);
-        face.setFitWidth(60);
-        dice2.setStyle("-fx-background-color: Transparent");
-        dice2.setPadding(Insets.EMPTY);
-        return new HBox(dice1,dice2);
-    }
     /**
      * This method is simply used to save some space.
-     * @param count
-     * @param gridPane
-     * @param i
-     * @param j
-     * @param tile
-     * @return
      */
-    private int getCount(int count, GridPane gridPane, int i, int j, Image tile) {
+    private int tileCreation(int count, GridPane gridPane, int i, int j, String tileType) {
+        cardInfo_Text[count] = new Text("r");
+        //Store image in Image tile
+        Image tile = new Image("file:resources/Base/" + count + ".png");
+        //String location used to test button functionality
+        ImageView set = new ImageView(tile);
+        set.setFitHeight(150);
+        set.setFitWidth(150);
+        //Setting up the Button for each tile
         int cardNum = count;
-        Button insert = new Button();
+        Button insert = new Button(((TileProperty)gameBoard.getTile(count)).getName());
         insert.setMinWidth(50);
         insert.setMinHeight(50);
         insert.setOnAction(e->
@@ -991,12 +960,10 @@ public class GUI extends Application {
             if (!inspectWindow)
             {
                 VBox cardInfoIDK = new VBox();
-                cardInfoIDK.setStyle("-fx-background-color: linear-gradient(to bottom, red 20%, white 0%);");
-                //Second Layer
-                Text nameOfProperty = createText("Name of Property!",50,Color.BLACK,"arial");
-                cardInfoIDK.getChildren().add(nameOfProperty);
-                Text infoOfProperty = createText("Info of Property!",30,Color.BLACK,"arial");
-                cardInfoIDK.getChildren().add(infoOfProperty);
+                cardInfoIDK.setStyle("-fx-background-color: linear-gradient(to bottom, " +
+                        ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 30%, white 0%);");
+                Text cardInfo = updateCardInfo(cardNum);
+                cardInfoIDK.getChildren().add(cardInfo);
                 inspectWindow = true;
                 Scene cardInfoScene = new Scene(cardInfoIDK, 300, 400);
                 Stage cardStage = new Stage();
@@ -1009,23 +976,50 @@ public class GUI extends Application {
                 });
             }
         });
-        insert.setStyle("-fx-background-color: blue");
+        insert.setStyle("-fx-background-color: linear-gradient(to bottom, " +
+                ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 20%, white 0%);\n" +
+                "-fx-background-radius: 0");
         gridPane.add(insert,i,j);
-        tiles.add(insert);
         count++;
         return count;
+    }
+
+    /**
+     *
+     */
+    public HBox dices ()
+    {
+        //Preparing dice1
+        ImageView face1 = new ImageView(facePNG.get(0));
+        dice1.setGraphic(face1);
+        face1.setFitHeight(60);
+        face1.setFitWidth(60);
+        dice1.setStyle("-fx-background-color: Transparent");
+        dice1.setPadding(Insets.EMPTY);
+
+        //Preparing dice2
+        ImageView face = new ImageView(facePNG.get(0));
+        dice2.setGraphic(face);
+        face.setFitHeight(60);
+        face.setFitWidth(60);
+        dice2.setStyle("-fx-background-color: Transparent");
+        dice2.setPadding(Insets.EMPTY);
+
+        //return finished HBox
+        return new HBox(dice1,dice2);
     }
     /**
      * updateCardInfo() is a method that will update the info of a tile (such as a different owner etc...)
      *
      * @param tileNum the tile needed to be updated
      */
-    private void updateCardInfo(int tileNum)
+    private Text updateCardInfo(int tileNum)
     {
         cardInfo_Text[tileNum].setText("Property Name:"  + ((TileProperty) gameBoard.getTiles()[tileNum]).getName()  +
                 '\n' + "Price of Property: " + ((TileProperty) gameBoard.getTiles()[tileNum]).getPrice() +
                 '\n' + "Owner: " + ((TileProperty) gameBoard.getTiles()[tileNum]).getOwner() + '\n' );
         cardInfo_Text[tileNum].setWrappingWidth(100);
+        return cardInfo_Text[tileNum];
     }
     /**
      * The dice() function is used to return an arrayList containing all the dice faces

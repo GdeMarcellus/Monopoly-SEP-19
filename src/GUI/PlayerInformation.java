@@ -22,7 +22,27 @@ public class PlayerInformation {
 
     public String getPlayerColor_String()
     {
-        return playerColor_String;
+        if (playerColor == Color.RED)
+        {
+            return "Red";
+        }
+        else if (playerColor == Color.BLUE)
+        {
+            return "Blue";
+        }
+        else if (playerColor == Color.GREEN)
+        {
+            return "Green";
+        }
+        else if (playerColor == Color.PURPLE)
+        {
+            return "Purple";
+        }
+        else if (playerColor == Color.ORANGE)
+        {
+            return "Orange";
+        }
+        return null;
     }
 
     public int getPlayerNumber() {
