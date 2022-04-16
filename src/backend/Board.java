@@ -325,7 +325,6 @@ public class Board {
 
     public void setTiles(Tile[] tiles)
     {
-        System.out.println(tiles[1]);
         this.tiles = tiles;
     }
 

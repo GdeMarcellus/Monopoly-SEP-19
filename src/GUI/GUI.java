@@ -28,9 +28,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
+
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class GUI extends Application {
@@ -463,9 +462,7 @@ public class GUI extends Application {
             {
                 if(gameBoard.remainingBalance(playerTurn,gameBoard.getPlayer(playerTurn).getPosition()) < 0)
                 {
-                    Stage mortgage = new Stage();
-                    Scene mortgageScene = createmortgageScene();
-                    mortgage.setScene(mortgageScene);
+                    Stage mortgage = mortgageStage();
                     mortgage.show();
                 }
                 else if (((TileBuilding)gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getOwner() != gameBoard.getBank())
@@ -497,16 +494,8 @@ public class GUI extends Application {
         move.setOnAction(e ->
                 {
                     if (!finishedTurn) {
-                    dices.rollDice();
-                    ImageView first = new ImageView(facePNG.get(dices.getDiceValues().get(0)-1));
-                    first.setFitWidth(60);
-                    first.setFitHeight(60);
-                    dice1.setGraphic(first);
-                    ImageView second = new ImageView(facePNG.get(dices.getDiceValues().get(1)-1));
-                    second.setFitWidth(60);
-                    second.setFitHeight(60);
-                    dice2.setGraphic(second);
-                    int dieValues = dices.getDiceValues().get(0) + dices.getDiceValues().get(1);
+                        rollDices();
+                        int dieValues = dices.getDiceValues().get(0) + dices.getDiceValues().get(1);
                     if (gameBoard.checkDouble(dices.getDiceValues()))
                     {
                         gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
@@ -646,12 +635,60 @@ public class GUI extends Application {
         return final_control;
     }
 
-    private Scene createmortgageScene()
+    private Stage mortgageStage()
     {
+        //Stage and Pane creations
+        Stage mortgageStage = new Stage();
         BorderPane mainPane = new BorderPane();
-        Text idk = new Text("main text");
-        mainPane.setCenter(idk);
-        return new Scene(mainPane,800,800);
+        VBox mainVbox = new VBox();
+
+        //Setting up all the Texts in the stage
+        Text idk = createText("Would you like to get a Mortgage?",40,Color.BLACK,"arial");
+        int userBalance = gameBoard.getPlayer(playerTurn).getBalance();
+        Text userNameBalance = createText(("Player: " + playerTurn + "\nCurrent Balance: " + userBalance),10,Color.BLACK,"arial");
+        mainVbox.getChildren().add(userNameBalance);
+
+        //Setting up yes button
+        Button yes = new Button("Yes");
+        yes.setMinHeight(50);
+        yes.setMinWidth(100);
+        yes.setOnAction(e ->
+        {
+            try
+            {
+                ((TileProperty)gameBoard.getPlayerTile(playerTurn)).mortgaged(gameBoard.getBank());
+            }
+            catch (IsMortgagedException ex)
+            {
+                ex.printStackTrace();
+            }
+            catch (PropertyDevelopedException ex)
+            {
+                ex.printStackTrace();
+            }
+            mortgageStage.close();
+        });
+
+        //Setting up no button
+        Button no = new Button("No");
+        no.setOnAction(e ->
+        {
+            mortgageStage.close();
+        });
+        no.setMinHeight(50);
+        no.setMinWidth(100);
+
+        //Prepare mainVBox
+        mainVbox.getChildren().add(yes);
+        mainVbox.getChildren().add(no);
+        mainVbox.setAlignment(Pos.CENTER);
+        mainVbox.setSpacing(30);
+
+        //Prepare mainPane
+        mainPane.setTop(idk);
+        mainPane.setCenter(mainVbox);
+        mortgageStage.setScene(new Scene(mainPane,800,800));
+        return mortgageStage;
     }
 
     /**
@@ -788,7 +825,7 @@ public class GUI extends Application {
         {
           playerSelection.close();
           setupPlaySession();
-          gameBoard();
+          choosePlayerOrder();
         });
         playerSelection.show();
     }
@@ -1114,7 +1151,6 @@ public class GUI extends Application {
          for (int i = 0; i<6; i++)
          {
              diceFaces.add(new Image("file:resources/dice/" + (i+1) + ".png"));
-             System.out.println(i);
          }
          return diceFaces;
      }
@@ -1156,5 +1192,121 @@ public class GUI extends Application {
                 location =  board.getChildren().get(tileNum).getLayoutY() - 240+ (playerNumber*10);
         }
         return location;
+    }
+
+    /**
+     * 
+     */
+    public void choosePlayerOrder()
+    {
+        //Initialise up Stage, Scene, BorderPane, VBox
+        Stage playerOrderStage = new Stage();
+        Scene playerOrderScene = null;
+        BorderPane mainPane = new BorderPane();
+        VBox mainControls = new VBox();
+        HashMap<Integer,Integer> playerRoll = new HashMap<>();
+        ListView<TextField> playerRollVisuals = new ListView<>();
+        int playerTurn = 0;
+
+        Text mainTitle = createText("Roll Dices to Choose Player Order!",70,Color.BLACK,"arial");
+        mainPane.setTop(mainTitle);
+
+        GridPane players = new GridPane();
+        for (int i = 0; i < gameBoard.getPlayerNum(); i++)
+        {
+            TextField playerRollTextField = new TextField();
+            playerRollTextField.setEditable(false);
+            playerRollVisuals.getItems().add(playerRollTextField);
+            Button playerIcon = new Button();
+            playerIcon.setMinWidth(100);
+            playerIcon.setMinHeight(100);
+            playerIcon.setStyle("-fx-background-color: " + playerInformation[i].getPlayerColor_String());
+            players.add(playerIcon,0,i);
+            players.add(playerRollTextField,1,i);
+        }
+        mainControls.getChildren().add(players);
+        playerRollVisuals.getSelectionModel().select(0);
+
+        //Setup Dice Visuals
+        HBox dicesIDK = dices();
+        dicesIDK.setAlignment(Pos.CENTER);
+        mainControls.getChildren().add(dicesIDK);
+
+        Button roll = new Button("Roll");
+        roll.setMinHeight(100);
+        roll.setMinHeight(50);
+        roll.setOnAction(e ->
+        {
+            //Roll Dices
+            rollDices();
+
+            //Place the dice values into the selection Model
+            playerRollVisuals.getSelectionModel().getSelectedItem().setText(String.valueOf(dices.getDiceValues().get(0) + dices.getDiceValues().get(1)));
+            //Select next player
+            playerRollVisuals.getSelectionModel().selectNext();
+
+            //If last player rolls
+            if (playerRollVisuals.getSelectionModel().getSelectedIndex()+1 == gameBoard.getPlayerNum() && !Objects.equals(playerRollVisuals.getSelectionModel().getSelectedItem().getText(), ""))
+            {
+                HashMap<Integer, Integer> playerHashMap = new HashMap<>();
+                for (int i = 0; i < playerRollVisuals.getItems().size(); i++)
+                {
+                    playerHashMap.put(Integer.valueOf(playerRollVisuals.getItems().get(i).getText()), i);
+                }
+                Alert done = new Alert(AlertType.CONFIRMATION);
+                done.setContentText(getPlayerOrder(playerHashMap));
+                done.setOnCloseRequest(a ->
+                {
+                    playerOrderStage.close();
+                    gameBoard();
+                });
+                done.show();
+            }
+        });
+        players.setAlignment(Pos.CENTER);
+        mainControls.getChildren().add(roll);
+        mainControls.setAlignment(Pos.CENTER);
+        mainPane.setCenter(mainControls);
+        playerOrderStage.setScene(new Scene(mainPane,1500,1000));
+        playerOrderStage.show();
+    }
+
+    /**
+     *
+     */
+    private void rollDices() {
+        dices.rollDice();
+        ImageView first = new ImageView(facePNG.get(dices.getDiceValues().get(0)-1));
+        first.setFitWidth(60);
+        first.setFitHeight(60);
+        dice1.setGraphic(first);
+        ImageView second = new ImageView(facePNG.get(dices.getDiceValues().get(1)-1));
+        second.setFitWidth(60);
+        second.setFitHeight(60);
+        dice2.setGraphic(second);
+    }
+
+    /**
+     *
+     * @param playerRolls
+     * @return
+     */
+    public String getPlayerOrder(HashMap<Integer,Integer> playerRolls)
+    {
+        StringBuilder playerOrder = new StringBuilder();
+        PriorityQueue<Integer> playerOrderInt = new PriorityQueue<>(Collections.reverseOrder());
+
+        //Get the keys of the hashmap (roll values) and insert into priority queue
+        for (Map.Entry<Integer,Integer> entry: playerRolls.entrySet())
+        {
+            playerOrderInt.add(entry.getKey());
+        }
+
+        //Loop and get the player corresponding to the priority queue
+        while (playerOrderInt.peek() != null)
+        {
+            playerOrder.append("Player: ").append(playerRolls.get(playerOrderInt.peek())).append(" Dice Roll: ").append(playerOrderInt.poll()).append("\n");
+        }
+        return playerOrder.toString();
     }
 }
