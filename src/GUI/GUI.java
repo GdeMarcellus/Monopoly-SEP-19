@@ -263,7 +263,6 @@ public class GUI extends Application {
                 moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                 moneyOfPlayer.setFill(Color.GREEN);
                 transition.playFromStart();
-                playerBoughtProperty = true;
             }
             catch (OwnershipException ex)
             {
@@ -508,7 +507,7 @@ public class GUI extends Application {
                     second.setFitHeight(60);
                     dice2.setGraphic(second);
                     int dieValues = dices.getDiceValues().get(0) + dices.getDiceValues().get(1);
-                    if (Objects.equals(dices.getDiceValues().get(0), dices.getDiceValues().get(1)))
+                    if (gameBoard.checkDouble(dices.getDiceValues()))
                     {
                         gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
                         playerInformation[playerTurn].getPlayerToken().setLayoutY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
@@ -517,10 +516,39 @@ public class GUI extends Application {
                     }
                     else
                     {
-                        gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
+                        boolean passedGo = gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
+                        if (passedGo)
+                        {
+                            gameBoard.getPlayer(playerTurn).setBalance(gameBoard.getPlayer(playerTurn).getBalance() + 200);
+                            //Change GUI (Money Counter)
+                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                            moneyOfPlayer.setFill(Color.GREEN);
+                            transition.playFromStart();
+                        }
                         finishedTurn = true;
                         playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                         playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+
+                        //Pay Rent
+                        try {
+                            gameBoard.payRent(playerTurn,gameBoard.getPlayer(playerTurn).getPosition(),dices.getDiceValues());
+
+                            //Property Owned by Player
+                            playerBoughtProperty = true;
+
+                            //Change GUI (Money Counter)
+                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                            moneyOfPlayer.setFill(Color.RED);
+                            transition.playFromStart();
+                        }
+                        catch (NonPropertyTileException ex)
+                        {
+                            System.err.println("Not Owned by player!");
+                        }
+                        catch (IsMortgagedException ex)
+                        {
+                            System.err.println("Building is Mortgaged, player does not need to pay!");
+                        }
                     }
                     }
                 }
