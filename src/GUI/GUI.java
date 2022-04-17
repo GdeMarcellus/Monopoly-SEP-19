@@ -171,6 +171,7 @@ public class GUI extends Application {
         board = createBoard();
         board.setAlignment(Pos.CENTER);
 
+
         //Creating a title for the scene
         Text title = createText("Property Tycoon", 50, Color.BLACK,"arial");
         HBox top= new HBox(title);
@@ -178,6 +179,7 @@ public class GUI extends Application {
         BorderPane.setAlignment(top,Pos.CENTER);
         top.setAlignment(Pos.CENTER);
         top.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+
 
         //FillTransition for Title Text
         FillTransition title_mainAnimation = new FillTransition(Duration.millis(3000),title,Color.WHITE, Color.RED);
@@ -239,6 +241,11 @@ public class GUI extends Application {
         //Creating a new Scene
         gameBoard_GUI.setScene(finalScene);
         gameBoard_GUI.show();
+        for(int i = 0; i < gameBoard.getPlayerNum(); i++)
+        {
+            playerInformation[i].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(i).getPosition(),i)-130);
+            playerInformation[i].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(i).getPosition(),i)-30);
+        }
     }
 
     /**
@@ -430,8 +437,9 @@ public class GUI extends Application {
                 Alert auctionWinner = new Alert(AlertType.INFORMATION);
                 auctionWinner.setContentText("Winner of Auction is: " + (playerInformation[higherPlayer].getPlayerNumber() + 1));
                 auctionWinner.show();
+                updatePriceAndEndTurn();
                 auctionWindow.close();
-                }
+            }
         });
         controlsAuction.getChildren().add(nextPlayer);
         mainAuctionPane.setBottom(controlsAuction);
@@ -443,6 +451,28 @@ public class GUI extends Application {
         playerAndText.setAlignment(Pos.CENTER);
         BorderPane.setAlignment(playerAndText, Pos.CENTER);
         return mainAuctionPane;
+    }
+
+    /**
+     * Method used to ease up cluster code. It updates the showed price and resets variables for next turn!
+     *
+     */
+    private void updatePriceAndEndTurn() {
+        playerInfo.getItems().get(playerTurn).setStroke(Color.BLACK);
+        playerInfo.getItems().remove(playerTurn);
+        playerInfo.getItems().add(playerTurn, getPlayerInfo(playerTurn));
+        if (playerTurn + 1 >= gameBoard.getPlayerNum()) {
+            playerTurn = 0;
+        } else {
+            playerTurn += 1;
+        }
+        playerInfo.getItems().get(playerTurn).setStroke(playerInformation[playerTurn].playerColor);
+        playerInfo.refresh();
+        playerTurnText.setText(("Player Turn:  " + (playerTurn + 1)));
+        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+        finishedTurn = false;
+        playerBoughtProperty = false;
+        currPlayerIcon.setStyle("-fx-background-color: " + playerInformation[playerTurn].getPlayerColor_String());
     }
 
     /**
@@ -523,8 +553,8 @@ public class GUI extends Application {
                     if (gameBoard.checkDouble(dices.getDiceValues()))
                     {
                         gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
-                        playerInformation[playerTurn].getPlayerToken().setLayoutY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
-                        playerInformation[playerTurn].getPlayerToken().setLayoutX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                         finishedTurn = false;
                     }
                     else
@@ -577,36 +607,20 @@ public class GUI extends Application {
                 d.setContentText("Roll dies and move before playing another action!");
                 d.show();
             }
-            else
-            {
-            if(!playerBoughtProperty)
-            {
-                gameBoard.auctionInitialise();
-                gameBoard.auctionStart();
-                auctionWindow = new Stage();
-                auctionWindow.setScene(new Scene((Parent) auctionNode(),800,800));
-                auctionWindow.show();
-                //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
-                auctionWindow.setOnCloseRequest(Event::consume);
-            }
-                playerInfo.getItems().get(playerTurn).setStroke(Color.BLACK);
-                playerInfo.getItems().remove(playerTurn);
-                playerInfo.getItems().add(playerTurn,getPlayerInfo(playerTurn));
-                if (playerTurn+1 >= gameBoard.getPlayerNum())
-                {
-                    playerTurn = 0;
+            else {
+                if (!playerBoughtProperty) {
+                    gameBoard.auctionInitialise();
+                    gameBoard.auctionStart();
+                    auctionWindow = new Stage();
+                    auctionWindow.setScene(new Scene((Parent) auctionNode(), 800, 800));
+                    auctionWindow.show();
+                    //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
+                    auctionWindow.setOnCloseRequest(Event::consume);
                 }
                 else
                 {
-                    playerTurn += 1;
+                    updatePriceAndEndTurn();
                 }
-                playerInfo.getItems().get(playerTurn).setStroke(playerInformation[playerTurn].playerColor);
-                playerInfo.refresh();
-                playerTurnText.setText(("Player Turn:  " +(playerTurn + 1)));
-                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                finishedTurn = false;
-                playerBoughtProperty = false;
-                currPlayerIcon.setStyle("-fx-background-color: " + playerInformation[playerTurn].getPlayerColor_String());
             }
         });
 
@@ -974,6 +988,7 @@ public class GUI extends Application {
            int playerNum = i;
            gameBoard.addPlayer(new HumanPlayer());
            gameBoard.getPlayer(i).addMoney(1000);
+           gameBoard.getPlayer(i).setPosition(0);
            playerInformation[i] = new PlayerInformation(player_Index.get(i).toString(),player_Index.get(i),i);
            playerInformation[i].getPlayerToken().setOnMouseClicked(e ->
            {
@@ -1225,11 +1240,11 @@ public class GUI extends Application {
         double location = 0;
         if (axis == 'X')
         {
-                location =  board.getChildren().get(tileNum).getLayoutX() - 240 + (playerNumber*10);
+                location =  board.getChildren().get(tileNum).getLayoutX()-450;
         }
         else if (axis == 'Y')
         {
-                location =  board.getChildren().get(tileNum).getLayoutY() - 240+ (playerNumber*10);
+                location =  board.getChildren().get(tileNum).getLayoutY()-290;
         }
         return location;
     }
