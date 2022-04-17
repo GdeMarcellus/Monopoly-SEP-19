@@ -343,6 +343,9 @@ public class Board {
         this.players.add(newPlayer);
     }
 
+    public void setPlayers(ArrayList<Player> players) {
+        this.players = players;
+    }
     public int getMaxDoubles() {
         return maxDoubles;
     }
