@@ -971,13 +971,15 @@ public class GUI extends Application {
         colors_Color[3] = Color.GREEN;
         colors_Color[4] = Color.PURPLE;
 
-        //Creating selected boolean array
-        boolean[] selected = new boolean[5];
+        //Creating selectedHumanPlayer boolean array
+        boolean[] selectedHumanPlayer = new boolean[5];
+        boolean[] selectedNPCPlayer = new boolean[5];
+
         HBox playerWindows = new HBox();
         Button[] playerWindowArray = new Button[5];
         for (int i = 0; i < 5; i++)
         {
-            selected[i] = false;
+            selectedHumanPlayer[i] = false;
             Button playerWindow = new Button();
             playerWindow.setPrefSize(100,100);
             playerWindow.setPadding(new Insets(30));
@@ -991,16 +993,30 @@ public class GUI extends Application {
             int colorNum = i;
             playerWindow.setOnAction(e ->
             {
-                if (!selected[colorNum])
+                if (!selectedHumanPlayer[colorNum] && !selectedNPCPlayer[colorNum])
                 {
                     playerWindow.setStyle("\n" +
                             "    -fx-background-color:transparent ;\n" +
                             "    -fx-background-radius:0;\n" +
                             "    -fx-border-color:" + colors_String[colorNum] +";\n" +
                             "    -fx-border-width: 10 10 10 10;\n");
-                  selected[colorNum] = true;
+                  selectedHumanPlayer[colorNum] = true;
                   player_Index.put(Integer.valueOf(String.valueOf(playerNumber)), colors_Color[colorNum]);
                   playerNumber.getAndIncrement();
+                }
+
+                //If player has already been selected, then the selected player will become a NPC
+                else if (selectedHumanPlayer[colorNum] && !selectedNPCPlayer[colorNum])
+                {
+                    playerWindow.setStyle("""
+                        -fx-background-color:transparent ;
+                        -fx-background-radius:0;
+                        -fx-border-color:black;
+                        -fx-border-width: 10 10 10 10;
+                    """);
+                    selectedHumanPlayer[colorNum] = false;
+                    selectedNPCPlayer[colorNum] = true;
+                    player_Index.remove(Integer.valueOf(String.valueOf(playerNumber)), colors_Color[colorNum].invert());
                 }
                 else
                 {
@@ -1011,7 +1027,8 @@ public class GUI extends Application {
                         -fx-border-color:gray;
                         -fx-border-width: 10 10 10 10;
                     """);
-                    selected[colorNum] = false;
+                    selectedHumanPlayer[colorNum] = false;
+                    selectedNPCPlayer[colorNum] = false;
                     player_Index.remove(Integer.valueOf(String.valueOf(playerNumber)));
                     playerNumber.getAndDecrement();
                 }
