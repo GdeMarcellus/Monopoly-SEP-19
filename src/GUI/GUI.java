@@ -4,6 +4,7 @@ import backend.Board;
 import backend.Dice;
 import backend.Exception.*;
 import backend.Player.HumanPlayer;
+import backend.Player.Player;
 import backend.Tiles.Tile;
 import backend.Tiles.TileBuilding;
 import backend.Tiles.TileProperty;
@@ -80,6 +81,8 @@ public class GUI extends Application {
     {
         //Setting up Stages
         Stage introduction = new Stage();
+        introduction.setResizable(false);
+        gameBoard_GUI.setResizable(false);
 
         //Setting up Title Text
         Text title = createText("Property Tycoon", 100, Color.BLACK,"arial");
@@ -575,19 +578,31 @@ public class GUI extends Application {
 
                         //Pay Rent
                         try {
-                            gameBoard.payRent(playerTurn,gameBoard.getPlayer(playerTurn).getPosition(),dices.getDiceValues());
+                            Player playerOwed;
+                            if ((playerOwed = ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner()) != gameBoard.getBank())
+                            {
+                                int rentPrice = gameBoard.payRent(playerTurn, gameBoard.getPlayer(playerTurn).getPosition(), dices.getDiceValues());
 
-                            //Property Owned by Player
-                            playerBoughtProperty = true;
+                                //Give Money to player who owns buildings
+                                playerOwed.setBalance(playerOwed.getBalance() + rentPrice);
 
-                            //Change GUI (Money Counter)
-                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                            moneyOfPlayer.setFill(Color.RED);
-                            transition.playFromStart();
+                                //Alert player that they payed for the rent
+                                Alert payedRent = new Alert(AlertType.WARNING);
+                                payedRent.setContentText("Player " + playerTurn + "has payed " + rentPrice + " for Rent!");
+                                payedRent.show();
+
+                                //Property Owned by Player
+                                playerBoughtProperty = true;
+
+                                //Change GUI (Money Counter)
+                                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                moneyOfPlayer.setFill(Color.RED);
+                                transition.playFromStart();
+                            }
                         }
                         catch (NonPropertyTileException ex)
                         {
-                            System.err.println("Not Owned by player!");
+                            System.err.println("Not a property by player!");
                         }
                         catch (IsMortgagedException ex)
                         {
@@ -613,6 +628,7 @@ public class GUI extends Application {
                     gameBoard.auctionInitialise();
                     gameBoard.auctionStart();
                     auctionWindow = new Stage();
+                    auctionWindow.setResizable(false);
                     auctionWindow.setScene(new Scene((Parent) auctionNode(), 800, 800));
                     auctionWindow.show();
                     //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
@@ -645,7 +661,6 @@ public class GUI extends Application {
 
                         //Change Tile
                         int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
-                        System.out.println(developmentPercentage);
                         tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, " +
                                 ((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour() + " "    +
                                 developmentPercentage +"%, white 0%);\n" + "-fx-background-radius: 0");
@@ -693,6 +708,7 @@ public class GUI extends Application {
         Button trade = new Button("Trade");
         trade.setOnAction(e ->{
             Stage tradeStage = new Stage();
+            tradeStage.setResizable(false);
             tradeStage.setScene(new Scene((Parent) selectPlayer(), 800,800));
             tradeStage.show();
         });
@@ -712,6 +728,7 @@ public class GUI extends Application {
     {
         //Stage and Pane creations
         Stage mortgageStage = new Stage();
+        mortgageStage.setResizable(false);
         BorderPane mainPane = new BorderPane();
         VBox mainVbox = new VBox();
 
@@ -795,6 +812,7 @@ public class GUI extends Application {
     {
         //Creating stage for the mainMenu
         Stage mainMenu = new Stage();
+        mainMenu.setResizable(false);
         //Creating exit button
         Button exit = new Button("Exit");
         exit.setOnAction( e -> System.exit(0));
@@ -871,6 +889,7 @@ public class GUI extends Application {
     public void settings()
     {
         Stage settings_Stage = new Stage();
+        settings_Stage.setResizable(false);
         BorderPane mainPane = new BorderPane();
         VBox settingOptions = new VBox();
         settingOptions.setAlignment(Pos.CENTER);
@@ -915,6 +934,7 @@ public class GUI extends Application {
 
         //Creating Stage and setting Scene (Also start game button functionality)
         Stage playerSelection = new Stage();
+        playerSelection.setResizable(false);
         playerSelection.setScene(new Scene(mainPane,1500,1000));
         startGameButton.setOnAction(e ->
         {
@@ -1065,7 +1085,11 @@ public class GUI extends Application {
         Tile[] gameTiles = new Tile[41];
         for (int i = 0; i < 41; i ++)
         {
-            gameTiles[i] = new TileBuilding("#0000FF",new ArrayList<>(), 100,0,100,"idk", gameBoard.getBank(), new ArrayList<>(),false);
+            ArrayList<Integer> rent = new ArrayList<>();
+            rent.add(100);
+            rent.add(200);
+            rent.add(300);
+            gameTiles[i] = new TileBuilding("#0000FF",rent, 100,0,100,"idk", gameBoard.getBank(), new ArrayList<>(),false);
         }
         return gameTiles;
     }
@@ -1144,29 +1168,28 @@ public class GUI extends Application {
      */
     private int tileCreation(int count, GridPane gridPane, int i, int j, String tileType,int size) {
         cardInfo_Text[count] = new Text("r");
-        //Store image in Image tile
-        Image tile = new Image("file:resources/Base/" + count + ".png");
-        //String location used to test button functionality
-        ImageView set = new ImageView(tile);
-        set.setFitHeight(150);
-        set.setFitWidth(150);
         //Setting up the Button for each tile
         int cardNum = count;
-        Button insert = new Button(((TileProperty)gameBoard.getTile(count)).getName());
-        insert.setMinWidth(size);
-        insert.setMinHeight(size);
-        insert.setOnAction(e->
+        Button tileButton = new Button(((TileProperty)gameBoard.getTile(count)).getName());
+        tileButton.setMinWidth(size);
+        tileButton.setMinHeight(size);
+        tileButton.setOnAction(e->
         {
             if (!inspectWindow)
             {
                 VBox cardInfoIDK = new VBox();
                 cardInfoIDK.setStyle("-fx-background-color: linear-gradient(to bottom, " +
-                        ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 30%, white 0%);");
+                        ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 20%, white 0%);");
                 Text cardInfo = updateCardInfo(cardNum);
-                cardInfoIDK.getChildren().add(cardInfo);
+                VBox mainBox = new VBox(cardInfo);
+                BorderPane mainPane = new BorderPane();
+                mainPane.setCenter(mainBox);
+                mainBox.setAlignment(Pos.BOTTOM_CENTER);
+                cardInfoIDK.getChildren().add(mainPane);
                 inspectWindow = true;
                 Scene cardInfoScene = new Scene(cardInfoIDK, 300, 400);
                 Stage cardStage = new Stage();
+                cardStage.setResizable(false);
                 cardStage.setScene(cardInfoScene);
                 cardStage.show();
                 cardInfoIDK.setOnMouseClicked(a ->
@@ -1176,11 +1199,11 @@ public class GUI extends Application {
                 });
             }
         });
-        insert.setStyle("-fx-background-color: linear-gradient(to bottom, " +
+        tileButton.setStyle("-fx-background-color: linear-gradient(to bottom, " +
                 ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 20%, white 0%);\n" +
                 "-fx-background-radius: 0");
-        tiles[count] = insert;
-        gridPane.add(insert,i,j);
+        tiles[count] = tileButton;
+        gridPane.add(tileButton,i,j);
         count++;
         return count;
     }
@@ -1222,7 +1245,7 @@ public class GUI extends Application {
         cardInfo_Text[tileNum].setText("Property Name:"  + ((TileProperty) gameBoard.getTiles()[tileNum]).getName()  +
                 '\n' + "Price of Property: " + ((TileProperty) gameBoard.getTiles()[tileNum]).getPrice() +
                 '\n' + "Owner: " + ((TileProperty) gameBoard.getTiles()[tileNum]).getOwner() + '\n' );
-        cardInfo_Text[tileNum].setWrappingWidth(100);
+        cardInfo_Text[tileNum].setWrappingWidth(300);
         return cardInfo_Text[tileNum];
     }
 
@@ -1290,6 +1313,7 @@ public class GUI extends Application {
     {
         //Initialise up Stage, Scene, BorderPane, VBox, ListView
         Stage playerOrderStage = new Stage();
+        playerOrderStage.setResizable(false);
         BorderPane mainPane = new BorderPane();
         VBox mainControls = new VBox();
         ListView<TextField> playerRollVisuals = new ListView<>();
