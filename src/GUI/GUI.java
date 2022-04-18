@@ -59,6 +59,7 @@ public class GUI extends Application {
     private String[] colors_String;
     private Stage auctionWindow;
     private boolean playerBoughtProperty = false;
+    private Button[] tiles = new Button[41];
 
     public static void main(String []args)
     {
@@ -608,7 +609,7 @@ public class GUI extends Application {
                 d.show();
             }
             else {
-                if (!playerBoughtProperty) {
+                if (!playerBoughtProperty && ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getBank()) {
                     gameBoard.auctionInitialise();
                     gameBoard.auctionStart();
                     auctionWindow = new Stage();
@@ -633,24 +634,53 @@ public class GUI extends Application {
             {
                 if (gameBoard.getPlayer(playerTurn).getProperties().contains(gameBoard.getPlayerTile(playerTurn)))
                 {
-                    try {
+                    try
+                    {
                         ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).buyHouse(gameBoard.getBank());
-                    } catch (PropertyDevelopedException ex) {
+
+                        //Change GUI (Money Counter)
+                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                        moneyOfPlayer.setFill(Color.RED);
+                        transition.playFromStart();
+
+                        //Change Tile
+                        int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
+                        System.out.println(developmentPercentage);
+                        tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, " +
+                                ((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour() + " "    +
+                                developmentPercentage +"%, white 0%);\n" + "-fx-background-radius: 0");
+
+                    }
+
+                    //Alert for properties with max development
+                    catch (PropertyDevelopedException ex)
+                    {
                         Alert exceptionBuild = new Alert(AlertType.WARNING);
                         exceptionBuild.setContentText("The Property has max development!");
                         exceptionBuild.show();
                         ex.printStackTrace();
-                    } catch (LargeDevelopmentDifferenceException ex) {
+                    }
+
+                    //Alert for idk
+                    catch (LargeDevelopmentDifferenceException ex) {
                         Alert exceptionBuild = new Alert(AlertType.WARNING);
                         exceptionBuild.setContentText("idk");
                         exceptionBuild.show();
                         ex.printStackTrace();
-                    } catch (IsMortgagedException ex) {
+                    }
+
+                    //Alert isMortgaged
+                    catch (IsMortgagedException ex)
+                    {
                         Alert exceptionBuild = new Alert(AlertType.WARNING);
                         exceptionBuild.setContentText("Building is mortgaged!");
                         exceptionBuild.show();
                         ex.printStackTrace();
-                    } catch (InsufficientFundsException ex) {
+                    }
+
+                    //Alert for insufficient funds
+                    catch (InsufficientFundsException ex)
+                    {
                         Alert exceptionBuild = new Alert(AlertType.WARNING);
                         exceptionBuild.setContentText("Insufficient Funds!");
                         exceptionBuild.show();
@@ -1031,10 +1061,11 @@ public class GUI extends Application {
      */
     public Tile[] createTiles()
     {
+        //Tile Array to be inserted into the Board Object
         Tile[] gameTiles = new Tile[41];
         for (int i = 0; i < 41; i ++)
         {
-            gameTiles[i] = new TileBuilding("#0000FF",new ArrayList<>(), 100,1000,100,"idk", gameBoard.getBank(), new ArrayList<>(),false);
+            gameTiles[i] = new TileBuilding("#0000FF",new ArrayList<>(), 100,0,100,"idk", gameBoard.getBank(), new ArrayList<>(),false);
         }
         return gameTiles;
     }
@@ -1148,6 +1179,7 @@ public class GUI extends Application {
         insert.setStyle("-fx-background-color: linear-gradient(to bottom, " +
                 ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 20%, white 0%);\n" +
                 "-fx-background-radius: 0");
+        tiles[count] = insert;
         gridPane.add(insert,i,j);
         count++;
         return count;
@@ -1240,7 +1272,7 @@ public class GUI extends Application {
         double location = 0;
         if (axis == 'X')
         {
-                location =  board.getChildren().get(tileNum).getLayoutX()-450;
+                location =  board.getChildren().get(tileNum).getLayoutX()-450+(playerNumber*3);
         }
         else if (axis == 'Y')
         {
@@ -1386,7 +1418,7 @@ public class GUI extends Application {
         //Loop and get the player corresponding to the priority queue
         while (playerOrderInt.peek() != null)
         {
-            playerOrder.append("Player: ").append(playerRolls.get(playerOrderInt.peek())).append(" Dice Roll: ").append(playerOrderInt.poll()).append("\n");
+            playerOrder.append("Player: ").append(playerRolls.get(playerOrderInt.peek())+1).append(" Dice Roll: ").append(playerOrderInt.poll()).append("\n");
         }
         return playerOrder.toString();
     }
