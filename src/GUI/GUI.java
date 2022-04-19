@@ -37,7 +37,6 @@ public class GUI extends Application {
 
     //Backend
     private HashMap<Integer, Color> player_Index;
-    private Text[] cardInfo_Text;
     private GridPane board;
 
     PlayerInformation[] playerInformation;
@@ -57,10 +56,10 @@ public class GUI extends Application {
     private ListView<Text> playerInfo = new ListView<>();
     private int playerTurn = 0;
     private boolean finishedTurn = false;
-    private String[] colors_String;
     private Stage auctionWindow;
     private boolean playerBoughtProperty = false;
-    private Button[] tiles = new Button[41];
+    private final Button[] tiles = new Button[41];
+    private Color[] colors_Color;
 
     public static void main(String []args)
     {
@@ -79,6 +78,15 @@ public class GUI extends Application {
      */
     public void start_screen()
     {
+        setUserAgentStylesheet(STYLESHEET_CASPIAN);
+        //Colors (Color) set up
+        colors_Color = new Color[5];
+        colors_Color[0] = Color.BLUE;
+        colors_Color[1] = Color.ORANGE;
+        colors_Color[2] = Color.RED;
+        colors_Color[3] = Color.GREEN;
+        colors_Color[4] = Color.PURPLE;
+
         //Setting up Stages
         Stage introduction = new Stage();
         introduction.setResizable(false);
@@ -192,7 +200,7 @@ public class GUI extends Application {
         title_mainAnimation.play();
 
         //Creating text for the player section of the board
-        Text players = createText("LeaderBoard",40,Color.BLACK,"arial");
+        Text players = createText("Player List!",40,Color.BLACK,"arial");
 
         //Start selection with the first element in the list
         playerInfo.getSelectionModel().select(0);
@@ -305,7 +313,7 @@ public class GUI extends Application {
                 playerIcon.setMinWidth(100);
                 playerIcon.setMinHeight(100);
                 playerIcon.setStyle("" +
-                        "-fx-background-color: " + playerInformation[i].getPlayerColor_String());
+                        "-fx-background-color: #" + playerInformation[i].getPlayerColor_String());
                 playerIcon.setAlignment(Pos.CENTER);
                 playerToChoose.add(playerIcon,i,0);
             }
@@ -401,7 +409,7 @@ public class GUI extends Application {
             Button playerIcon = new Button();
             playerIcon.setMinWidth(50);
             playerIcon.setStyle("" +
-                    "-fx-background-color: " + playerInformation[i].getPlayerColor_String());
+                    "-fx-background-color: #" + playerInformation[i].getPlayerColor_String());
             playerAndText.add(playerIcon,i,0);
         }
         for (int i = 0; i < gameBoard.getPlayerNum();i++)
@@ -476,7 +484,7 @@ public class GUI extends Application {
         moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
         finishedTurn = false;
         playerBoughtProperty = false;
-        currPlayerIcon.setStyle("-fx-background-color: " + playerInformation[playerTurn].getPlayerColor_String());
+        currPlayerIcon.setStyle("-fx-background-color: #" + playerInformation[playerTurn].getPlayerColor_String());
     }
 
     /**
@@ -586,7 +594,7 @@ public class GUI extends Application {
                                 //Give Money to player who owns buildings
                                 playerOwed.setBalance(playerOwed.getBalance() + rentPrice);
 
-                                //Alert player that they payed for the rent
+                                //Alert player that they paid for the rent
                                 Alert payedRent = new Alert(AlertType.WARNING);
                                 payedRent.setContentText("Player " + playerTurn + "has payed " + rentPrice + " for Rent!");
                                 payedRent.show();
@@ -648,7 +656,7 @@ public class GUI extends Application {
         {
             if(finishedTurn)
             {
-                if (gameBoard.getPlayer(playerTurn).getProperties().contains(gameBoard.getPlayerTile(playerTurn)))
+                if (ownsAllProperties() && ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getPlayer(playerTurn))
                 {
                     try
                     {
@@ -661,9 +669,9 @@ public class GUI extends Application {
 
                         //Change Tile
                         int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
-                        tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, " +
-                                ((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour() + " "    +
-                                developmentPercentage +"%, white 0%);\n" + "-fx-background-radius: 0");
+                        Color tileColour = Color.valueOf(((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour());
+                        tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, #" +
+                                tileColour.toString().substring(2) + " "    + developmentPercentage +"%, white 0%);\n" + "-fx-background-radius: 0");
 
                     }
 
@@ -702,6 +710,12 @@ public class GUI extends Application {
                         ex.printStackTrace();
                     }
                 }
+                else
+                {
+                    Alert doesNotOwn = new Alert(AlertType.WARNING);
+                    doesNotOwn.setContentText("You do not own all the properties in the neighbourhood!\nYou cannot build anything yet!");
+                    doesNotOwn.show();
+                }
             }
         });
 
@@ -717,6 +731,25 @@ public class GUI extends Application {
         final_control.setAlignment(Pos.CENTER);
         final_control.setSpacing(100);
         return final_control;
+    }
+
+    /**
+     * Method to check whether the current player owns all the houses in the neighbourhood, to see if the player
+     * can build a house or not.
+     *
+     * @return Whether the player owns all properties in the neighbourhood
+     */
+    private boolean ownsAllProperties()
+    {
+        boolean ownsAll = true;
+        for (TileProperty property : ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getNeighborhood())
+        {
+            if (property.getOwner() != gameBoard.getPlayer(playerTurn))
+            {
+                ownsAll = false;
+            }
+        }
+        return ownsAll;
     }
 
     /**
@@ -891,18 +924,86 @@ public class GUI extends Application {
         Stage settings_Stage = new Stage();
         settings_Stage.setResizable(false);
         BorderPane mainPane = new BorderPane();
+        mainPane.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+
+        //Setting up Text title for the Settings Menu
+        Text mainTitle = createText("Settings Menu!",100,Color.BLACK,"arial");
+        mainPane.setTop(mainTitle);
+        BorderPane.setAlignment(mainTitle,Pos.CENTER);
+
+        //
         VBox settingOptions = new VBox();
+        settingOptions.setBorder(new Border(new BorderStroke(Color.BLACK,BorderStrokeStyle.DOTTED, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+        settingOptions.setSpacing(50);
         settingOptions.setAlignment(Pos.CENTER);
         mainPane.setCenter(settingOptions);
-        Button goBack = new Button("Back!");
+
+        //Setting up change player colour Button
+        Button changePlayerColor = new Button("Change Player Main Colors");
+        changePlayerColor.setMinWidth(100);
+        changePlayerColor.setMinHeight(80);
+        changePlayerColor.setOnAction(e -> playerChangeColor());
+        settingOptions.getChildren().add(changePlayerColor);
+
+        //Setting up goBack button
+        Button goBack = new Button("Back to Main Menu!");
         goBack.setOnAction(e ->
         {
             settings_Stage.close();
             mainMenu();
         });
         settingOptions.getChildren().add(goBack);
+
+        //Finish Stage
         settings_Stage.setScene(new Scene(mainPane,1500,1000));
         settings_Stage.show();
+    }
+
+    /**
+     *
+     */
+    private void playerChangeColor()
+    {
+        Stage changeColourStage = new Stage();
+        changeColourStage.setResizable(false);
+        BorderPane mainPane = new BorderPane();
+        Button[] playerColors = new Button[5];
+        for (int i = 0; i < 5; i++)
+        {
+            //Create playerIcon to show player
+            Button playerIcon = new Button();
+            int finalI = i;
+            playerIcon.setOnAction(e ->
+            {
+                ColorPicker colorPicker = new ColorPicker();
+                colorPicker.setValue(colors_Color[finalI]);
+                colorPicker.setOnAction(t ->
+                {
+                    colors_Color[finalI] = colorPicker.getValue();
+                    playerIcon.setStyle("-fx-background-color: #" + colors_Color[finalI].toString().substring(2));
+                });
+                Alert setColor = new Alert(AlertType.INFORMATION);
+                setColor.setTitle("Please Select the new desired Color!");
+                setColor.setGraphic(colorPicker);
+                setColor.show();
+            });
+            playerIcon.setMinWidth(100);
+            playerIcon.setMinHeight(100);
+            playerIcon.setStyle("-fx-background-color: #" + colors_Color[i].toString().substring(2));
+            playerColors[i] = playerIcon;
+        }
+        Button exit = new Button("Go Back!");
+        exit.setOnAction(e -> changeColourStage.close());
+        VBox mainBox = new VBox();
+        mainBox.setAlignment(Pos.CENTER);
+        for (Button button : playerColors) mainBox.getChildren().add(button);
+        Text menuTitle = createText("Change Player Colour Menu!",80,Color.BLACK,"arial");
+        mainPane.setTop(menuTitle);
+        BorderPane.setAlignment(menuTitle,Pos.CENTER);
+        mainBox.getChildren().add(exit);
+        mainPane.setCenter(mainBox);
+        changeColourStage.setScene(new Scene(mainPane,1500,1000));
+        changeColourStage.show();
     }
 
     /**
@@ -956,20 +1057,7 @@ public class GUI extends Application {
         player_Index = new HashMap<>();
         AtomicInteger playerNumber = new AtomicInteger();
         //Colors (String) set up
-        colors_String = new String[5];
-        colors_String[0] = "blue";
-        colors_String[1] = "orange";
-        colors_String[2] = "red";
-        colors_String[3] = "green";
-        colors_String[4] = "purple";
 
-        //Colors (Color) set up
-        Color[] colors_Color = new Color[5];
-        colors_Color[0] = Color.BLUE;
-        colors_Color[1] = Color.ORANGE;
-        colors_Color[2] = Color.RED;
-        colors_Color[3] = Color.GREEN;
-        colors_Color[4] = Color.PURPLE;
 
         //Creating selectedHumanPlayer boolean array
         boolean[] selectedHumanPlayer = new boolean[5];
@@ -998,7 +1086,7 @@ public class GUI extends Application {
                     playerWindow.setStyle("\n" +
                             "    -fx-background-color:transparent ;\n" +
                             "    -fx-background-radius:0;\n" +
-                            "    -fx-border-color:" + colors_String[colorNum] +";\n" +
+                            "    -fx-border-color: #" + colors_Color[colorNum].toString().substring(2)+";\n" +
                             "    -fx-border-width: 10 10 10 10;\n");
                   selectedHumanPlayer[colorNum] = true;
                   player_Index.put(Integer.valueOf(String.valueOf(playerNumber)), colors_Color[colorNum]);
@@ -1070,7 +1158,7 @@ public class GUI extends Application {
        currPlayerIcon = new Button();
        currPlayerIcon.setMinHeight(100);
        currPlayerIcon.setMinWidth(100);
-       currPlayerIcon.setStyle("-fx-background-color: " + playerInformation[playerTurn].getPlayerColor_String());
+       currPlayerIcon.setStyle("-fx-background-color: #" + playerInformation[playerTurn].getPlayerColor_String());
     }
 
     /**
@@ -1119,7 +1207,6 @@ public class GUI extends Application {
      */
     public GridPane createBoard()
     {
-        cardInfo_Text = new Text[41];
         //count is used to keep track of the png in the Base folder
         int count = 0;
         //Creating grid pane to store the board
@@ -1184,7 +1271,6 @@ public class GUI extends Application {
      * @return the count index
      */
     private int tileCreation(int count, GridPane gridPane, int i, int j, String tileType,int size) {
-        cardInfo_Text[count] = new Text("r");
         //Setting up the Button for each tile
         int cardNum = count;
         Button tileButton = new Button(((TileProperty)gameBoard.getTile(count)).getName());
@@ -1197,9 +1283,15 @@ public class GUI extends Application {
                 VBox cardInfoIDK = new VBox();
                 cardInfoIDK.setStyle("-fx-background-color: linear-gradient(to bottom, " +
                         ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 20%, white 0%);");
-                Text cardInfo = updateCardInfo(cardNum);
-                VBox mainBox = new VBox(cardInfo);
+                Text[] cardInfo = updateCardInfo(cardNum);
+                VBox mainBox = new VBox();
+                mainBox.setAlignment(Pos.CENTER);
+                for(int x = 1; x < cardInfo.length; x++)
+                {
+                    mainBox.getChildren().add(cardInfo[x]);
+                }
                 BorderPane mainPane = new BorderPane();
+                mainPane.setTop(cardInfo[0]);
                 mainPane.setCenter(mainBox);
                 mainBox.setAlignment(Pos.BOTTOM_CENTER);
                 cardInfoIDK.getChildren().add(mainPane);
@@ -1257,13 +1349,18 @@ public class GUI extends Application {
      *
      * @param tileNum the tile needed to be updated
      */
-    private Text updateCardInfo(int tileNum)
+    private Text[] updateCardInfo(int tileNum)
     {
-        cardInfo_Text[tileNum].setText("Property Name:"  + ((TileProperty) gameBoard.getTiles()[tileNum]).getName()  +
-                '\n' + "Price of Property: " + ((TileProperty) gameBoard.getTiles()[tileNum]).getPrice() +
-                '\n' + "Owner: " + ((TileProperty) gameBoard.getTiles()[tileNum]).getOwner() + '\n' );
-        cardInfo_Text[tileNum].setWrappingWidth(300);
-        return cardInfo_Text[tileNum];
+        Text[] cardInformation = new Text[4];
+        cardInformation[0] = createText(((TileBuilding)gameBoard.getTile(tileNum)).getName(),30,Color.WHITE,"arial");
+        cardInformation[0].setStroke(Color.BLACK);
+
+        cardInformation[1] = createText(((TileBuilding)gameBoard.getTile(tileNum)).getOwner().toString(),20,Color.WHITE,"arial");
+
+        cardInformation[2] = createText(String.valueOf(((TileBuilding)gameBoard.getTile(tileNum)).getDevelopment()),20,Color.BLACK,"arial");
+
+        cardInformation[3] = createText(String.valueOf(((TileBuilding)gameBoard.getTile(tileNum)).getPrice()),20,Color.BLACK,"arial");
+        return cardInformation ;
     }
 
     /**
@@ -1352,7 +1449,7 @@ public class GUI extends Application {
             Button playerIcon = new Button();
             playerIcon.setMinWidth(100);
             playerIcon.setMinHeight(100);
-            playerIcon.setStyle("-fx-background-color: " + playerInformation[i].getPlayerColor_String());
+            playerIcon.setStyle("-fx-background-color: #" + playerInformation[i].getPlayerColor_String());
             playerInfo_RollVal.add(playerIcon,0,i);
             playerInfo_RollVal.add(playerRollTextField,1,i);
         }
