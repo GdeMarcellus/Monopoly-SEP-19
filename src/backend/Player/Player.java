@@ -1,5 +1,6 @@
 package backend.Player;
 
+import backend.Tiles.TileBuilding;
 import backend.Tiles.TileProperty;
 
 import java.util.ArrayList;
@@ -116,6 +117,30 @@ public abstract class Player {
 
     public boolean hasProperty(TileProperty property){
         return properties.contains(property);
+    }
+
+    /**
+     * Calculates the total wealth of the player (cash + properties)
+     * @return total wealth of player
+     */
+    public int getTotalWealth() {
+        int wealth = balance;
+
+        for (TileProperty property : properties) {
+            //get property value
+            if (property.isMortgaged()) {
+                wealth += property.getPrice() / 2;
+            }
+            else {
+                wealth += property.getPrice();
+            }
+            //get value of houses / hotels
+            if (property instanceof TileBuilding) {
+                wealth += (((TileBuilding) property).getDevelopment() * ((TileBuilding) property).getDevelopmentCost());
+            }
+        }
+
+        return wealth;
     }
 
 }
