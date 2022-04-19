@@ -8,12 +8,11 @@ import backend.Player.Player;
 import backend.Tiles.Tile;
 import backend.Tiles.TileBuilding;
 import backend.Tiles.TileProperty;
-import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
-import javafx.animation.FillTransition;
-import javafx.animation.PauseTransition;
+import javafx.animation.*;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -32,9 +31,9 @@ import javafx.util.Duration;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
 public class GUI extends Application {
 
+    Integer time = 60;
     //Backend
     private HashMap<Integer, Color> player_Index;
     private GridPane board;
@@ -60,6 +59,9 @@ public class GUI extends Application {
     private boolean playerBoughtProperty = false;
     private final Button[] tiles = new Button[41];
     private Color[] colors_Color;
+    private boolean abridged;
+    private Text timeRemaining;
+    private Timeline timeline;
 
     public static void main(String []args)
     {
@@ -233,13 +235,14 @@ public class GUI extends Application {
         board.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         main.setCenter(board);
         main.setLeft(playerList);
-        //Player
+
         StackPane final_main = new StackPane(main);
         for (PlayerInformation information : playerInformation)
         {
             final_main.getChildren().add(information.getPlayerToken());
         }
 
+        //Player Information in Right Table
         playerInfo = new ListView<>();
         for (int i = 0; i < gameBoard.getPlayerNum(); i++)
         {
@@ -249,15 +252,73 @@ public class GUI extends Application {
         playerList.getChildren().add(playerInfo);
         BorderPane.setAlignment(bankSide,Pos.CENTER_RIGHT);
 
-        Scene finalScene = new Scene(final_main,1500,1000);
+        //If Abridged add timer to stackPane
+        if (abridged)
+        {
+            //Set time text
+            timeRemaining = new Text("Time Remaining: " + String.valueOf(time));
+            timeRemaining.setStyle("-fx-font-size: 40; -fx-border-color: Red");
+
+            //Create TimeLine
+            timeline = new Timeline();
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(1),
+                    new EventHandler<ActionEvent>() {
+
+                        //Every Second do this
+                        @Override
+                        public void handle(ActionEvent actionEvent) {
+                            time--;
+                            timeRemaining.setText("Time Remaining: " + String.valueOf(time));
+
+                            //If time = 0, end game
+                            if (time <= 0)
+                            {
+                                Alert endGame = new Alert(AlertType.WARNING);
+                                endGame.setOnCloseRequest(e ->
+                                        {
+                                            endGameScreenAbridged();
+                                        }
+                                );
+                                endGame.setContentText("Game Finished");
+                                endGame.show();
+                                timeline.stop();
+                            }
+                        }
+                    }));
+            timeline.playFromStart();
+
+            //Add TimeLine to StackPane and Place it top right
+            StackPane.setAlignment(timeRemaining,Pos.TOP_RIGHT);
+            final_main.getChildren().add(timeRemaining);
+        }
+
+        //Create and insert exit button into StackPane
+        Button exit = new Button("Exit Game!");
+        exit.setStyle("-fx-font-size: 30");
+        exit.setOnAction(e ->
+        {
+            System.exit(0);
+        });
+        StackPane.setAlignment(exit,Pos.TOP_LEFT);
+        final_main.getChildren().add(exit);
+
         //Creating a new Scene
+        Scene finalScene = new Scene(final_main,1500,1000);
         gameBoard_GUI.setScene(finalScene);
         gameBoard_GUI.show();
+
+        //Prepare Player initial position
         for(int i = 0; i < gameBoard.getPlayerNum(); i++)
         {
             playerInformation[i].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(i).getPosition(),i)-130);
             playerInformation[i].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(i).getPosition(),i)-30);
         }
+    }
+
+    private void endGameScreenAbridged()
+    {
+        System.exit(0);
     }
 
     /**
@@ -854,10 +915,10 @@ public class GUI extends Application {
         BorderPane.setAlignment(main_Text,Pos.CENTER);
         BorderPane main = new BorderPane();
         //Creating Buttons
-        Button quick_game_button = new Button("Quick Game");
+        Button fullGameButton = new Button("Full Game");
         //Style of Button Gotten from:
         //http://fxexperience.com/2011/12/styling-fx-buttons-with-css/
-        quick_game_button.setStyle("""
+        fullGameButton.setStyle("""
                 -fx-padding: 8 15 15 15;
                     -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
                     -fx-background-radius: 8;
@@ -869,10 +930,35 @@ public class GUI extends Application {
                     -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
                     -fx-font-weight: bold;
                     -fx-font-size: 5em;""");
-        quick_game_button.setPrefWidth(500);
-        quick_game_button.setPrefHeight(200);
-        quick_game_button.setOnAction(e ->
+        fullGameButton.setPrefWidth(500);
+        fullGameButton.setPrefHeight(200);
+        fullGameButton.setOnAction(e ->
         {
+            mainMenu.close();
+            playerSelection();
+        });
+
+
+        Button abridgedGameButton = new Button("Abridged Game");
+        //Style of Button Gotten from:
+        //http://fxexperience.com/2011/12/styling-fx-buttons-with-css/
+        abridgedGameButton.setStyle("""
+                -fx-padding: 8 15 15 15;
+                    -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
+                    -fx-background-radius: 8;
+                    -fx-background-color:\s
+                        linear-gradient(from 0% 93% to 0% 100%, #a34313 0%, #903b12 100%),
+                        #9d4024,
+                        #d86e3a,
+                        radial-gradient(center 50% 50%, radius 100%, #d86e3a, #c54e2c);
+                    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
+                    -fx-font-weight: bold;
+                    -fx-font-size: 5em;""");
+        abridgedGameButton.setPrefWidth(500);
+        abridgedGameButton.setPrefHeight(200);
+        abridgedGameButton.setOnAction(e ->
+        {
+            abridged = true;
             mainMenu.close();
             playerSelection();
         });
@@ -904,7 +990,7 @@ public class GUI extends Application {
         title.setAlignment(Pos.TOP_CENTER);
 
         //Creating and Setting up VBox main_buttons
-        VBox main_buttons = new VBox(quick_game_button,settings_button);
+        VBox main_buttons = new VBox(fullGameButton, abridgedGameButton, settings_button);
         main_buttons.setAlignment(Pos.CENTER);
         main_buttons.setSpacing(50);
 
