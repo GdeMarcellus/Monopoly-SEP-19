@@ -196,6 +196,8 @@ public class Card {
      * @param noSpaces number of spaces to advance
      */
     public void moveSetSpaces(Player player, int noSpaces) {
-        player.move(noSpaces);
+        ArrayList<Integer> spaces = new ArrayList<>();
+        spaces.add(noSpaces);
+        player.move(spaces);
     }
 }

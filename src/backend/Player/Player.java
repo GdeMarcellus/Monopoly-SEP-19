@@ -7,10 +7,14 @@ import java.util.ArrayList;
 
 public abstract class Player {
 
-    private int position;
-    private int balance;
-    private int numDoubles;
-    private ArrayList<TileProperty> properties;
+    protected int position;
+    protected int balance;
+    protected int numDoubles;
+    protected ArrayList<TileProperty> properties;
+
+    protected int noGOJF;
+
+    protected int turnsInJail;
 
 
     public Player() {
@@ -24,16 +28,21 @@ public abstract class Player {
         return position;
     }
 
-    public boolean move(int diceRoll) {
+    public boolean move(ArrayList<Integer> diceRoll) {
         boolean passedGo = false;
 
+        int diceValue = 0;
+        for (int i = 0; i < diceRoll.size(); i++) {
+            diceValue += diceRoll.get(i);
+        }
+
         //check position not beyond board limits
-        if (this.position + diceRoll > 40) {
+        if (this.position + diceValue > 40) {
             this.position = position % 40;
             passedGo = true;
         }
         else {
-            this.position += diceRoll;
+            this.position += diceValue;
         }
         return passedGo;
     }
@@ -143,4 +152,43 @@ public abstract class Player {
         return wealth;
     }
 
+    public void addGOJFCard() {
+        noGOJF += 1;
+    }
+
+    /**
+     * -1 to noGOJF
+     * @return false if no cards to remove, true if card removed
+     */
+    public boolean removeGOJFCard() {
+        if (noGOJF == 0 ) {
+            return false;
+        }
+        else {
+            noGOJF -= 1;
+            return true;
+        }
+    }
+
+    public int getNoGOJF() {
+        return noGOJF;
+    }
+
+    public void setTurnsInJail(int turns) {
+        turnsInJail = turns;
+    }
+
+    public int getTurnsInJail() {
+        return turnsInJail;
+    }
+
+    public boolean jailNewTurn(){
+        turnsInJail -= 1;
+        if (turnsInJail == 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
