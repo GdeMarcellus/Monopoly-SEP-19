@@ -15,17 +15,26 @@ public class TileTax extends Tile{
     }
 
     /**
-     * @param player
+     * Fines player
+     * @param player Player being fined
      * @param tileFreeParking
-     * @throws InsufficientFundsException
+     * @return amount outstanding
      */
-    public void payTax(Player player, TileFreeParking tileFreeParking) throws InsufficientFundsException {
-        if (player.getMoney() >= tax){
-            player.removeMoney(tax);
-            tileFreeParking.payFine(tax);
-        }
-        else {
-            throw new InsufficientFundsException();
-        }
+    public int payTax(Player player, TileFreeParking tileFreeParking){
+        //fine player
+        int paid = player.removeMoney(tax);
+
+        //place fine on free parking
+        tileFreeParking.payFine(paid);
+
+        return (tax - paid);
+    }
+
+    public void setTax(int tax) {
+        this.tax = tax;
+    }
+
+    public int getTax() {
+        return tax;
     }
 }
