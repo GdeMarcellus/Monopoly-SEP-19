@@ -10,9 +10,7 @@ import backend.Tiles.TileBuilding;
 import backend.Tiles.TileProperty;
 import javafx.animation.*;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -62,6 +60,7 @@ public class GUI extends Application {
     private boolean abridged;
     private Text timeRemaining;
     private Timeline timeline;
+    private TextField aiLogBox;
 
     public static void main(String []args)
     {
@@ -78,7 +77,7 @@ public class GUI extends Application {
      * It contains a flashy title, and players are allowed to move to the next stage
      * By pressing the Enter button
      */
-    public void start_screen()
+    private void start_screen()
     {
         setUserAgentStylesheet(STYLESHEET_CASPIAN);
         //Colors (Color) set up
@@ -132,7 +131,7 @@ public class GUI extends Application {
     /**
      * the gameBoard method is used to create the GUI of the main boardGame for the user
      */
-    public void gameBoard()
+    private void gameBoard()
     {
         //Money Counter
         Label moneyCounter = new Label("Money Amount");
@@ -252,38 +251,44 @@ public class GUI extends Application {
         playerList.getChildren().add(playerInfo);
         BorderPane.setAlignment(bankSide,Pos.CENTER_RIGHT);
 
+        //Creating AI logBox
+        aiLogBox = new TextField();
+        aiLogBox.setEditable(false);
+        aiLogBox.setMinHeight(50);
+        agentPlayerTurn();
+
+        //Creating AI logBox title
+        Text aiLogBoxTitle = createText("Agent Player LogBox!",20,Color.BLACK,"arial");
+
+        //Add AI logBox and Title into VBox
+        playerList.getChildren().add(aiLogBoxTitle);
+        playerList.getChildren().add(aiLogBox);
+
+
         //If Abridged add timer to stackPane
         if (abridged)
         {
             //Set time text
-            timeRemaining = new Text("Time Remaining: " + String.valueOf(time));
+            timeRemaining = new Text("Time Remaining: " + time);
             timeRemaining.setStyle("-fx-font-size: 40; -fx-border-color: Red");
 
             //Create TimeLine
             timeline = new Timeline();
             timeline.setCycleCount(Timeline.INDEFINITE);
+            //Every Second do this
             timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(1),
-                    new EventHandler<ActionEvent>() {
+                    actionEvent -> {
+                        time--;
+                        timeRemaining.setText("Time Remaining: " + time);
 
-                        //Every Second do this
-                        @Override
-                        public void handle(ActionEvent actionEvent) {
-                            time--;
-                            timeRemaining.setText("Time Remaining: " + String.valueOf(time));
-
-                            //If time = 0, end game
-                            if (time <= 0)
-                            {
-                                Alert endGame = new Alert(AlertType.WARNING);
-                                endGame.setOnCloseRequest(e ->
-                                        {
-                                            endGameScreenAbridged();
-                                        }
-                                );
-                                endGame.setContentText("Game Finished");
-                                endGame.show();
-                                timeline.stop();
-                            }
+                        //If time = 0, end game
+                        if (time <= 0)
+                        {
+                            Alert endGame = new Alert(AlertType.WARNING);
+                            endGame.setOnCloseRequest(e -> endGameScreenAbridged());
+                            endGame.setContentText("Game Finished");
+                            endGame.show();
+                            timeline.stop();
                         }
                     }));
             timeline.playFromStart();
@@ -296,10 +301,8 @@ public class GUI extends Application {
         //Create and insert exit button into StackPane
         Button exit = new Button("Exit Game!");
         exit.setStyle("-fx-font-size: 30");
-        exit.setOnAction(e ->
-        {
-            System.exit(0);
-        });
+        exit.setOnAction(e -> System.exit(0));
+
         StackPane.setAlignment(exit,Pos.TOP_LEFT);
         final_main.getChildren().add(exit);
 
@@ -316,9 +319,28 @@ public class GUI extends Application {
         }
     }
 
+    /**
+     *
+     */
     private void endGameScreenAbridged()
     {
-        System.exit(0);
+        Stage finalStageAbridged = new Stage();
+        PriorityQueue<Integer> playerFinalValue = new PriorityQueue<>(Collections.reverseOrder());
+        Text[] playerFinalValueText = new Text[gameBoard.getPlayerNum()];
+        for (int i = 0; i < gameBoard.getPlayerNum(); i++)
+        {
+            playerFinalValue.add(gameBoard.getPlayer(i).getTotalWealth());
+        }
+        for (int i = 0; i < gameBoard.getPlayerNum(); i++)
+        {
+            playerFinalValueText[i] = new Text("Player: " + i + " Total Amount: " + playerFinalValue.poll());
+            playerFinalValueText[i].setStyle("-fx-font-size: 40;");
+        }
+        VBox mainVBox = new VBox();
+        for (Text text : playerFinalValueText) mainVBox.getChildren().add(text);
+        finalStageAbridged.setScene(new Scene(mainVBox,1500,1000));
+        finalStageAbridged.show();
+        finalStageAbridged.setOnCloseRequest(e -> System.exit(0));
     }
 
     /**
@@ -326,7 +348,7 @@ public class GUI extends Application {
      *
      * @return Node (BorderPane) that contains all the functions for the selectPlayer
      */
-    public Node selectPlayer()
+    private Node selectPlayer()
     {
         PauseTransition transition = new PauseTransition(Duration.seconds(0.5));
         transition.setOnFinished(event -> moneyOfPlayer.setFill(Color.BLACK));
@@ -357,6 +379,8 @@ public class GUI extends Application {
                 alreadyDeveloped.show();
             }
         });
+
+        //Get the properties owned by the player
         for (int i = 0; i < gameBoard.getPlayer(playerTurn).getProperties().size();i++)
         {
             playerBuildings.getItems().add((TileBuilding) gameBoard.getPlayer(playerTurn).getProperties().get(i));
@@ -455,7 +479,7 @@ public class GUI extends Application {
      *
      * @return Node (BorderPane) containing all the functions of the auction
      */
-    public Node  auctionNode()
+    private Node auctionNode()
     {
         ListView<TextField> playerBid = new ListView<>();
         BorderPane mainAuctionPane = new BorderPane();
@@ -794,6 +818,13 @@ public class GUI extends Application {
         return final_control;
     }
 
+    private void checkIfBankrupt()
+    {
+        if (gameBoard.getPlayer(playerTurn).getBalance() <= 0)
+        {
+        }
+    }
+
     /**
      * Method to check whether the current player owns all the houses in the neighbourhood, to see if the player
      * can build a house or not.
@@ -959,8 +990,19 @@ public class GUI extends Application {
         abridgedGameButton.setOnAction(e ->
         {
             abridged = true;
-            mainMenu.close();
-            playerSelection();
+            Alert choseTime = new Alert(AlertType.WARNING);
+            choseTime.setContentText("Default time is 20 minutes");
+            choseTime.setHeaderText("Please insert the desired time (in minutes)");
+            TextField timeDecided = new TextField();
+            choseTime.setGraphic(timeDecided);
+            choseTime.setOnCloseRequest( x->
+                    {
+                        if (!Objects.equals(timeDecided.getText(), ""))this.time = Integer.valueOf(timeDecided.getText());
+                        mainMenu.close();
+                        playerSelection();
+                    }
+            );
+            choseTime.show();
         });
 
         //Creating and setting up settings button
@@ -1005,7 +1047,7 @@ public class GUI extends Application {
      * Method used to create the Stage for the settings of the Property Tycoon Game
      *
      */
-    public void settings()
+    private void settings()
     {
         Stage settings_Stage = new Stage();
         settings_Stage.setResizable(false);
@@ -1096,7 +1138,7 @@ public class GUI extends Application {
      * Creates a Stage for player to be able to select how many player will be playing, and their respective colours.
      *
      */
-    public void playerSelection()
+    private void playerSelection()
     {
         //Creating mainPane for the Stage
         BorderPane mainPane = new BorderPane();
@@ -1138,7 +1180,7 @@ public class GUI extends Application {
      *
      * @return return the HBox with the five different type of players
      */
-    public HBox playerWindows()
+    private HBox playerWindows()
     {
         player_Index = new HashMap<>();
         AtomicInteger playerNumber = new AtomicInteger();
@@ -1218,7 +1260,7 @@ public class GUI extends Application {
      * of player before the start of the game.
      *
      */
-    public void setupPlaySession()
+    private void setupPlaySession()
     {
        gameBoard = new Board();
        playerInformation = new PlayerInformation[player_Index.size()];
@@ -1254,7 +1296,7 @@ public class GUI extends Application {
      *
      * @return String containing all the properties of the player
      */
-    public String getPropertyString(int playerNum)
+    private String getPropertyString(int playerNum)
     {
 
         StringBuilder list_of_properties = new StringBuilder();
@@ -1270,7 +1312,7 @@ public class GUI extends Application {
      *
      * @return Tile[] that will be added to the Board Object.
      */
-    public Tile[] createTiles()
+    private Tile[] createTiles()
     {
         //Tile Array to be inserted into the Board Object
         Tile[] gameTiles = new Tile[41];
@@ -1291,7 +1333,7 @@ public class GUI extends Application {
      *
      * @return Returns a grid pane, which represents the gaming board with all of its tiles.
      */
-    public GridPane createBoard()
+    private GridPane createBoard()
     {
         //count is used to keep track of the png in the Base folder
         int count = 0;
@@ -1301,21 +1343,21 @@ public class GUI extends Application {
         //Top side of the board (0,i)
         for(int i = 0; i < 11; i++)
         {
-            count = tileCreation(count, gridPane, 0, i,"TileBuilding",50);
+            count = tileCreation(count, gridPane, 0, i);
         }
 
         //Right side of the board (i,9)
         for(int i = 1; i < 10; i++)
         {
             //Setting up the Button for each tile
-            count = tileCreation(count, gridPane, i, 10,"TileBuilding",50);
+            count = tileCreation(count, gridPane, i, 10);
         }
 
         //Bottom side of the board
         for(int i = 10; i >= 0; i--)
         {
             //Setting up the Button for each tile
-            count = tileCreation(count, gridPane, 10, i,"TileBuilding",50);
+            count = tileCreation(count, gridPane, 10, i);
 
         }
 
@@ -1323,7 +1365,7 @@ public class GUI extends Application {
         for(int i = 9; i > 0; i--)
         {
             //Setting up the Button for each tile
-            count = tileCreation(count, gridPane, i, 0,"TileBuilding",50);
+            count = tileCreation(count, gridPane, i, 0);
         }
         for (int i = 0; i < 10; i++)
         {
@@ -1340,7 +1382,7 @@ public class GUI extends Application {
             }
         }
         //no Jail Slot
-        tileCreation(40,gridPane,9,9, "TileFreeParking",50);
+        tileCreation(40,gridPane,9,9);
         return gridPane;
     }
 
@@ -1351,17 +1393,14 @@ public class GUI extends Application {
      * @param gridPane the gridPane that will have the tile inserted into
      * @param i the height of the board
      * @param j the width of the board
-     * @param tileType type of Tile (Property, Station etc...)
-     * @param size size of said tile
-     *
      * @return the count index
      */
-    private int tileCreation(int count, GridPane gridPane, int i, int j, String tileType,int size) {
+    private int tileCreation(int count, GridPane gridPane, int i, int j) {
         //Setting up the Button for each tile
         int cardNum = count;
         Button tileButton = new Button(((TileProperty)gameBoard.getTile(count)).getName());
-        tileButton.setMinWidth(size);
-        tileButton.setMinHeight(size);
+        tileButton.setMinWidth(50);
+        tileButton.setMinHeight(50);
         tileButton.setOnAction(e->
         {
             if (!inspectWindow)
@@ -1408,7 +1447,7 @@ public class GUI extends Application {
      *
      * @return Returns an HBox containing Buttons dice1 and dice2
      */
-    public HBox dices ()
+    private HBox dices ()
     {
         //Preparing dice1
         ImageView face1 = new ImageView(facePNG.get(0));
@@ -1473,7 +1512,7 @@ public class GUI extends Application {
      * @param font font name for the new Text
      * @return Returns Text with all the correct attributes
      */
-    public Text createText(String content, int size, Color col, String font)
+    private Text createText(String content, int size, Color col, String font)
     {
         //createText is used to simplify the creation of any text
         Text returnText = new Text(content);
@@ -1490,7 +1529,7 @@ public class GUI extends Application {
      * @param tileNum The number of the tile
      * @return Returns the X or Y coordinate
      */
-    public double getCoordinates(char axis, int tileNum, int playerNumber)
+    private double getCoordinates(char axis, int tileNum, int playerNumber)
     {
         double location = 0;
         if (axis == 'X')
@@ -1509,7 +1548,7 @@ public class GUI extends Application {
      * order based on dice rolls. Everyone will be able to roll once, and the order will be from Descending of said value
      *
      */
-    public void choosePlayerOrder()
+    private void choosePlayerOrder()
     {
         //Initialise up Stage, Scene, BorderPane, VBox, ListView
         Stage playerOrderStage = new Stage();
@@ -1627,7 +1666,7 @@ public class GUI extends Application {
      *
      * @return Returns a String stating the playing order, based on the HashMap
      */
-    public String getPlayerOrder(HashMap<Integer,Integer> playerRolls)
+    private String getPlayerOrder(HashMap<Integer,Integer> playerRolls)
     {
         //Placeholder
         StringBuilder playerOrder = new StringBuilder();
@@ -1645,5 +1684,10 @@ public class GUI extends Application {
             playerOrder.append("Player: ").append(playerRolls.get(playerOrderInt.peek())+1).append(" Dice Roll: ").append(playerOrderInt.poll()).append("\n");
         }
         return playerOrder.toString();
+    }
+
+    private void agentPlayerTurn()
+    {
+        aiLogBox.setText("idk");
     }
 }
