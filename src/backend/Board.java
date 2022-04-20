@@ -9,11 +9,14 @@ import backend.Tiles.TileFreeParking;
 import backend.Tiles.TileProperty;
 
 import java.util.ArrayList;
+import java.util.Queue;
 
 public class Board {
 
     private Tile[] tiles;
     private ArrayList<Player> players;
+    private Queue<Card> opportunityCard;
+    private Queue<Card> potLuckCard;
     private Player bank;
     private int maxDoubles = 3;
     private final ArrayList<Integer> auctionBids = new ArrayList<>();
@@ -352,5 +355,21 @@ public class Board {
 
     public void setMaxDoubles(int maxDoubles) {
         this.maxDoubles = maxDoubles;
+    }
+
+    public Queue<Card> getOpportunityCard() {
+        return opportunityCard;
+    }
+
+    public void setOpportunityCard(Queue<Card> opportunityCard) {
+        this.opportunityCard = opportunityCard;
+    }
+
+    public Queue<Card> getPotLuckCard() {
+        return potLuckCard;
+    }
+
+    public void setPotLuckCard(Queue<Card> potLuckCard) {
+        this.potLuckCard = potLuckCard;
     }
 }

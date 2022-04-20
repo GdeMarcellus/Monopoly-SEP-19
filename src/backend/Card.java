@@ -21,36 +21,51 @@ public class Card {
         this.effects = effects;
     }
 
-    public void playCard(int effectId, Player player, int amount, int houseCost, int hotelCost, int noSpaces, String name, int[] choiceIDs, Board board) {
-        switch (effectId)
-        {
-            case 0:
-                bankPayPlayer(player, amount);
-                break;
-            case 1:
-                payBank(player, amount);
-                break;
-            case 2:
-                payRepairs(player, houseCost, hotelCost);
-                break;
-            case 3:
-                payFine(player, (TileFreeParking) board.getTile(board.getFreeParkingPos()), amount);
-                break;
-            case 4:
-                paidByPlayers(player, board.getPlayers(), amount);
-                break;
-            case 5:
-                moveForwardTo(player, name, board.getTiles());
-                break;
-            case 6:
-                moveBackwardTo(player, name, board.getTiles());
-                break;
-            case 7:
-                moveSetSpaces(player, noSpaces);
-            case 8:
+    public void playCard(Player player, Board board){
+        for (int i = 0; i < effects.size(); i++) {
+            Properties current = effects.get(i);
+
+            int effectId = (int) current.get("effectId");
+            int amount = (int) current.getOrDefault("Amount", 0 );
+            int houseCost = (int) current.getOrDefault("houseCost", 0 );
+            int hotelCost = (int) current.getOrDefault("hotelCost", 0 );
+            String name = (String) current.getOrDefault("name","NA");
+            int noSpaces = (int) current.getOrDefault("noSpaces", 0 );
+            
+            switch (effectId)
+            {
+                case 0:
+                    bankPayPlayer(player, amount);
+                    break;
+                case 1:
+                    payBank(player, amount);
+                    break;
+                case 2:
+                    payRepairs(player, houseCost, hotelCost);
+                    break;
+                case 3:
+                    payFine(player, (TileFreeParking) board.getTile(board.getFreeParkingPos()), amount);
+                    break;
+                case 4:
+                    paidByPlayers(player, board.getPlayers(), amount);
+                    break;
+                case 5:
+                    moveForwardTo(player, name, board.getTiles());
+                    break;
+                case 6:
+                    moveBackwardTo(player, name, board.getTiles());
+                    break;
+                case 7:
+                    moveSetSpaces(player, noSpaces);
+                case 8:
+
+            }
 
         }
     }
+
+
+    public void playCard(int effectId, Player player, int amount, int houseCost, int hotelCost, int noSpaces, String name, int[] choiceIDs, Board board) {    }
 
     /**
      * player pays fine to bank

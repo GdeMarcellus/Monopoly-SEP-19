@@ -18,10 +18,14 @@ public class  JsonLoader {
 
 
 
-    public Board startUp(String jsonLocation){
+    public Board startUp(String jsonLocationTiles, String jsonLocationOpportunity, String jsonLocationLuck){
         Board board = new Board();
-        Tile[] tiles = setUpTiles(jsonLocation);
+        Tile[] tiles = setUpTiles(jsonLocationTiles);
+        Queue<Card> cardsOpportunity = setUpCard(jsonLocationOpportunity);
+        Queue<Card> cardsLuck = setUpCard(jsonLocationLuck);
         board.setTiles(tiles);
+        board.setOpportunityCard(cardsOpportunity);
+        board.setPotLuckCard(cardsLuck);
         return board;
     }
 
@@ -30,10 +34,10 @@ public class  JsonLoader {
     /**
      * @param jsonLocation
      */
-    public ArrayList<Card> setUpCard(String jsonLocation){
+    public Queue<Card> setUpCard(String jsonLocation){
         JSONParser jsonParser = new JSONParser();
         JSONObject cardData = null;
-        ArrayList<Card> cards = new ArrayList<>();
+        Queue<Card> cards = new LinkedList<Card>();
 
         try {
             FileReader fileReader = new FileReader(jsonLocation);
