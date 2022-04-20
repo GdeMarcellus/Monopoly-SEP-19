@@ -8,8 +8,18 @@ import backend.Tiles.TileProperty;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Properties;
 
 public class Card {
+
+    String description;
+    Map<Integer, Properties> effects;
+
+    public Card(String description, Map<Integer, Properties> effects) {
+        this.description = description;
+        this.effects = effects;
+    }
 
     public void playCard(int effectId, Player player, int amount, int houseCost, int hotelCost, int noSpaces, String name, int[] choiceIDs, Board board) {
         switch (effectId)

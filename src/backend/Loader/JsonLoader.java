@@ -1,25 +1,100 @@
 package backend.Loader;
 
 import backend.Board;
+import backend.Card;
 import backend.Tiles.*;
 
+import org.hamcrest.core.IsInstanceOf;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-public class JsonLoader {
+public class  JsonLoader {
 
 
 
     public Board startUp(String jsonLocation){
         Board board = new Board();
+        Tile[] tiles = setUpTiles(jsonLocation);
+        board.setTiles(tiles);
+        return board;
+    }
+
+
+
+    /**
+     * @param jsonLocation
+     */
+    public ArrayList<Card> setUpCard(String jsonLocation){
+        JSONParser jsonParser = new JSONParser();
+        JSONObject cardData = null;
+        ArrayList<Card> cards = new ArrayList<>();
+
+        try {
+            FileReader fileReader = new FileReader(jsonLocation);
+            Object obj = jsonParser.parse(fileReader);
+            cardData = (JSONObject) obj;
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+        int counter = 1;
+        while (cardData.containsKey(counter)){
+            JSONObject current = (JSONObject) cardData.get(counter);
+            String description = (String) current.get("description");
+
+
+            JSONArray effects = (JSONArray) cardData.get("effects");
+
+            Map<Integer, Properties> map = itterateEffects(effects);
+
+            Card card = new Card(description, map );
+            cards.add(card);
+            counter++;
+        }
+
+        return cards;
+    }
+
+    public Map<Integer, Properties> itterateEffects(JSONArray effects){
+        Map<Integer, Properties> map = new HashMap<>();
+
+        for (Object effect : effects) {
+            Properties properties = new Properties();
+            JSONObject current = (JSONObject) effect;
+            int effectId = (int) current.get("effectId");
+
+            if (current.containsKey("amount")){
+                properties.put("amount", Integer.parseInt((String) current.get("amount")));
+            }
+            if (current.containsKey("houseCost")){
+                properties.put("houseCost", Integer.parseInt((String) current.get("houseCost")));
+            }
+            if (current.containsKey("hotelCost")){
+                properties.put("hotelCost", Integer.parseInt((String) current.get("hotelCost")));
+            }
+            if (current.containsKey("location")){
+                properties.put("location", (String) current.get("location"));
+            }
+            if (current.containsKey("cardPick")){
+                properties.put("cardPick", (String) current.get("cardPick"));
+            }
+
+            map.put(effectId,properties);
+
+        }
+        return map;
+    }
+
+    /**
+     * @param jsonLocation
+     * @return
+     */
+    public Tile[] setUpTiles(String jsonLocation){
         JSONParser jsonParser = new JSONParser();
         JSONObject boardData = null;
         Tile[] tiles = new Tile[41];
@@ -78,13 +153,16 @@ public class JsonLoader {
                     throw new IllegalStateException("Unexpected value: " + type);
             }
         }
-
-        board.setTiles(tiles);
-        return board;
+        return tiles;
     }
 
 
-    private TileBuilding buildBuildingTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
+    /**
+     * @param object
+     * @param neighborhoods
+     * @return
+     */
+    public TileBuilding buildBuildingTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
         String hexColour = (String) object.get("Colour");
         String name = (String) object.get("Name");
         int developmentCost = (int) object.get("developmentCost");
@@ -106,7 +184,12 @@ public class JsonLoader {
         return tileBuilding;
     }
 
-    private TileStation buildStationTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
+    /**
+     * @param object
+     * @param neighborhoods
+     * @return
+     */
+    public TileStation buildStationTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
         String name = (String) object.get("Name");
         int price = (int) object.get("Price");
 
@@ -127,7 +210,12 @@ public class JsonLoader {
         return tileStation;
     }
 
-    private TileUtility buildUtilityTile(JSONObject object,  Map<String, ArrayList<TileProperty>> neighborhoods){
+    /**
+     * @param object
+     * @param neighborhoods
+     * @return
+     */
+    public TileUtility buildUtilityTile(JSONObject object,  Map<String, ArrayList<TileProperty>> neighborhoods){
         String name = (String) object.get("Name");
 
         int price = (int) object.get("Price");
@@ -147,21 +235,5 @@ public class JsonLoader {
         return tileUtility;
     }
 
-
-    private void setUpCard(Board board, String jsonLocation){
-
-        JSONParser jsonParser = new JSONParser();
-        JSONObject cardData = null;
-
-        try {
-            FileReader fileReader = new FileReader(jsonLocation);
-            Object obj = jsonParser.parse(fileReader);
-            cardData = (JSONObject) obj;
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-        }
-
-
-    }
 
 }
