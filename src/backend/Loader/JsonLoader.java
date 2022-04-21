@@ -117,7 +117,10 @@ public class  JsonLoader {
 
             switch (type){
                 case "PotLuck":
-
+                    tiles[i] = new TileCard(TileCard.Type.Luck);
+                    break;
+                case "Opportunity":
+                    tiles[i] = new TileCard(TileCard.Type.Opportunity);
                     break;
 
                 case "Tax":
