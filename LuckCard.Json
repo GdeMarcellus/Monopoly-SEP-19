@@ -1,0 +1,124 @@
+{
+  "1" : {
+    "description" : "You inherit £200",
+    "effects" : [
+      {"effectId" : 0, "amount" : 200 }
+    ]
+  },
+
+  "2" : {
+    "description" : "You have won 2nd prize in a beauty contest, collect £50",
+    "effects" :
+    [
+      {"effectId" : 0, "amount" : 50 }
+    ]
+  },
+
+  "3" : {
+    "description" : "You are up the creek with no paddle - go back to the Old Creek",
+    "effects" :
+    [
+      {"effectId" : 6,  "location" :  "the Old Creek"}
+    ]
+  },
+
+  "4" : {
+    "description" : "Student loan refund. Collect £20",
+    "effects" :
+    [
+      {"effectId" : 0, "amount" : 20 }
+    ]
+  },
+
+  "5" : {
+    "description" : "Bank error in your favour. Collect £200",
+    "effects" :
+    [
+      {"effectId" : 0, "amount" : 200 }
+    ]
+  },
+
+  "6" : {
+    "description" : "Pay bill for text books of £100",
+    "effects" :
+    [
+      {"effectId" : 1, "amount" : 100 }
+    ]
+  },
+
+  "7" : {
+    "description" : "Mega late night taxi bill pay £50",
+    "effects" :
+    [
+      {"effectId" : 1, "amount" : 50 }
+    ]
+  },
+
+  "8" : {
+  "description" : "Advance to go",
+  "effects" :
+  [
+    {"effectId" : 5, "location" : "Go" }
+  ]
+},
+
+  "9" : {
+    "description" : "From sale of Bitcoin you get £50",
+    "effects" :
+    [
+      {"effectId" : 0, "amount" : 50 }
+    ]
+  },
+
+  "10" : {
+    "description" : "Bitcoin assets fall - pay off Bitcoin short fall",
+    "effects" :
+    [
+      {"effectId" : 1, "amount" : 50 }
+    ]
+  },
+
+  "11" : {
+    "description" : "Pay a £10 fine or take opportunity knocks",
+    "effects" :
+    [
+      {
+        "effectId" : 8,  "amount" :  10, "cardPick" : "Opportunity" }
+    ]
+  },
+
+  "12" : {
+    "description" : "Savings bond matures, collect £100",
+    "effects" : [
+      {"effectId" : 0, "amount" : 100 }
+    ]
+  },
+
+  "13" : {
+    "description" : "Go to jail. Do not pass GO, do not collect £200",
+    "effects" : [
+      {"effectId" : 6,  "location" :  "Jail"}
+    ]
+  },
+
+  "14" : {
+    "description" : "Received interest on shares of £25",
+    "effects" : [
+      {"effectId" : 0, "amount" : 25 }
+    ]
+  },
+
+  "15" : {
+    "description" : "It's your birthday. Collect £10 from each player",
+    "effects" : [
+      {"effectId" : 4, "amount" : 10 }
+    ]
+  },
+
+  "16" : {
+    "description" : "Get out of jail free",
+    "effects" : [
+      {"effectId" : 9}
+    ]
+  }
+}
