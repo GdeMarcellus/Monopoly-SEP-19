@@ -4,7 +4,6 @@ import backend.Board;
 import backend.Card;
 import backend.Tiles.*;
 
-import org.hamcrest.core.IsInstanceOf;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -95,8 +94,8 @@ public class  JsonLoader {
     }
 
     /**
-     * @param jsonLocation
-     * @return
+     * @param jsonLocation the string path to the Json file
+     * @return an Array of tile build from the data in the file
      */
     public Tile[] setUpTiles(String jsonLocation){
         JSONParser jsonParser = new JSONParser();

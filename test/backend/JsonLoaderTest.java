@@ -19,7 +19,7 @@ public class JsonLoaderTest {
     }
 
     @Test
-    public void testItterateEffects() {
+    public void testIterateEffects() {
     }
 
     @Test
@@ -35,6 +35,7 @@ public class JsonLoaderTest {
     }
 
     @Test
+
     public void testBuildUtilityTile() {
 
     }
