@@ -79,6 +79,10 @@ public class Board {
         return dices.get(0) == dices.get(1);
     }
 
+    public int getPlayerNum()
+    {
+        return players.size();
+    }
     /**
      * Returns amount remaining if player purchased property
      * @param playerIndex index of player making the purchase
@@ -322,7 +326,8 @@ public class Board {
         return tiles;
     }
 
-    public void setTiles(Tile[] tiles) {
+    public void setTiles(Tile[] tiles)
+    {
         this.tiles = tiles;
     }
 
