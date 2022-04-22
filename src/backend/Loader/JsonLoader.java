@@ -110,53 +110,53 @@ public class  JsonLoader {
             e.printStackTrace();
         }
         for (int i = 0; i < 41; i++) {
-            assert boardData != null;
-            JSONObject current = (JSONObject) boardData.get(Integer.toString(i+1));
-            String type = (String) current.get("Type");
+            JSONObject current = (JSONObject) boardData.get(Integer.toString(i + 1));
+            if (current != null) {
+                String type = (String) current.get("Type");
+                switch (type) {
+                    case "PotLuck":
+                        tiles[i] = new TileCard(TileCard.Type.Luck);
+                        break;
+                    case "Opportunity":
+                        tiles[i] = new TileCard(TileCard.Type.Opportunity);
+                        break;
 
-            switch (type){
-                case "PotLuck":
-                    tiles[i] = new TileCard(TileCard.Type.Luck);
-                    break;
-                case "Opportunity":
-                    tiles[i] = new TileCard(TileCard.Type.Opportunity);
-                    break;
+                    case "Tax":
+                        int tax = Math.toIntExact((Long) current.get("Tax"));
+                        tiles[i] = new TileTax(tax);
+                        break;
 
-                case "Tax":
-                    int tax = (int) current.get("Tax");
-                    tiles[i] = new TileTax(tax);
-                    break;
+                    case "JailVisit":
+                        tiles[i] = new TileJail();
+                        break;
 
-                case "JailVisit":
-                    tiles[i] = new TileJail();
-                    break;
+                    case "FreeParking":
+                        tiles[i] = new TileFreeParking();
+                        break;
 
-                case "FreeParking":
-                    tiles[i] = new TileFreeParking();
-                    break;
+                    case "Go":
+                        tiles[i] = new TileGo();
+                        break;
 
-                case "Go":
-                    tiles[i] = new TileGo();
-                    break;
+                    case "GoToJail":
+                        tiles[i] = new TileGoToJail();
+                        break;
 
-                case "GoToJail":
-                    tiles[i] = new TileGoToJail();
-                    break;
+                    case "building":
+                        tiles[i] = buildBuildingTile(current, neighborhoods);
+                        break;
 
-                case "building":
-                    tiles[i] = buildBuildingTile(current, neighborhoods);
-                    break;
+                    case "Station":
+                        tiles[i] = buildStationTile(current, neighborhoods);
+                        break;
 
-                case "Station":
-                    tiles[i] = buildStationTile(current, neighborhoods);
-                    break;
+                    case "Utility":
+                        tiles[i] = buildUtilityTile(current, neighborhoods);
+                        break;
 
-                case "Utility":
-                    tiles[i] = buildUtilityTile(current, neighborhoods);
-                    break;
-
-                default:
-                    throw new IllegalStateException("Unexpected value: " + type);
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + type);
+                }
             }
         }
         return tiles;
@@ -171,10 +171,14 @@ public class  JsonLoader {
     public TileBuilding buildBuildingTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
         String hexColour = (String) object.get("Colour");
         String name = (String) object.get("Name");
-        int developmentCost = (int) object.get("developmentCost");
-        int price = (int) object.get("Price");
-
-        int[] rentIntArray = (int[]) object.get("Rent");
+        int developmentCost = Math.toIntExact((Long) object.get("developmentCost"));
+        int price = Math.toIntExact((Long) object.get("Price"));
+        JSONArray rentJSONArray = (JSONArray) object.get("rent");
+        int[] rentIntArray = new int[rentJSONArray.size()];
+        for (int i = 0; i < rentJSONArray.size(); i++)
+        {
+            rentIntArray[i] = Math.toIntExact((Long) rentJSONArray.get(i));
+        }
         Integer[] rentArray = Arrays.stream(rentIntArray).boxed().toArray( Integer[]::new );
         ArrayList<Integer> rent = new ArrayList<>(Arrays.asList(rentArray));
         ArrayList<TileProperty> neighborhood;
@@ -197,9 +201,13 @@ public class  JsonLoader {
      */
     public TileStation buildStationTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
         String name = (String) object.get("Name");
-        int price = (int) object.get("Price");
-
-        int[] rentIntArray = (int[]) object.get("Rent");
+        int price = Math.toIntExact((Long) object.get("Price"));
+        JSONArray rentJSONArray = (JSONArray) object.get("rent");
+        int[] rentIntArray = new int[rentJSONArray.size()];
+        for (int i = 0; i < rentJSONArray.size(); i++)
+        {
+            rentIntArray[i] = Math.toIntExact((Long) rentJSONArray.get(i));
+        }
         Integer[] rentArray = Arrays.stream(rentIntArray).boxed().toArray( Integer[]::new );
         ArrayList<Integer> rent = new ArrayList<>(Arrays.asList(rentArray));
         ArrayList<TileProperty> neighborhood;
@@ -224,7 +232,7 @@ public class  JsonLoader {
     public TileUtility buildUtilityTile(JSONObject object,  Map<String, ArrayList<TileProperty>> neighborhoods){
         String name = (String) object.get("Name");
 
-        int price = (int) object.get("Price");
+        int price = Math.toIntExact((Long) object.get("Price"));
 
         ArrayList<TileProperty> neighborhood;
         String neighborhoodName = "Utility";

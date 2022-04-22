@@ -3,11 +3,10 @@ package GUI;
 import backend.Board;
 import backend.Dice;
 import backend.Exception.*;
+import backend.Loader.JsonLoader;
 import backend.Player.HumanPlayer;
 import backend.Player.Player;
-import backend.Tiles.Tile;
-import backend.Tiles.TileBuilding;
-import backend.Tiles.TileProperty;
+import backend.Tiles.*;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.event.Event;
@@ -180,7 +179,6 @@ public class GUI extends Application {
                     -fx-font-size: 30;""");
 
         //Creating and setting up the game board (using a GridPane)
-        gameBoard.setTiles(createTiles());
         board = createBoard();
         board.setAlignment(Pos.CENTER);
 
@@ -287,7 +285,7 @@ public class GUI extends Application {
                             Alert endGame = new Alert(AlertType.WARNING);
                             endGame.setOnCloseRequest(e -> endGameScreenAbridged());
                             endGame.setContentText("Game Finished");
-                            endGame.show();
+                            endGame.showAndWait();
                             timeline.stop();
                         }
                     }));
@@ -352,10 +350,14 @@ public class GUI extends Application {
     {
         PauseTransition transition = new PauseTransition(Duration.seconds(0.5));
         transition.setOnFinished(event -> moneyOfPlayer.setFill(Color.BLACK));
-        ListView<TileBuilding> playerBuildings = new ListView<>();
+        ListView<TileProperty> playerBuildings = new ListView<>();
+        for ( int i = 0; i < gameBoard.getPlayer(playerTurn).getProperties().size(); i++)
+        {
+            playerBuildings.getItems().add(gameBoard.getPlayer(playerTurn).getProperties().get(i));
+        }
         playerBuildings.setOnMouseClicked(e ->
         {
-            TileBuilding chosenBuilding = playerBuildings.getSelectionModel().getSelectedItem();
+            TileProperty chosenBuilding = playerBuildings.getSelectionModel().getSelectedItem();
             int tileIndex = getTileIndex(chosenBuilding);
             try
             {
@@ -365,46 +367,37 @@ public class GUI extends Application {
                 moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                 moneyOfPlayer.setFill(Color.GREEN);
                 transition.playFromStart();
+
+                playerBuildings.getItems().remove(playerBuildings.getSelectionModel().getSelectedItem());
             }
             catch (OwnershipException ex)
             {
                 Alert doesNotHaveOwnership = new Alert(AlertType.WARNING);
                 doesNotHaveOwnership.setContentText("Not Owner");
-                doesNotHaveOwnership.show();
+                doesNotHaveOwnership.showAndWait();
             }
             catch (PropertyDevelopedException ex)
             {
                 Alert alreadyDeveloped = new Alert(AlertType.WARNING);
                 alreadyDeveloped.setContentText("Not Developed");
-                alreadyDeveloped.show();
+                alreadyDeveloped.showAndWait();
             }
         });
-
-        //Get the properties owned by the player
-        for (int i = 0; i < gameBoard.getPlayer(playerTurn).getProperties().size();i++)
-        {
-            playerBuildings.getItems().add((TileBuilding) gameBoard.getPlayer(playerTurn).getProperties().get(i));
-        }
         BorderPane mainPane = new BorderPane();
-        GridPane playerToChoose = new GridPane();
+        VBox playerToChoose = new VBox();
         Text title = createText("Choose building to trade with the bank!",50,Color.BLACK,"arial");
         BorderPane.setAlignment(title,Pos.CENTER);
         mainPane.setTop(title);
-        for (int i = 0; i < gameBoard.getPlayerNum(); i++)
-        {
-            if ((playerTurn == i))
-            {
-                Button playerIcon = new Button();
-                playerIcon.setMinWidth(100);
-                playerIcon.setMinHeight(100);
-                playerIcon.setStyle("" +
-                        "-fx-background-color: #" + playerInformation[i].getPlayerColor_String());
-                playerIcon.setAlignment(Pos.CENTER);
-                playerToChoose.add(playerIcon,i,0);
-            }
-        }
+        Button playerIcon = new Button();
+        playerIcon.setMinWidth(100);
+        playerIcon.setMinHeight(100);
+         playerIcon.setStyle("-fx-background-color: #" + playerInformation[playerTurn].getPlayerColor_String());
+        playerIcon.setAlignment(Pos.CENTER);
+        playerToChoose.getChildren().add(playerIcon);
         playerToChoose.setPadding(new Insets(100));
-        playerToChoose.add(playerBuildings,playerTurn,1);
+        playerBuildings.setMaxHeight(800);
+        playerBuildings.setMaxWidth(400);
+        playerToChoose.getChildren().add(playerBuildings);
         playerToChoose.setPadding(new Insets(50));
         mainPane.setCenter(playerToChoose);
         playerToChoose.setAlignment(Pos.CENTER);
@@ -418,7 +411,7 @@ public class GUI extends Application {
      *
      * @return tileIndex of chosenBuilding
      */
-    private int getTileIndex(TileBuilding chosenBuilding)
+    private int getTileIndex(TileProperty chosenBuilding)
     {
         Tile[] tiles = gameBoard.getTiles();
         for (int i = 0; i < tiles.length; i++)
@@ -519,7 +512,7 @@ public class GUI extends Application {
             } catch (InsufficientFundsException ex) {
                 Alert bidTooHigh = new Alert(AlertType.WARNING);
                 bidTooHigh.setContentText("Please bid only what you own!");
-                bidTooHigh.show();
+                bidTooHigh.showAndWait();
                 playerBid.getSelectionModel().getSelectedItem().setEditable(false);
                 playerBid.getSelectionModel().selectPrevious();
                 playerBid.getSelectionModel().getSelectedItem().setEditable(true);
@@ -533,7 +526,7 @@ public class GUI extends Application {
                 moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(higherPlayer).getBalance()));
                 Alert auctionWinner = new Alert(AlertType.INFORMATION);
                 auctionWinner.setContentText("Winner of Auction is: " + (playerInformation[higherPlayer].getPlayerNumber() + 1));
-                auctionWinner.show();
+                auctionWinner.showAndWait();
                 updatePriceAndEndTurn();
                 auctionWindow.close();
             }
@@ -593,48 +586,55 @@ public class GUI extends Application {
             {
                 Alert d = new Alert(AlertType.WARNING);
                 d.setContentText("Roll dies and move before playing another action!");
-                d.show();
+                d.showAndWait();
             }
             else
             {
                 //If building not owned by bank, building is not purchasable
-                if (((TileBuilding)gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getOwner() != gameBoard.getBank())
-                {
-                    Alert alreadyOwned = new Alert(AlertType.WARNING);
-                    alreadyOwned.setContentText("Property already owned!");
-                    alreadyOwned.show();
+                try {
+                    if (((TileProperty) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getOwner() != gameBoard.getBank()) {
+                        Alert alreadyOwned = new Alert(AlertType.WARNING);
+                        alreadyOwned.setContentText("Property already owned!");
+                        alreadyOwned.showAndWait();
+                    }
+                    else
+                    {
+                        //Pay Price
+                        try
+                        {
+                            gameBoard.playerPurchase(playerTurn,gameBoard.getPlayer(playerTurn).getPosition(),0);
+                        }
+
+                        //Alert created because property is not purchasable
+                        catch (NonPropertyTileException ex)
+                        {
+                            Alert notPropertyAlert = new Alert(AlertType.WARNING);
+                            notPropertyAlert.setContentText("Property not buy-able");
+                            notPropertyAlert.showAndWait();
+                        }
+
+                        //Alert created due to insufficient funds
+                        catch (InsufficientFundsException ex)
+                        {
+                            Stage insufficientFundsAlert = mortgageStage();
+                            insufficientFundsAlert.showAndWait();
+                        }
+
+                        //Set Owner of tile bought
+                        ((TileProperty) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]).setOwner(gameBoard.getPlayer(playerTurn));
+
+                        //Change GUI (Money Counter)
+                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                        moneyOfPlayer.setFill(Color.RED);
+                        transition.playFromStart();
+                        playerBoughtProperty = true;
+                    }
                 }
-                else
+                catch (ClassCastException x)
                 {
-                    //Pay Price
-                    try
-                    {
-                        gameBoard.playerPurchase(playerTurn,gameBoard.getPlayer(playerTurn).getPosition(),0);
-                    }
-
-                    //Alert created because property is not purchasable
-                    catch (NonPropertyTileException ex)
-                    {
-                        Alert notPropertyAlert = new Alert(AlertType.WARNING);
-                        notPropertyAlert.setContentText("Property not buy-able");
-                        notPropertyAlert.show();
-                    }
-
-                    //Alert created due to insufficient funds
-                    catch (InsufficientFundsException ex)
-                    {
-                        Stage insufficientFundsAlert = mortgageStage();
-                        insufficientFundsAlert.show();
-                    }
-
-                    //Set Owner of tile bought
-                    ((TileProperty) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]).setOwner(gameBoard.getPlayer(playerTurn));
-
-                    //Change GUI (Money Counter)
-                    moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                    moneyOfPlayer.setFill(Color.RED);
-                    transition.playFromStart();
-                    playerBoughtProperty = true;
+                    Alert buildingCannotbeBought = new Alert(AlertType.WARNING);
+                    buildingCannotbeBought.setContentText("Property Cannot be bought!");
+                    buildingCannotbeBought.showAndWait();
                 }
             }
         });
@@ -674,6 +674,7 @@ public class GUI extends Application {
                             Player playerOwed;
                             if ((playerOwed = ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner()) != gameBoard.getBank())
                             {
+                                //Pay for Rent
                                 int rentPrice = gameBoard.payRent(playerTurn, gameBoard.getPlayer(playerTurn).getPosition(), dices.getDiceValues());
 
                                 //Give Money to player who owns buildings
@@ -681,8 +682,8 @@ public class GUI extends Application {
 
                                 //Alert player that they paid for the rent
                                 Alert payedRent = new Alert(AlertType.WARNING);
-                                payedRent.setContentText("Player " + playerTurn + "has payed " + rentPrice + " for Rent!");
-                                payedRent.show();
+                                payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + rentPrice + " for Rent!\nThe Rent has gone to Player " + playerOwed);
+                                payedRent.showAndWait();
 
                                 //Property Owned by Player
                                 playerBoughtProperty = true;
@@ -701,6 +702,9 @@ public class GUI extends Application {
                         {
                             System.err.println("Building is Mortgaged, player does not need to pay!");
                         }
+                        catch (ClassCastException ex)
+                        {
+                        }
                     }
                     }
                 }
@@ -714,20 +718,25 @@ public class GUI extends Application {
             {
                 Alert d = new Alert(AlertType.WARNING);
                 d.setContentText("Roll dies and move before playing another action!");
-                d.show();
+                d.showAndWait();
             }
             else {
-                if (!playerBoughtProperty && ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getBank()) {
-                    gameBoard.auctionInitialise();
-                    gameBoard.auctionStart();
-                    auctionWindow = new Stage();
-                    auctionWindow.setResizable(false);
-                    auctionWindow.setScene(new Scene((Parent) auctionNode(), 800, 800));
-                    auctionWindow.show();
-                    //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
-                    auctionWindow.setOnCloseRequest(Event::consume);
+                try
+                {
+                    if (!playerBoughtProperty && ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getBank()) {
+                        gameBoard.auctionInitialise();
+                        gameBoard.auctionStart();
+                        auctionWindow = new Stage();
+                        auctionWindow.setResizable(false);
+                        auctionWindow.setScene(new Scene((Parent) auctionNode(), 800, 800));
+                        auctionWindow.show();
+                        //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
+                        auctionWindow.setOnCloseRequest(Event::consume);
+                    } else {
+                        updatePriceAndEndTurn();
+                    }
                 }
-                else
+                catch (ClassCastException ex)
                 {
                     updatePriceAndEndTurn();
                 }
@@ -739,69 +748,62 @@ public class GUI extends Application {
         Build.setPrefSize(100,50);
         Build.setOnAction(e ->
         {
-            if(finishedTurn)
-            {
-                if (ownsAllProperties() && ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getPlayer(playerTurn))
+                if (gameBoard.getPlayerTile(playerTurn) instanceof TileProperty && finishedTurn)
                 {
-                    try
-                    {
-                        ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).buyHouse(gameBoard.getBank());
+                    if (ownsAllProperties() && ((TileProperty) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getPlayer(playerTurn)) {
+                        try {
+                            ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).buyHouse(gameBoard.getBank());
 
-                        //Change GUI (Money Counter)
-                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                        moneyOfPlayer.setFill(Color.RED);
-                        transition.playFromStart();
+                            //Change GUI (Money Counter)
+                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                            moneyOfPlayer.setFill(Color.RED);
+                            transition.playFromStart();
 
-                        //Change Tile
-                        int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
-                        Color tileColour = Color.valueOf(((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour());
-                        tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, #" +
-                                tileColour.toString().substring(2) + " "    + developmentPercentage +"%, white 0%);\n" + "-fx-background-radius: 0");
+                            //Change Tile
+                            int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
+                            Color tileColour = Color.valueOf(((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour());
+                            tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, #" +
+                                    tileColour.toString().substring(2) + " " + developmentPercentage + "%, white 0%);\n" + "-fx-background-radius: 0");
 
-                    }
+                        }
 
-                    //Alert for properties with max development
-                    catch (PropertyDevelopedException ex)
-                    {
-                        Alert exceptionBuild = new Alert(AlertType.WARNING);
-                        exceptionBuild.setContentText("The Property has max development!");
-                        exceptionBuild.show();
-                        ex.printStackTrace();
-                    }
+                        //Alert for properties with max development
+                        catch (PropertyDevelopedException ex) {
+                            Alert exceptionBuild = new Alert(AlertType.WARNING);
+                            exceptionBuild.setContentText("The Property has max development!");
+                            exceptionBuild.showAndWait();
+                            ex.printStackTrace();
+                        }
 
-                    //Alert for idk
-                    catch (LargeDevelopmentDifferenceException ex) {
-                        Alert exceptionBuild = new Alert(AlertType.WARNING);
-                        exceptionBuild.setContentText("idk");
-                        exceptionBuild.show();
-                        ex.printStackTrace();
-                    }
+                        //Alert for idk
+                        catch (LargeDevelopmentDifferenceException ex) {
+                            Alert exceptionBuild = new Alert(AlertType.WARNING);
+                            exceptionBuild.setContentText("idk");
+                            exceptionBuild.showAndWait();
+                            ex.printStackTrace();
+                        }
 
-                    //Alert isMortgaged
-                    catch (IsMortgagedException ex)
-                    {
-                        Alert exceptionBuild = new Alert(AlertType.WARNING);
-                        exceptionBuild.setContentText("Building is mortgaged!");
-                        exceptionBuild.show();
-                        ex.printStackTrace();
-                    }
+                        //Alert isMortgaged
+                        catch (IsMortgagedException ex) {
+                            Alert exceptionBuild = new Alert(AlertType.WARNING);
+                            exceptionBuild.setContentText("Building is mortgaged!");
+                            exceptionBuild.showAndWait();
+                            ex.printStackTrace();
+                        }
 
-                    //Alert for insufficient funds
-                    catch (InsufficientFundsException ex)
-                    {
-                        Alert exceptionBuild = new Alert(AlertType.WARNING);
-                        exceptionBuild.setContentText("Insufficient Funds!");
-                        exceptionBuild.show();
-                        ex.printStackTrace();
+                        //Alert for insufficient funds
+                        catch (InsufficientFundsException ex) {
+                            Alert exceptionBuild = new Alert(AlertType.WARNING);
+                            exceptionBuild.setContentText("Insufficient Funds!");
+                            exceptionBuild.showAndWait();
+                            ex.printStackTrace();
+                        }
+                    } else {
+                        Alert doesNotOwn = new Alert(AlertType.WARNING);
+                        doesNotOwn.setContentText("You do not own all the properties in the neighbourhood!\nYou cannot build anything yet!");
+                        doesNotOwn.showAndWait();
                     }
                 }
-                else
-                {
-                    Alert doesNotOwn = new Alert(AlertType.WARNING);
-                    doesNotOwn.setContentText("You do not own all the properties in the neighbourhood!\nYou cannot build anything yet!");
-                    doesNotOwn.show();
-                }
-            }
         });
 
         Button trade = new Button("Trade");
@@ -809,7 +811,7 @@ public class GUI extends Application {
             Stage tradeStage = new Stage();
             tradeStage.setResizable(false);
             tradeStage.setScene(new Scene((Parent) selectPlayer(), 800,800));
-            tradeStage.show();
+            tradeStage.showAndWait();
         });
         //Setting up HBox to finalize the controls
         HBox final_control = new HBox(newTurn,move,Buy,Build, trade);
@@ -834,8 +836,15 @@ public class GUI extends Application {
     private boolean ownsAllProperties()
     {
         boolean ownsAll = true;
+        if ( gameBoard.getPlayerTile(playerTurn) instanceof  TileStation)
+        {
+            Alert cannotBuildOnStation = new Alert(AlertType.WARNING);
+            cannotBuildOnStation.setContentText("Cannot build on Station!");
+            cannotBuildOnStation.showAndWait();
+        }
         for (TileProperty property : ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getNeighborhood())
         {
+            System.out.println(property);
             if (property.getOwner() != gameBoard.getPlayer(playerTurn))
             {
                 ownsAll = false;
@@ -870,27 +879,6 @@ public class GUI extends Application {
         yes.setOnAction(e ->
         {
 
-            try
-            {
-                ((TileProperty)gameBoard.getPlayerTile(playerTurn)).mortgaged(gameBoard.getBank());
-            }
-
-            //Setting up Alert for Mortgage
-            catch (IsMortgagedException ex)
-            {
-                Alert isMortgagedAlert = new Alert(AlertType.WARNING);
-                isMortgagedAlert.setContentText("Property is Mortgaged!");
-                isMortgagedAlert.show();
-            }
-
-            //Setting up Alert for Property Developed
-            catch (PropertyDevelopedException ex)
-            {
-                Alert propertyDevelopedAlert = new Alert(AlertType.WARNING);
-                propertyDevelopedAlert.setContentText("Property has been developed!");
-                propertyDevelopedAlert.show();
-            }
-            mortgageStage.close();
         });
 
         //Setting up no button
@@ -1002,7 +990,7 @@ public class GUI extends Application {
                         playerSelection();
                     }
             );
-            choseTime.show();
+            choseTime.showAndWait();
         });
 
         //Creating and setting up settings button
@@ -1113,7 +1101,7 @@ public class GUI extends Application {
                 Alert setColor = new Alert(AlertType.INFORMATION);
                 setColor.setTitle("Please Select the new desired Color!");
                 setColor.setGraphic(colorPicker);
-                setColor.show();
+                setColor.showAndWait();
             });
             playerIcon.setMinWidth(100);
             playerIcon.setMinHeight(100);
@@ -1167,9 +1155,28 @@ public class GUI extends Application {
         playerSelection.setScene(new Scene(mainPane,1500,1000));
         startGameButton.setOnAction(e ->
         {
-          playerSelection.close();
-          setupPlaySession();
-          choosePlayerOrder();
+            if(player_Index.size() == 1)
+            {
+                Alert agentPlayerOrTryAgain = new Alert(AlertType.CONFIRMATION);
+                ButtonType yesButton = ButtonType.YES;
+                ButtonType noButton = ButtonType.NO;
+                agentPlayerOrTryAgain.getButtonTypes().setAll(yesButton,noButton);
+                agentPlayerOrTryAgain.showAndWait().ifPresent(type ->
+                {
+                    if (type == ButtonType.YES)
+                    {
+                        playerSelection.close();
+                        setupPlaySession();
+                        choosePlayerOrder();
+                    }
+                });
+            }
+            else
+            {
+                playerSelection.close();
+                setupPlaySession();
+                choosePlayerOrder();
+            }
         });
         playerSelection.show();
     }
@@ -1262,7 +1269,15 @@ public class GUI extends Application {
      */
     private void setupPlaySession()
     {
-       gameBoard = new Board();
+       JsonLoader createBoardJSON = new JsonLoader();
+       gameBoard = createBoardJSON.startUp("Tiles.Json","OpportunityCard.Json","LuckCard.Json");
+       for (Tile tiles : gameBoard.getTiles())
+       {
+           if (tiles instanceof TileProperty)
+           {
+               ((TileProperty) tiles).setOwner(gameBoard.getBank());
+           }
+       }
        playerInformation = new PlayerInformation[player_Index.size()];
 
        //Initialising the players for the game session.
@@ -1278,7 +1293,7 @@ public class GUI extends Application {
                Alert listOfBuildings = new Alert(AlertType.INFORMATION);
                listOfBuildings.setHeaderText("Property List Of: " + (playerInformation[playerNum].getPlayerNumber()+1));
                listOfBuildings.setContentText(getPropertyString(playerNum));
-               listOfBuildings.show();
+               listOfBuildings.showAndWait();
            });
        }
 
@@ -1305,26 +1320,6 @@ public class GUI extends Application {
             list_of_properties.append(i + 1).append(" : ").append(gameBoard.getPlayer(playerNum).getProperties().get(i)).append("\n");
         }
         return String.valueOf(list_of_properties);
-    }
-
-    /**
-     * createTiles() creates a Tile array to be inserted into the Board Object.
-     *
-     * @return Tile[] that will be added to the Board Object.
-     */
-    private Tile[] createTiles()
-    {
-        //Tile Array to be inserted into the Board Object
-        Tile[] gameTiles = new Tile[41];
-        for (int i = 0; i < 41; i ++)
-        {
-            ArrayList<Integer> rent = new ArrayList<>();
-            rent.add(100);
-            rent.add(200);
-            rent.add(300);
-            gameTiles[i] = new TileBuilding("#0000FF",rent, 100,0,100,"idk", gameBoard.getBank(), new ArrayList<>(),false);
-        }
-        return gameTiles;
     }
 
     /**
@@ -1382,7 +1377,6 @@ public class GUI extends Application {
             }
         }
         //no Jail Slot
-        tileCreation(40,gridPane,9,9);
         return gridPane;
     }
 
@@ -1398,20 +1392,39 @@ public class GUI extends Application {
     private int tileCreation(int count, GridPane gridPane, int i, int j) {
         //Setting up the Button for each tile
         int cardNum = count;
-        Button tileButton = new Button(((TileProperty)gameBoard.getTile(count)).getName());
-        tileButton.setMinWidth(50);
-        tileButton.setMinHeight(50);
+        Button tileButton = null;
+        if (gameBoard.getTile(count) instanceof TileProperty) tileButton = new Button(gameBoard.getTile(count).getName());
+        else if (gameBoard.getTile(count) instanceof TileGo) tileButton = new Button("Go!");
+        else if (gameBoard.getTile(count) instanceof TileJail) tileButton = new Button("Jail");
+        else if (gameBoard.getTile(count) instanceof TileTax) tileButton = new Button("Tax");
+        else if (gameBoard.getTile(count) instanceof TileGoToJail) tileButton = new Button("Go Jail!");
+        else if (gameBoard.getTile(count) instanceof TileFreeParking) tileButton = new Button("Parking");
+        else if (gameBoard.getTile(count) instanceof TileCard) tileButton = new Button("Card");
+        else if (gameBoard.getTile(count) instanceof TileUtility) tileButton = new Button("Utility");
+
+        tileButton.setPrefWidth(50);
+        tileButton.setPrefHeight(50);
         tileButton.setOnAction(e->
         {
             if (!inspectWindow)
             {
                 VBox cardInfoIDK = new VBox();
-                cardInfoIDK.setStyle("-fx-background-color: linear-gradient(to bottom, " +
-                        ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 20%, white 0%);");
+                if (gameBoard.getTile(cardNum) instanceof  TileBuilding)
+                {
+                    cardInfoIDK.setStyle("-fx-background-color: linear-gradient(to bottom, " +
+                            ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 20%, white 0%);" +
+                            "-fx-border-color:black;");
+                }
+                else
+                {
+                    cardInfoIDK.setStyle("-fx-background-color: linear-gradient(to bottom, " +
+                             "gray 20%, white 0%);" +
+                            "-fx-border-color:black;");
+                }
                 Text[] cardInfo = updateCardInfo(cardNum);
                 VBox mainBox = new VBox();
                 mainBox.setAlignment(Pos.CENTER);
-                for(int x = 1; x < cardInfo.length; x++)
+                for(int x = 2; x < cardInfo.length; x++)
                 {
                     mainBox.getChildren().add(cardInfo[x]);
                 }
@@ -1433,9 +1446,20 @@ public class GUI extends Application {
                 });
             }
         });
-        tileButton.setStyle("-fx-background-color: linear-gradient(to bottom, " +
-                ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 20%, white 0%);\n" +
-                "-fx-background-radius: 0");
+        if (gameBoard.getTile(count) instanceof TileBuilding)
+        {
+            tileButton.setStyle("-fx-background-color: linear-gradient(to bottom, " +
+                    ((TileBuilding) gameBoard.getTile(cardNum)).getHexColour() + " 20%, white 0%);\n" +
+                    "-fx-background-radius: 0;" + "-fx-border-color:black;");
+            tileButton.setWrapText(true);
+        }
+        else
+        {
+            tileButton.setStyle("-fx-background-color: linear-gradient(to bottom, " +
+                    "gray 20%, white 0%);\n" +
+                    "-fx-background-radius: 0;" + "-fx-border-color:black;");
+            tileButton.setWrapText(true);
+        }
         tiles[count] = tileButton;
         gridPane.add(tileButton,i,j);
         count++;
@@ -1476,16 +1500,28 @@ public class GUI extends Application {
      */
     private Text[] updateCardInfo(int tileNum)
     {
-        Text[] cardInformation = new Text[4];
-        cardInformation[0] = createText(((TileBuilding)gameBoard.getTile(tileNum)).getName(),30,Color.WHITE,"arial");
-        cardInformation[0].setStroke(Color.BLACK);
+        if (gameBoard.getTile(tileNum) instanceof TileProperty)
+        {
+            Text[] cardInformation = new Text[4];
+            cardInformation[0] = createText(gameBoard.getTile(tileNum).getName(), 30, Color.WHITE, "arial");
+            cardInformation[0].setStroke(Color.BLACK);
 
-        cardInformation[1] = createText(((TileBuilding)gameBoard.getTile(tileNum)).getOwner().toString(),20,Color.WHITE,"arial");
+            if (gameBoard.getTile(tileNum) instanceof TileBuilding)
+            {
+                cardInformation[2] = createText(String.valueOf(((TileBuilding) gameBoard.getTile(tileNum)).getDevelopment()), 20, Color.BLACK, "arial");
 
-        cardInformation[2] = createText(String.valueOf(((TileBuilding)gameBoard.getTile(tileNum)).getDevelopment()),20,Color.BLACK,"arial");
+                cardInformation[3] = createText(String.valueOf(((TileBuilding) gameBoard.getTile(tileNum)).getPrice()), 20, Color.BLACK, "arial");
+            }
+            else
+            {
+                cardInformation[2] = createText("No Development", 20, Color.BLACK, "arial");
 
-        cardInformation[3] = createText(String.valueOf(((TileBuilding)gameBoard.getTile(tileNum)).getPrice()),20,Color.BLACK,"arial");
-        return cardInformation ;
+                cardInformation[3] = createText("No Price", 20, Color.BLACK, "arial");
+            }
+            return cardInformation;
+        }
+        else
+            return new Text[]{new Text("poop")};
     }
 
     /**
@@ -1623,7 +1659,7 @@ public class GUI extends Application {
                     playerOrderStage.close();
                     gameBoard();
                 });
-                done.show();
+                done.showAndWait();
             }
         });
         //Adding nodes to VBox
