@@ -12,6 +12,7 @@ import javafx.application.Application;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -23,6 +24,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -60,6 +62,7 @@ public class GUI extends Application {
     private Text timeRemaining;
     private Timeline timeline;
     private TextField aiLogBox;
+    private Rectangle2D screenBounds;
 
     public static void main(String []args)
     {
@@ -68,6 +71,7 @@ public class GUI extends Application {
 
     public void start(Stage primaryStage)
     {
+        screenBounds = Screen.getPrimary().getBounds();
         start_screen();
     }
 
@@ -117,7 +121,8 @@ public class GUI extends Application {
         mainStage.setCenter(title);
         BorderPane.setAlignment(enterCont, Pos.CENTER);
         Scene buttonScene;
-        introduction.setScene(buttonScene = new Scene(mainStage,1500, 1000));
+       
+        introduction.setScene(buttonScene = new Scene(mainStage,screenBounds.getMaxX(), screenBounds.getMaxY()));
         buttonScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 introduction.close();
@@ -133,17 +138,11 @@ public class GUI extends Application {
     private void gameBoard()
     {
         //Money Counter
-        Label moneyCounter = new Label("Money Amount");
+        Label moneyCounter = new Label("Player Bank Account");
         moneyCounter.setStyle("""
                 -fx-padding: 8 15 15 15;
                     -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
                     -fx-background-radius: 8;
-                    -fx-background-color:\s
-                        linear-gradient(from 0% 93% to 0% 100%, #a34313 0%, #903b12 100%),
-                        #9d4024,
-                        #d86e3a,
-                        radial-gradient(center 50% 50%, radius 100%, #d86e3a, #c54e2c);
-                    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
                     -fx-font-weight: bold;
                     -fx-font-size: 30;""");
 
@@ -164,17 +163,11 @@ public class GUI extends Application {
         moneyOfPlayer.setTextAlignment(TextAlignment.CENTER);
 
         //Next
-        playerTurnText = new Text("Player Turn:  " +(playerTurn+1));
+        playerTurnText = new Text("Player " + (playerTurn+1) + " Turn");
         playerTurnText.setStyle("""
                 -fx-padding: 8 15 15 15;
                     -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
                     -fx-background-radius: 8;
-                    -fx-background-color:\s
-                        linear-gradient(from 0% 93% to 0% 100%, #a34313 0%, #903b12 100%),
-                        #9d4024,
-                        #d86e3a,
-                        radial-gradient(center 50% 50%, radius 100%, #d86e3a, #c54e2c);
-                    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
                     -fx-font-weight: bold;
                     -fx-font-size: 30;""");
 
@@ -305,7 +298,7 @@ public class GUI extends Application {
         final_main.getChildren().add(exit);
 
         //Creating a new Scene
-        Scene finalScene = new Scene(final_main,1500,1000);
+        Scene finalScene = new Scene(final_main,screenBounds.getMaxX(),screenBounds.getMaxY());
         gameBoard_GUI.setScene(finalScene);
         gameBoard_GUI.show();
 
@@ -336,7 +329,7 @@ public class GUI extends Application {
         }
         VBox mainVBox = new VBox();
         for (Text text : playerFinalValueText) mainVBox.getChildren().add(text);
-        finalStageAbridged.setScene(new Scene(mainVBox,1500,1000));
+        finalStageAbridged.setScene(new Scene(mainVBox,screenBounds.getMaxX(),screenBounds.getMaxY()));
         finalStageAbridged.show();
         finalStageAbridged.setOnCloseRequest(e -> System.exit(0));
     }
@@ -471,26 +464,29 @@ public class GUI extends Application {
      * Method used to create Node for the Auction Stage
      *
      * @return Node (BorderPane) containing all the functions of the auction
+     * @param players
      */
-    private Node auctionNode()
+    private Node auctionNode(ArrayList<Player> players)
     {
         ListView<TextField> playerBid = new ListView<>();
         BorderPane mainAuctionPane = new BorderPane();
-        Image tile = new Image("file:resources/Base/" + gameBoard.getPlayer(playerTurn).getPosition() + ".png");
-        ImageView auctionPropertyIcon = new ImageView(tile);
+        Button auctionPropertyIcon = new Button();
+        auctionPropertyIcon.setStyle((tiles[gameBoard.getPlayer(playerTurn).getPosition()]).getStyle());
+        auctionPropertyIcon.setText(tiles[gameBoard.getPlayer(playerTurn).getPosition()].getText());
+        auctionPropertyIcon.setMinHeight(150);
+        auctionPropertyIcon.setMinWidth(150);
         GridPane playerAndText = new GridPane();
         Text titleAuction = createText("Auction House!",100,Color.BLACK,"arial");
         VBox titleAndProperty = new VBox(titleAuction,auctionPropertyIcon);
         mainAuctionPane.setTop(titleAndProperty);
-        for (int i = 0; i < gameBoard.getPlayerNum();i++)
+        for (Player player : players)
         {
             Button playerIcon = new Button();
             playerIcon.setMinWidth(50);
-            playerIcon.setStyle("" +
-                    "-fx-background-color: #" + playerInformation[i].getPlayerColor_String());
-            playerAndText.add(playerIcon,i,0);
+            playerIcon.setStyle("-fx-background-color: #" + playerInformation[gameBoard.getPlayers().indexOf(player)].getPlayerColor_String());
+            playerAndText.add(playerIcon,gameBoard.getPlayers().indexOf(player),0);
         }
-        for (int i = 0; i < gameBoard.getPlayerNum();i++)
+        for (int i = 0; i < players.size();i++)
         {
             TextField answer = new TextField();
             answer.setEditable(false);
@@ -505,7 +501,7 @@ public class GUI extends Application {
         {
             //Check if player has enough funds to place bid
             try {
-                gameBoard.auctionMakeBid(playerBid.getSelectionModel().getSelectedIndex(),Integer.parseInt(playerBid.getItems().get(playerBid.getSelectionModel().getSelectedIndex()).getText()));
+                gameBoard.auctionMakeBid(gameBoard.getPlayers().indexOf(players.get(playerBid.getSelectionModel().getSelectedIndex())),Integer.parseInt(playerBid.getItems().get(playerBid.getSelectionModel().getSelectedIndex()).getText()));
                 playerBid.getSelectionModel().getSelectedItem().setEditable(false);
                 playerBid.getSelectionModel().selectNext();
                 playerBid.getSelectionModel().getSelectedItem().setEditable(true);
@@ -521,14 +517,30 @@ public class GUI extends Application {
             {
                 int higherPlayer = gameBoard.auctionHighestBid()[2];
                 int higherBid = gameBoard.auctionHighestBid()[0];
-                gameBoard.getPlayer(higherPlayer).addProperty((TileProperty) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]);
-                gameBoard.getPlayer(higherPlayer).removeMoney(higherBid);
-                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(higherPlayer).getBalance()));
-                Alert auctionWinner = new Alert(AlertType.INFORMATION);
-                auctionWinner.setContentText("Winner of Auction is: " + (playerInformation[higherPlayer].getPlayerNumber() + 1));
-                auctionWinner.showAndWait();
-                updatePriceAndEndTurn();
-                auctionWindow.close();
+                if (gameBoard.auctionHighestBid()[1] != 1)
+                {
+                    ArrayList<Player> newPlayerList = new ArrayList<>();
+                    for (Player player : players)
+                    {
+                        if(gameBoard.auctionGetBid(gameBoard.getPlayers().indexOf(player)) == higherBid)
+                        {
+                            newPlayerList.add(player);
+                        }
+                    }
+                    auctionWindow.close();
+                    auctionHouse(newPlayerList);
+                }
+                else
+                {
+                    gameBoard.getPlayer(higherPlayer).addProperty((TileProperty) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]);
+                    gameBoard.getPlayer(higherPlayer).removeMoney(higherBid);
+                    moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(higherPlayer).getBalance()));
+                    Alert auctionWinner = new Alert(AlertType.INFORMATION);
+                    auctionWinner.setContentText("Winner of Auction is: " + (playerInformation[higherPlayer].getPlayerNumber() + 1));
+                    auctionWinner.showAndWait();
+                    updatePriceAndEndTurn();
+                    auctionWindow.close();
+                }
             }
         });
         controlsAuction.getChildren().add(nextPlayer);
@@ -724,14 +736,7 @@ public class GUI extends Application {
                 try
                 {
                     if (!playerBoughtProperty && ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getBank()) {
-                        gameBoard.auctionInitialise();
-                        gameBoard.auctionStart();
-                        auctionWindow = new Stage();
-                        auctionWindow.setResizable(false);
-                        auctionWindow.setScene(new Scene((Parent) auctionNode(), 800, 800));
-                        auctionWindow.show();
-                        //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
-                        auctionWindow.setOnCloseRequest(Event::consume);
+                        auctionHouse(gameBoard.getPlayers());
                     } else {
                         updatePriceAndEndTurn();
                     }
@@ -818,6 +823,18 @@ public class GUI extends Application {
         final_control.setAlignment(Pos.CENTER);
         final_control.setSpacing(100);
         return final_control;
+    }
+
+    private void auctionHouse(ArrayList<Player> players)
+    {
+        gameBoard.auctionInitialise();
+        gameBoard.auctionStart();
+        auctionWindow = new Stage();
+        auctionWindow.setResizable(false);
+        auctionWindow.setScene(new Scene((Parent) auctionNode(players), 800, 800));
+        auctionWindow.show();
+        //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
+        auctionWindow.setOnCloseRequest(Event::consume);
     }
 
     private void checkIfBankrupt()
@@ -1027,7 +1044,7 @@ public class GUI extends Application {
         //Setting up Main
         main.setCenter(main_buttons);
         main.setTop(title);
-        mainMenu.setScene(new Scene(main,1500,1000));
+        mainMenu.setScene(new Scene(main,screenBounds.getMaxX(),screenBounds.getMaxY()));
         mainMenu.show();
     }
 
@@ -1071,7 +1088,7 @@ public class GUI extends Application {
         settingOptions.getChildren().add(goBack);
 
         //Finish Stage
-        settings_Stage.setScene(new Scene(mainPane,1500,1000));
+        settings_Stage.setScene(new Scene(mainPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         settings_Stage.show();
     }
 
@@ -1118,7 +1135,7 @@ public class GUI extends Application {
         BorderPane.setAlignment(menuTitle,Pos.CENTER);
         mainBox.getChildren().add(exit);
         mainPane.setCenter(mainBox);
-        changeColourStage.setScene(new Scene(mainPane,1500,1000));
+        changeColourStage.setScene(new Scene(mainPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         changeColourStage.show();
     }
 
@@ -1152,7 +1169,7 @@ public class GUI extends Application {
         //Creating Stage and setting Scene (Also start game button functionality)
         Stage playerSelection = new Stage();
         playerSelection.setResizable(false);
-        playerSelection.setScene(new Scene(mainPane,1500,1000));
+        playerSelection.setScene(new Scene(mainPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         startGameButton.setOnAction(e ->
         {
             if(player_Index.size() == 1)
@@ -1166,7 +1183,6 @@ public class GUI extends Application {
                     if (type == ButtonType.YES)
                     {
                         playerSelection.close();
-                        setupPlaySession();
                         choosePlayerOrder();
                     }
                 });
@@ -1174,7 +1190,6 @@ public class GUI extends Application {
             else
             {
                 playerSelection.close();
-                setupPlaySession();
                 choosePlayerOrder();
             }
         });
@@ -1393,6 +1408,8 @@ public class GUI extends Application {
         //Setting up the Button for each tile
         int cardNum = count;
         Button tileButton = null;
+
+        //Set Tile Name depending on Object Class
         if (gameBoard.getTile(count) instanceof TileProperty) tileButton = new Button(gameBoard.getTile(count).getName());
         else if (gameBoard.getTile(count) instanceof TileGo) tileButton = new Button("Go!");
         else if (gameBoard.getTile(count) instanceof TileJail) tileButton = new Button("Jail");
@@ -1402,8 +1419,11 @@ public class GUI extends Application {
         else if (gameBoard.getTile(count) instanceof TileCard) tileButton = new Button("Card");
         else if (gameBoard.getTile(count) instanceof TileUtility) tileButton = new Button("Utility");
 
-        tileButton.setPrefWidth(50);
-        tileButton.setPrefHeight(50);
+        //Set Tile Visuals
+
+        tileButton.setPadding(new Insets(5));
+        tileButton.setPrefWidth(130);
+        tileButton.setPrefHeight(150);
         tileButton.setOnAction(e->
         {
             if (!inspectWindow)
@@ -1599,7 +1619,7 @@ public class GUI extends Application {
 
         //Preparing the player icons and associated space to insert roll values
         GridPane playerInfo_RollVal = new GridPane();
-        for (int i = 0; i < gameBoard.getPlayerNum(); i++)
+        for (int i = 0; i < player_Index.size(); i++)
         {
             //Create text-field to insert roll value
             TextField playerRollTextField = new TextField();
@@ -1610,7 +1630,7 @@ public class GUI extends Application {
             Button playerIcon = new Button();
             playerIcon.setMinWidth(100);
             playerIcon.setMinHeight(100);
-            playerIcon.setStyle("-fx-background-color: #" + playerInformation[i].getPlayerColor_String());
+            playerIcon.setStyle("-fx-background-color: #" + player_Index.get(i).toString().substring(2));
             playerInfo_RollVal.add(playerIcon,0,i);
             playerInfo_RollVal.add(playerRollTextField,1,i);
         }
@@ -1640,7 +1660,7 @@ public class GUI extends Application {
             playerRollVisuals.getSelectionModel().selectNext();
 
             //If last player rolls
-            if (playerRollVisuals.getSelectionModel().getSelectedIndex()+1 == gameBoard.getPlayerNum() && !Objects.equals(playerRollVisuals.getSelectionModel().getSelectedItem().getText(), ""))
+            if (playerRollVisuals.getSelectionModel().getSelectedIndex()+1 == player_Index.size() && !Objects.equals(playerRollVisuals.getSelectionModel().getSelectedItem().getText(), ""))
             {
                 //Create a hashmap to connect playerNumber to their roll value
                 HashMap<Integer, Integer> playerHashMap = new HashMap<>();
@@ -1651,12 +1671,13 @@ public class GUI extends Application {
 
                 //Create Alert, showing the new ordering
                 Alert done = new Alert(AlertType.CONFIRMATION);
-                done.setContentText(getPlayerOrder(playerHashMap));
+                getPlayerOrder(playerHashMap);
 
                 //Once closed, the game will begin
                 done.setOnCloseRequest(a ->
                 {
                     playerOrderStage.close();
+                    setupPlaySession();
                     gameBoard();
                 });
                 done.showAndWait();
@@ -1669,7 +1690,7 @@ public class GUI extends Application {
         mainPane.setCenter(mainControls);
 
         //Preparing stage and scene
-        playerOrderStage.setScene(new Scene(mainPane,1500,1000));
+        playerOrderStage.setScene(new Scene(mainPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         playerOrderStage.show();
     }
 
@@ -1702,7 +1723,7 @@ public class GUI extends Application {
      *
      * @return Returns a String stating the playing order, based on the HashMap
      */
-    private String getPlayerOrder(HashMap<Integer,Integer> playerRolls)
+    private void getPlayerOrder(HashMap<Integer,Integer> playerRolls)
     {
         //Placeholder
         StringBuilder playerOrder = new StringBuilder();
@@ -1713,13 +1734,17 @@ public class GUI extends Application {
         {
             playerOrderInt.add(entry.getKey());
         }
-
-        //Loop and get the player corresponding to the priority queue
+        int count = 0;
+        HashMap<Integer,Color> newPlayerIndex = new HashMap<>();
         while (playerOrderInt.peek() != null)
         {
-            playerOrder.append("Player: ").append(playerRolls.get(playerOrderInt.peek())+1).append(" Dice Roll: ").append(playerOrderInt.poll()).append("\n");
+            System.out.println(playerRolls.get(playerOrderInt.peek()));
+            int currPlayer = playerRolls.get(playerOrderInt.poll());
+            newPlayerIndex.put(count,player_Index.get(currPlayer));
+            count++;
         }
-        return playerOrder.toString();
+        player_Index = newPlayerIndex;
+        //Loop and get the player corresponding to the priority queue
     }
 
     private void agentPlayerTurn()
