@@ -37,12 +37,12 @@ public abstract class Player {
         }
 
         //check position not beyond board limits
-        if (this.position + diceValue > 40) {
-            this.position = position % 40;
+        if (position + diceValue > 40) {
+            position = (position + diceValue) - 39;
             passedGo = true;
         }
         else {
-            this.position += diceValue;
+            position += diceValue;
         }
         return passedGo;
     }

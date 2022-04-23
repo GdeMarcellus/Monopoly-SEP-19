@@ -6,10 +6,7 @@ import backend.Tiles.TileBuilding;
 import backend.Tiles.TileFreeParking;
 import backend.Tiles.TileProperty;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class Card {
 
@@ -22,17 +19,20 @@ public class Card {
     }
 
     public void playCard(Player player, Board board){
-        for (int i = 0; i < effects.size(); i++) {
-            Properties current = effects.get(i);
-
-            int effectId = (int) current.get("effectId");
-            int amount = (int) current.getOrDefault("Amount", 0 );
+        Integer currentID = null;
+        Properties current = null;
+        for(Map.Entry<Integer,Properties> pair : effects.entrySet())
+        {
+            currentID = pair.getKey();
+            current = pair.getValue();
+        }
+            int amount = (int) current.getOrDefault("amount", 0 );
             int houseCost = (int) current.getOrDefault("houseCost", 0 );
             int hotelCost = (int) current.getOrDefault("hotelCost", 0 );
             String name = (String) current.getOrDefault("name","NA");
             int noSpaces = (int) current.getOrDefault("noSpaces", 0 );
             
-            switch (effectId)
+            switch (currentID)
             {
                 case 0:
                     bankPayPlayer(player, amount);
@@ -62,7 +62,7 @@ public class Card {
             }
 
         }
-    }
+
 
 
     public void playCard(int effectId, Player player, int amount, int houseCost, int hotelCost, int noSpaces, String name, int[] choiceIDs, Board board) {    }
@@ -207,7 +207,8 @@ public class Card {
         int pos = 0;
         //find tile position
         for(int i = 0; i < tiles.length; i++) {
-            if (tiles[i].getName().equals(tileName)) {
+            if (Objects.equals(tiles[i].getName(), tileName))
+            {
                 pos = i;
             }
         }
@@ -224,5 +225,10 @@ public class Card {
         ArrayList<Integer> spaces = new ArrayList<>();
         spaces.add(noSpaces);
         player.move(spaces);
+    }
+
+    public String getDescription()
+    {
+        return  description;
     }
 }

@@ -46,12 +46,11 @@ public class  JsonLoader {
             e.printStackTrace();
         }
         int counter = 1;
-        while (cardData.containsKey(counter)){
-            JSONObject current = (JSONObject) cardData.get(counter);
+        while (cardData.containsKey(String.valueOf(counter))){
+            JSONObject current = (JSONObject) cardData.get(String.valueOf(counter));
             String description = (String) current.get("description");
 
-
-            JSONArray effects = (JSONArray) cardData.get("effects");
+            JSONArray effects = (JSONArray) current.get("effects");
 
             Map<Integer, Properties> map = itterateEffects(effects);
 
@@ -69,19 +68,21 @@ public class  JsonLoader {
         for (Object effect : effects) {
             Properties properties = new Properties();
             JSONObject current = (JSONObject) effect;
-            int effectId = (int) current.get("effectId");
+            int effectId = Math.toIntExact((Long) current.get("effectId"));
 
+            properties.put("effectId",effectId);
             if (current.containsKey("amount")){
-                properties.put("amount", Integer.parseInt((String) current.get("amount")));
+                properties.put("amount", Math.toIntExact((Long) current.get("amount")));
             }
             if (current.containsKey("houseCost")){
-                properties.put("houseCost", Integer.parseInt((String) current.get("houseCost")));
+                properties.put("houseCost", Math.toIntExact((Long) current.get("houseCost")));
             }
             if (current.containsKey("hotelCost")){
-                properties.put("hotelCost", Integer.parseInt((String) current.get("hotelCost")));
+                properties.put("hotelCost", Math.toIntExact((Long) current.get("hotelCost")));
             }
             if (current.containsKey("location")){
-                properties.put("location", (String) current.get("location"));
+                if(current.get("location") instanceof String) properties.put("location", (String) current.get("location"));
+                else if (current.get("location") instanceof Long) properties.put("location",Math.toIntExact((Long) current.get("location")));
             }
             if (current.containsKey("cardPick")){
                 properties.put("cardPick", (String) current.get("cardPick"));

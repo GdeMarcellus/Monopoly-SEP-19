@@ -1,6 +1,7 @@
 package GUI;
 
 import backend.Board;
+import backend.Card;
 import backend.Dice;
 import backend.Exception.*;
 import backend.Loader.JsonLoader;
@@ -232,6 +233,9 @@ public class GUI extends Application {
             final_main.getChildren().add(information.getPlayerToken());
         }
 
+        Image image = new Image("GUI/Logo.png",300,300,false,false);
+        ImageView imageView = new ImageView(image);
+        final_main.getChildren().add(imageView);
         //Player Information in Right Table
         playerInfo = new ListView<>();
         for (int i = 0; i < gameBoard.getPlayerNum(); i++)
@@ -305,8 +309,8 @@ public class GUI extends Application {
         //Prepare Player initial position
         for(int i = 0; i < gameBoard.getPlayerNum(); i++)
         {
-            playerInformation[i].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(i).getPosition(),i)-130);
-            playerInformation[i].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(i).getPosition(),i)-30);
+            playerInformation[i].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(i).getPosition(),i));
+            playerInformation[i].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(i).getPosition(),i));
         }
     }
 
@@ -464,7 +468,7 @@ public class GUI extends Application {
      * Method used to create Node for the Auction Stage
      *
      * @return Node (BorderPane) containing all the functions of the auction
-     * @param players
+     * @param players current Players in the auction
      */
     private Node auctionNode(ArrayList<Player> players)
     {
@@ -532,11 +536,16 @@ public class GUI extends Application {
                 }
                 else
                 {
+                    //Give highest bid the property, and take the money
                     gameBoard.getPlayer(higherPlayer).addProperty((TileProperty) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]);
+                    ((TileProperty) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]).setOwner(gameBoard.getPlayer(higherPlayer));
                     gameBoard.getPlayer(higherPlayer).removeMoney(higherBid);
+
+                    //Remove Money and show Alert
                     moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(higherPlayer).getBalance()));
                     Alert auctionWinner = new Alert(AlertType.INFORMATION);
-                    auctionWinner.setContentText("Winner of Auction is: " + (playerInformation[higherPlayer].getPlayerNumber() + 1));
+                    auctionWinner.setContentText("Winner of Auction is Player " + (playerInformation[higherPlayer].getPlayerNumber() + 1)
+                                                                                + "!\nThey paid " + higherBid + " for the property!");
                     auctionWinner.showAndWait();
                     updatePriceAndEndTurn();
                     auctionWindow.close();
@@ -658,33 +667,76 @@ public class GUI extends Application {
                 {
                     if (!finishedTurn) {
                         rollDices();
-                        int dieValues = dices.getDiceValues().get(0) + dices.getDiceValues().get(1);
                     if (gameBoard.checkDouble(dices.getDiceValues()))
                     {
-                        gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
+                        gameBoard.getPlayer(playerTurn).move(dices.getDiceValues());
                         playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                         playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                         finishedTurn = false;
                     }
                     else
                     {
-                        boolean passedGo = gameBoard.getPlayer(playerTurn).setPosition(dieValues + gameBoard.getPlayer(playerTurn).getPosition());
+                        boolean passedGo = gameBoard.getPlayer(playerTurn).move(dices.getDiceValues());
+                        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                         if (passedGo)
                         {
-                            gameBoard.getPlayer(playerTurn).setBalance(gameBoard.getPlayer(playerTurn).getBalance() + 200);
-                            //Change GUI (Money Counter)
+                        //Change GUI (Money Counter)
+                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                        moneyOfPlayer.setFill(Color.GREEN);
+                        transition.playFromStart();
+                        }
+                        if(gameBoard.getPlayerTile(playerTurn) instanceof TileCard)
+                        {
+                            int currentBalance = gameBoard.getPlayer(playerTurn).getBalance();
+                            Card newCard = ((TileCard) gameBoard.getPlayerTile(playerTurn)).pickCard(gameBoard);
+                            Alert cardEffect = new Alert(AlertType.WARNING);
+                            cardEffect.setContentText(newCard.getDescription());
+                            cardEffect.showAndWait();
+                            newCard.playCard(gameBoard.getPlayer(playerTurn),gameBoard);
+                            playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                            playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                            //If current player loses money due to card
+                            if (currentBalance > gameBoard.getPlayer(playerTurn).getBalance())
+                            {
+                                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                moneyOfPlayer.setFill(Color.RED);
+                                transition.playFromStart();
+                            }
+                            if (currentBalance < gameBoard.getPlayer(playerTurn).getBalance())
+                            {
+                                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                moneyOfPlayer.setFill(Color.GREEN);
+                                transition.playFromStart();
+                            }
+                        }
+                        else if (gameBoard.getPlayerTile(playerTurn) instanceof TileTax)
+                        {
+                            ((TileTax) gameBoard.getPlayerTile(playerTurn)).payTax(gameBoard.getPlayer(playerTurn),((TileFreeParking) gameBoard.getTile(20)));
+                            Alert payedTax = new Alert(AlertType.WARNING);
+                            payedTax.setContentText("Player " + playerTurn + " has payed the parking tax!");
+                            payedTax.showAndWait();
+                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                            moneyOfPlayer.setFill(Color.RED);
+                            transition.playFromStart();
+                        }
+                        else if (gameBoard.getPlayerTile(playerTurn) instanceof TileFreeParking)
+                        {
+                            int freeMoney = ((TileFreeParking) gameBoard.getPlayerTile(playerTurn)).getFreeParkingFines();
+                            ((TileFreeParking) gameBoard.getPlayerTile(playerTurn)).payToPlayer(gameBoard.getPlayer(playerTurn));
+                            Alert freeParkingMoney = new Alert(AlertType.CONFIRMATION);
+                            freeParkingMoney.setContentText("Player " + playerTurn + "has landed on the free parking tile!\nThey obtain " + freeMoney);
+                            freeParkingMoney.showAndWait();
                             moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                             moneyOfPlayer.setFill(Color.GREEN);
                             transition.playFromStart();
                         }
                         finishedTurn = true;
-                        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
-                        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
 
                         //Pay Rent
                         try {
                             Player playerOwed;
-                            if ((playerOwed = ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner()) != gameBoard.getBank())
+                            if ((playerOwed = ((TileProperty) gameBoard.getPlayerTile(playerTurn)).getOwner()) != gameBoard.getBank())
                             {
                                 //Pay for Rent
                                 int rentPrice = gameBoard.payRent(playerTurn, gameBoard.getPlayer(playerTurn).getPosition(), dices.getDiceValues());
@@ -716,6 +768,7 @@ public class GUI extends Application {
                         }
                         catch (ClassCastException ex)
                         {
+                            //Not Important but necessary
                         }
                     }
                     }
@@ -1416,13 +1469,13 @@ public class GUI extends Application {
         else if (gameBoard.getTile(count) instanceof TileTax) tileButton = new Button("Tax");
         else if (gameBoard.getTile(count) instanceof TileGoToJail) tileButton = new Button("Go Jail!");
         else if (gameBoard.getTile(count) instanceof TileFreeParking) tileButton = new Button("Parking");
-        else if (gameBoard.getTile(count) instanceof TileCard) tileButton = new Button("Card");
+        else if (gameBoard.getTile(count) instanceof TileCard) tileButton = new Button("Card \n" + (((TileCard) gameBoard.getTile(count)).getType().name()));
         else if (gameBoard.getTile(count) instanceof TileUtility) tileButton = new Button("Utility");
 
         //Set Tile Visuals
 
         tileButton.setPadding(new Insets(5));
-        tileButton.setPrefWidth(130);
+        tileButton.setPrefWidth(150);
         tileButton.setPrefHeight(150);
         tileButton.setOnAction(e->
         {
@@ -1447,6 +1500,7 @@ public class GUI extends Application {
                 for(int x = 2; x < cardInfo.length; x++)
                 {
                     mainBox.getChildren().add(cardInfo[x]);
+                    System.out.println(4);
                 }
                 BorderPane mainPane = new BorderPane();
                 mainPane.setTop(cardInfo[0]);
@@ -1526,11 +1580,13 @@ public class GUI extends Application {
             cardInformation[0] = createText(gameBoard.getTile(tileNum).getName(), 30, Color.WHITE, "arial");
             cardInformation[0].setStroke(Color.BLACK);
 
-            if (gameBoard.getTile(tileNum) instanceof TileBuilding)
+            if (gameBoard.getTile(tileNum) instanceof TileProperty)
             {
-                cardInformation[2] = createText(String.valueOf(((TileBuilding) gameBoard.getTile(tileNum)).getDevelopment()), 20, Color.BLACK, "arial");
+                if (gameBoard.getTile(tileNum) instanceof TileBuilding) cardInformation[2] = createText(String.valueOf(((TileBuilding) gameBoard.getTile(tileNum)).getDevelopment()), 20, Color.BLACK, "arial");
 
-                cardInformation[3] = createText(String.valueOf(((TileBuilding) gameBoard.getTile(tileNum)).getPrice()), 20, Color.BLACK, "arial");
+                else cardInformation[2] = createText("No Development", 20, Color.BLACK, "arial");
+
+                cardInformation[3] = createText(String.valueOf(((TileProperty) gameBoard.getTile(tileNum)).getPrice()), 20, Color.BLACK, "arial");
             }
             else
             {
