@@ -64,6 +64,7 @@ public class GUI extends Application {
     private Timeline timeline;
     private TextField aiLogBox;
     private Rectangle2D screenBounds;
+    private HashMap<Integer, String> tokenPlayer;
 
     public static void main(String []args)
     {
@@ -83,7 +84,7 @@ public class GUI extends Application {
      */
     private void start_screen()
     {
-        setUserAgentStylesheet(STYLESHEET_CASPIAN);
+        setUserAgentStylesheet(STYLESHEET_MODENA);
         //Colors (Color) set up
         colors_Color = new Color[5];
         colors_Color[0] = Color.BLUE;
@@ -282,7 +283,7 @@ public class GUI extends Application {
                             Alert endGame = new Alert(AlertType.WARNING);
                             endGame.setOnCloseRequest(e -> endGameScreenAbridged());
                             endGame.setContentText("Game Finished");
-                            endGame.showAndWait();
+                            endGame.show();
                             timeline.stop();
                         }
                     }));
@@ -328,10 +329,14 @@ public class GUI extends Application {
         }
         for (int i = 0; i < gameBoard.getPlayerNum(); i++)
         {
-            playerFinalValueText[i] = new Text("Player: " + i + " Total Amount: " + playerFinalValue.poll());
-            playerFinalValueText[i].setStyle("-fx-font-size: 40;");
+            if (i == 0)
+            {
+                playerFinalValueText[i] = createText("Player " + (i+1) + " has a Total Liquid Assets of " + playerFinalValue.poll(),50,Color.RED,"Arial");
+            }
+            else playerFinalValueText[i] = createText("Player " + (i+1) + " has a Total Liquid Assets of " + playerFinalValue.poll(),40,Color.BLACK,"Arial");
         }
         VBox mainVBox = new VBox();
+        mainVBox.setAlignment(Pos.CENTER);
         for (Text text : playerFinalValueText) mainVBox.getChildren().add(text);
         finalStageAbridged.setScene(new Scene(mainVBox,screenBounds.getMaxX(),screenBounds.getMaxY()));
         finalStageAbridged.show();
@@ -347,14 +352,22 @@ public class GUI extends Application {
     {
         PauseTransition transition = new PauseTransition(Duration.seconds(0.5));
         transition.setOnFinished(event -> moneyOfPlayer.setFill(Color.BLACK));
-        ListView<TileProperty> playerBuildings = new ListView<>();
+        ListView<String> playerBuildings = new ListView<>();
         for ( int i = 0; i < gameBoard.getPlayer(playerTurn).getProperties().size(); i++)
         {
-            playerBuildings.getItems().add(gameBoard.getPlayer(playerTurn).getProperties().get(i));
+            playerBuildings.getItems().add(gameBoard.getPlayer(playerTurn).getProperties().get(i).getName());
         }
         playerBuildings.setOnMouseClicked(e ->
         {
-            TileProperty chosenBuilding = playerBuildings.getSelectionModel().getSelectedItem();
+            TileProperty chosenBuilding = null;
+            for (TileProperty property : gameBoard.getPlayer(playerTurn).getProperties())
+            {
+                if (Objects.equals(property.getName(), playerBuildings.getSelectionModel().getSelectedItem()))
+                {
+                    chosenBuilding = property;
+                    break;
+                }
+            }
             int tileIndex = getTileIndex(chosenBuilding);
             try
             {
@@ -487,7 +500,8 @@ public class GUI extends Application {
         {
             Button playerIcon = new Button();
             playerIcon.setMinWidth(50);
-            playerIcon.setStyle("-fx-background-color: #" + playerInformation[gameBoard.getPlayers().indexOf(player)].getPlayerColor_String());
+            playerIcon.setMinHeight(60);
+            playerIcon.setStyle( playerInformation[gameBoard.getPlayers().indexOf(player)].getPlayerToken().getStyle());
             playerAndText.add(playerIcon,gameBoard.getPlayers().indexOf(player),0);
         }
         for (int i = 0; i < players.size();i++)
@@ -583,7 +597,7 @@ public class GUI extends Application {
         moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
         finishedTurn = false;
         playerBoughtProperty = false;
-        currPlayerIcon.setStyle("-fx-background-color: #" + playerInformation[playerTurn].getPlayerColor_String());
+        currPlayerIcon.setStyle(playerInformation[playerTurn].getPlayerToken().getStyle());
     }
 
     /**
@@ -637,8 +651,9 @@ public class GUI extends Application {
                         //Alert created due to insufficient funds
                         catch (InsufficientFundsException ex)
                         {
-                            Stage insufficientFundsAlert = mortgageStage();
-                            insufficientFundsAlert.showAndWait();
+                                Alert insufficientFundsNoMortgage = new Alert(AlertType.WARNING);
+                                insufficientFundsNoMortgage.setContentText("No Funds Available ");
+                                insufficientFundsNoMortgage.showAndWait();
                         }
 
                         //Set Owner of tile bought
@@ -741,8 +756,10 @@ public class GUI extends Application {
                                 //Pay for Rent
                                 int rentPrice = gameBoard.payRent(playerTurn, gameBoard.getPlayer(playerTurn).getPosition(), dices.getDiceValues());
 
+                                if (rentPrice > 0) checkIfBankrupt();
+
                                 //Give Money to player who owns buildings
-                                playerOwed.setBalance(playerOwed.getBalance() + rentPrice);
+                                playerOwed.setBalance(playerOwed.getBalance() + ((TileProperty) gameBoard.getPlayerTile(playerTurn)).getPrice());
 
                                 //Alert player that they paid for the rent
                                 Alert payedRent = new Alert(AlertType.WARNING);
@@ -806,61 +823,17 @@ public class GUI extends Application {
         Build.setPrefSize(100,50);
         Build.setOnAction(e ->
         {
-                if (gameBoard.getPlayerTile(playerTurn) instanceof TileProperty && finishedTurn)
+                if (gameBoard.getPlayer(playerTurn).getProperties().size() > 0)
                 {
-                    if (ownsAllProperties() && ((TileProperty) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getPlayer(playerTurn)) {
-                        try {
-                            ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).buyHouse(gameBoard.getBank());
-
-                            //Change GUI (Money Counter)
-                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                            moneyOfPlayer.setFill(Color.RED);
-                            transition.playFromStart();
-
-                            //Change Tile
-                            int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
-                            Color tileColour = Color.valueOf(((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour());
-                            tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, #" +
-                                    tileColour.toString().substring(2) + " " + developmentPercentage + "%, white 0%);\n" + "-fx-background-radius: 0");
-
-                        }
-
-                        //Alert for properties with max development
-                        catch (PropertyDevelopedException ex) {
-                            Alert exceptionBuild = new Alert(AlertType.WARNING);
-                            exceptionBuild.setContentText("The Property has max development!");
-                            exceptionBuild.showAndWait();
-                            ex.printStackTrace();
-                        }
-
-                        //Alert for idk
-                        catch (LargeDevelopmentDifferenceException ex) {
-                            Alert exceptionBuild = new Alert(AlertType.WARNING);
-                            exceptionBuild.setContentText("idk");
-                            exceptionBuild.showAndWait();
-                            ex.printStackTrace();
-                        }
-
-                        //Alert isMortgaged
-                        catch (IsMortgagedException ex) {
-                            Alert exceptionBuild = new Alert(AlertType.WARNING);
-                            exceptionBuild.setContentText("Building is mortgaged!");
-                            exceptionBuild.showAndWait();
-                            ex.printStackTrace();
-                        }
-
-                        //Alert for insufficient funds
-                        catch (InsufficientFundsException ex) {
-                            Alert exceptionBuild = new Alert(AlertType.WARNING);
-                            exceptionBuild.setContentText("Insufficient Funds!");
-                            exceptionBuild.showAndWait();
-                            ex.printStackTrace();
-                        }
-                    } else {
-                        Alert doesNotOwn = new Alert(AlertType.WARNING);
-                        doesNotOwn.setContentText("You do not own all the properties in the neighbourhood!\nYou cannot build anything yet!");
-                        doesNotOwn.showAndWait();
-                    }
+                    Stage build = new Stage();
+                    build.setScene(new Scene((Parent) buildScene(),screenBounds.getMaxX()/2,screenBounds.getMaxY()/2));
+                    build.showAndWait();
+                }
+                else
+                {
+                    Alert noPropertiesOwned = new Alert(AlertType.ERROR);
+                    noPropertiesOwned.setContentText("You do not own any properties!");
+                    noPropertiesOwned.showAndWait();
                 }
         });
 
@@ -878,6 +851,81 @@ public class GUI extends Application {
         return final_control;
     }
 
+    private Node buildScene()
+    {
+        //Pause transition taken from https://stackoverflow.com/questions/55768170/temporarily-change-color-of-a-button-when-clicked
+
+        PauseTransition transition = new PauseTransition(Duration.seconds(0.5));
+        transition.setOnFinished(event -> moneyOfPlayer.setFill(Color.BLACK));
+
+        BorderPane mainPane = new BorderPane();
+        ListView<String> playerProperties = new ListView<>();
+        for (TileProperty property : gameBoard.getPlayer(playerTurn).getProperties())
+        {
+            playerProperties.getItems().add(property.getName());
+            if (property instanceof TileBuilding) playerProperties.setStyle("-fx-background-color:" + ((TileBuilding) property).getHexColour());
+        }
+        playerProperties.setOnMouseClicked(e ->
+        {
+            TileBuilding currBuilding = ownsAllProperties(playerProperties.getSelectionModel().getSelectedItem());
+            if (currBuilding != null)
+            {
+                try {
+                    ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).buyHouse(gameBoard.getBank());
+
+                    //Change GUI (Money Counter)
+                    moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                    moneyOfPlayer.setFill(Color.RED);
+                    transition.playFromStart();
+
+                    //Change Tile
+                    int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
+                    Color tileColour = Color.valueOf(((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour());
+                    tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, #" +
+                            tileColour.toString().substring(2) + " " + developmentPercentage + "%, white 0%);\n" + "-fx-background-radius: 0");
+
+                }
+
+                //Alert for properties with max development
+                catch (PropertyDevelopedException ex) {
+                    Alert exceptionBuild = new Alert(AlertType.WARNING);
+                    exceptionBuild.setContentText("The Property has max development!");
+                    exceptionBuild.showAndWait();
+                    ex.printStackTrace();
+                }
+
+                //Alert for idk
+                catch (LargeDevelopmentDifferenceException ex) {
+                    Alert exceptionBuild = new Alert(AlertType.WARNING);
+                    exceptionBuild.setContentText("idk");
+                    exceptionBuild.showAndWait();
+                    ex.printStackTrace();
+                }
+
+                //Alert isMortgaged
+                catch (IsMortgagedException ex) {
+                    Alert exceptionBuild = new Alert(AlertType.WARNING);
+                    exceptionBuild.setContentText("Building is mortgaged!");
+                    exceptionBuild.showAndWait();
+                    ex.printStackTrace();
+                }
+
+                //Alert for insufficient funds
+                catch (InsufficientFundsException ex) {
+                    Alert exceptionBuild = new Alert(AlertType.WARNING);
+                    exceptionBuild.setContentText("Insufficient Funds!");
+                    exceptionBuild.showAndWait();
+                    ex.printStackTrace();
+                }
+            } else {
+                Alert doesNotOwn = new Alert(AlertType.WARNING);
+                doesNotOwn.setContentText("You do not own all the properties in the neighbourhood!\nYou cannot build anything yet!");
+                doesNotOwn.showAndWait();
+            }
+        });
+        mainPane.setCenter(playerProperties);
+        return mainPane;
+    }
     private void auctionHouse(ArrayList<Player> players)
     {
         gameBoard.auctionInitialise();
@@ -894,7 +942,85 @@ public class GUI extends Application {
     {
         if (gameBoard.getPlayer(playerTurn).getBalance() <= 0)
         {
+            //If player has properties, force to sell
+            if (gameBoard.getPlayer(playerTurn).getProperties().size() != 0)
+            {
+                PauseTransition transition = new PauseTransition(Duration.seconds(0.5));
+                transition.setOnFinished(event -> moneyOfPlayer.setFill(Color.BLACK));
+                ListView<TileProperty> playerBuildings = new ListView<>();
+                for (int i = 0; i < gameBoard.getPlayer(playerTurn).getProperties().size(); i++) {
+                    playerBuildings.getItems().add(gameBoard.getPlayer(playerTurn).getProperties().get(i));
+                }
+                playerBuildings.setOnMouseClicked(e ->
+                {
+                    TileProperty chosenBuilding = playerBuildings.getSelectionModel().getSelectedItem();
+                    int tileIndex = getTileIndex(chosenBuilding);
+                    try {
+                        gameBoard.sellToBank(playerTurn, tileIndex);
+
+                        //Change GUI (Money Counter)
+                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                        moneyOfPlayer.setFill(Color.GREEN);
+                        transition.playFromStart();
+                        playerBuildings.getItems().remove(playerBuildings.getSelectionModel().getSelectedItem());
+                    } catch (OwnershipException ex) {
+                        Alert doesNotHaveOwnership = new Alert(AlertType.WARNING);
+                        doesNotHaveOwnership.setContentText("Not Owner");
+                        doesNotHaveOwnership.showAndWait();
+                    } catch (PropertyDevelopedException ex) {
+                        Alert alreadyDeveloped = new Alert(AlertType.WARNING);
+                        alreadyDeveloped.setContentText("Not Developed");
+                        alreadyDeveloped.showAndWait();
+                    }
+
+                });
+                BorderPane mainPane = new BorderPane();
+                VBox playerToChoose = new VBox();
+                Text title = createText("Sell something to go out of bankruptcy!", 50, Color.BLACK, "arial");
+                BorderPane.setAlignment(title, Pos.CENTER);
+                mainPane.setTop(title);
+                Button playerIcon = new Button();
+                playerIcon.setMinWidth(100);
+                playerIcon.setMinHeight(100);
+                playerIcon.setStyle("-fx-background-color: #" + playerInformation[playerTurn].getPlayerColor_String());
+                playerIcon.setAlignment(Pos.CENTER);
+                playerToChoose.getChildren().add(playerIcon);
+                playerToChoose.setPadding(new Insets(100));
+                playerBuildings.setMaxHeight(800);
+                playerBuildings.setMaxWidth(400);
+                playerToChoose.getChildren().add(playerBuildings);
+                playerToChoose.setPadding(new Insets(50));
+                mainPane.setCenter(playerToChoose);
+                playerToChoose.setAlignment(Pos.CENTER);
+                Stage bankrupt = new Stage();
+                bankrupt.setScene(new Scene(mainPane, screenBounds.getMaxX(), screenBounds.getMaxY()));
+                bankrupt.showAndWait();
+            }
         }
+        else
+        {
+            removePlayer();
+        }
+    }
+
+    private void removePlayer()
+    {
+        ArrayList<Player> newPlayerList = new ArrayList<>();
+        for (int i = 0; i < gameBoard.getPlayerNum(); i++)
+        {
+            if (i == playerTurn)
+            {
+
+            }
+        }
+        for (Player player : gameBoard.getPlayers())
+        {
+            if (!(player == gameBoard.getPlayer(playerTurn)))
+            {
+                newPlayerList.add(player);
+            }
+        }
+        gameBoard.setPlayers(newPlayerList);
     }
 
     /**
@@ -902,25 +1028,36 @@ public class GUI extends Application {
      * can build a house or not.
      *
      * @return Whether the player owns all properties in the neighbourhood
+     * @param selectedItem
      */
-    private boolean ownsAllProperties()
+    private TileBuilding ownsAllProperties(String selectedItem)
     {
         boolean ownsAll = true;
-        if ( gameBoard.getPlayerTile(playerTurn) instanceof  TileStation)
+        TileProperty buildingSelected = null;
+        for (Tile tile : gameBoard.getTiles())
+        {
+            if (tile.getName() == selectedItem)
+            {
+                buildingSelected =((TileProperty) tile);
+                break;
+            }
+        }
+
+        if ( buildingSelected instanceof  TileStation)
         {
             Alert cannotBuildOnStation = new Alert(AlertType.WARNING);
             cannotBuildOnStation.setContentText("Cannot build on Station!");
             cannotBuildOnStation.showAndWait();
         }
-        for (TileProperty property : ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getNeighborhood())
+        for (TileProperty property : buildingSelected.getNeighborhood())
         {
-            System.out.println(property);
             if (property.getOwner() != gameBoard.getPlayer(playerTurn))
             {
                 ownsAll = false;
             }
         }
-        return ownsAll;
+        if (ownsAll) return (TileBuilding) buildingSelected;
+        return null;
     }
 
     /**
@@ -948,7 +1085,8 @@ public class GUI extends Application {
         yes.setMinWidth(100);
         yes.setOnAction(e ->
         {
-
+            gameBoard.purchase(gameBoard.getPlayer(playerTurn), gameBoard.getBank(), ((TileProperty) gameBoard.getPlayerTile(playerTurn)),((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getPrice()/2);
+            ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).setMortgaged(true);
         });
 
         //Setting up no button
@@ -1011,16 +1149,11 @@ public class GUI extends Application {
                 -fx-padding: 8 15 15 15;
                     -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
                     -fx-background-radius: 8;
-                    -fx-background-color:\s
-                        linear-gradient(from 0% 93% to 0% 100%, #a34313 0%, #903b12 100%),
-                        #9d4024,
-                        #d86e3a,
-                        radial-gradient(center 50% 50%, radius 100%, #d86e3a, #c54e2c);
-                    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
+                -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
                     -fx-font-weight: bold;
-                    -fx-font-size: 5em;""");
-        fullGameButton.setPrefWidth(500);
-        fullGameButton.setPrefHeight(200);
+                    -fx-font-size: 2em;""");
+        fullGameButton.setPrefWidth(300);
+        fullGameButton.setPrefHeight(100);
         fullGameButton.setOnAction(e ->
         {
             mainMenu.close();
@@ -1035,16 +1168,11 @@ public class GUI extends Application {
                 -fx-padding: 8 15 15 15;
                     -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
                     -fx-background-radius: 8;
-                    -fx-background-color:\s
-                        linear-gradient(from 0% 93% to 0% 100%, #a34313 0%, #903b12 100%),
-                        #9d4024,
-                        #d86e3a,
-                        radial-gradient(center 50% 50%, radius 100%, #d86e3a, #c54e2c);
                     -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
                     -fx-font-weight: bold;
-                    -fx-font-size: 5em;""");
-        abridgedGameButton.setPrefWidth(500);
-        abridgedGameButton.setPrefHeight(200);
+                    -fx-font-size: 2em;""");
+        abridgedGameButton.setPrefWidth(300);
+        abridgedGameButton.setPrefHeight(100);
         abridgedGameButton.setOnAction(e ->
         {
             abridged = true;
@@ -1065,20 +1193,15 @@ public class GUI extends Application {
 
         //Creating and setting up settings button
         Button settings_button = new Button("Settings");
-        settings_button.setPrefWidth(500);
-        settings_button.setPrefHeight(200);
+        settings_button.setPrefWidth(200);
+        settings_button.setPrefHeight(50);
         settings_button.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 15));
         settings_button.setStyle("""
                 -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
                 -fx-background-radius: 8;
-                -fx-background-color:\s
-                    linear-gradient(from 0% 93% to 0% 100%, #a34313 0%, #903b12 100%),
-                    #9d4024,
-                    #d86e3a,
-                    radial-gradient(center 50% 50%, radius 100%, #d86e3a, #c54e2c);
                 -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
                 -fx-font-weight: bold;
-                -fx-font-size: 5em;""".indent(4));
+                -fx-font-size: 2em;""".indent(4));
         settings_button.setOnAction(e ->
                 {
                 mainMenu.close();
@@ -1351,15 +1474,16 @@ public class GUI extends Application {
        //Initialising the players for the game session.
        for (int i = 0; i < player_Index.size(); i++)
        {
+           System.out.println(player_Index.size());
            int playerNum = i;
            gameBoard.addPlayer(new HumanPlayer());
-           gameBoard.getPlayer(i).addMoney(1000);
+           gameBoard.getPlayer(i).addMoney(1500);
            gameBoard.getPlayer(i).setPosition(0);
-           playerInformation[i] = new PlayerInformation(player_Index.get(i).toString(),player_Index.get(i),i);
+           playerInformation[i] = new PlayerInformation(player_Index.get(i).toString(),player_Index.get(i),i,tokenPlayer.get(i));
            playerInformation[i].getPlayerToken().setOnMouseClicked(e ->
            {
                Alert listOfBuildings = new Alert(AlertType.INFORMATION);
-               listOfBuildings.setHeaderText("Property List Of: " + (playerInformation[playerNum].getPlayerNumber()+1));
+               listOfBuildings.setHeaderText("Property List of Player " + (playerInformation[playerNum].getPlayerNumber()+1));
                listOfBuildings.setContentText(getPropertyString(playerNum));
                listOfBuildings.showAndWait();
            });
@@ -1369,7 +1493,7 @@ public class GUI extends Application {
        currPlayerIcon = new Button();
        currPlayerIcon.setMinHeight(100);
        currPlayerIcon.setMinWidth(100);
-       currPlayerIcon.setStyle("-fx-background-color: #" + playerInformation[playerTurn].getPlayerColor_String());
+       currPlayerIcon.setStyle(playerInformation[playerTurn].getPlayerToken().getStyle());
     }
 
     /**
@@ -1385,7 +1509,7 @@ public class GUI extends Application {
         StringBuilder list_of_properties = new StringBuilder();
         for(int i = 0; i < gameBoard.getPlayer(playerNum).getProperties().size(); i++)
         {
-            list_of_properties.append(i + 1).append(" : ").append(gameBoard.getPlayer(playerNum).getProperties().get(i)).append("\n");
+            list_of_properties.append(i + 1).append(" : ").append(gameBoard.getPlayer(playerNum).getProperties().get(i).getName()).append("\n");
         }
         return String.valueOf(list_of_properties);
     }
@@ -1709,34 +1833,81 @@ public class GUI extends Application {
         {
             //Roll Dices
             rollDices();
+            boolean alreadyExists = false;
+            String rollDicesValues = String.valueOf(dices.getDiceValues().get(0) + dices.getDiceValues().get(1));
 
-            //Place the dice values into the selection Model
-            playerRollVisuals.getSelectionModel().getSelectedItem().setText(String.valueOf(dices.getDiceValues().get(0) + dices.getDiceValues().get(1)));
-            //Select next player
-            playerRollVisuals.getSelectionModel().selectNext();
-
-            //If last player rolls
-            if (playerRollVisuals.getSelectionModel().getSelectedIndex()+1 == player_Index.size() && !Objects.equals(playerRollVisuals.getSelectionModel().getSelectedItem().getText(), ""))
+            for (int i = 0; i < playerRollVisuals.getItems().size(); i++)
             {
-                //Create a hashmap to connect playerNumber to their roll value
-                HashMap<Integer, Integer> playerHashMap = new HashMap<>();
-                for (int i = 0; i < playerRollVisuals.getItems().size(); i++)
+                if (Objects.equals(playerRollVisuals.getItems().get(i).getText(), rollDicesValues))
                 {
-                    playerHashMap.put(Integer.valueOf(playerRollVisuals.getItems().get(i).getText()), i);
+                    alreadyExists = true;
                 }
-
-                //Create Alert, showing the new ordering
-                Alert done = new Alert(AlertType.CONFIRMATION);
-                getPlayerOrder(playerHashMap);
-
-                //Once closed, the game will begin
-                done.setOnCloseRequest(a ->
+            }
+            if (!alreadyExists)
+            {
+                //Place the dice values into the selection Model
+                playerRollVisuals.getSelectionModel().getSelectedItem().setText(rollDicesValues);
+                //Select next player
+                playerRollVisuals.getSelectionModel().selectNext();
+                //If last player rolls
+                if (playerRollVisuals.getSelectionModel().getSelectedIndex()+1 == player_Index.size() && !Objects.equals(playerRollVisuals.getSelectionModel().getSelectedItem().getText(), ""))
                 {
-                    playerOrderStage.close();
-                    setupPlaySession();
-                    gameBoard();
-                });
-                done.showAndWait();
+                    //Create a hashmap to connect playerNumber to their roll value
+                    HashMap<Integer, Integer> playerHashMap = new HashMap<>();
+                    for (int i = 0; i < playerRollVisuals.getItems().size(); i++)
+                    {
+                        playerHashMap.put(Integer.valueOf(playerRollVisuals.getItems().get(i).getText()), i);
+                    }
+
+                    //Create Alert, showing the new ordering
+                    Alert done = new Alert(AlertType.CONFIRMATION);
+                    getPlayerOrder(playerHashMap);
+
+                    //Once closed, the game will begin
+                    done.setOnCloseRequest(a ->
+                    {
+                        tokenPlayer = new HashMap<>();
+                        ArrayList<String> tokenList = getTokens();
+                        for (int i = 0; i < player_Index.size(); i++)
+                        {
+                            ListView<ImageView> tokenRemainign = new ListView<>();
+                            for (String s : tokenList)
+                            {
+                                Image image = new Image(s);
+                                ImageView finalToken = new ImageView(image);
+                                finalToken.setFitWidth(80);
+                                finalToken.setFitHeight(80);
+                                tokenRemainign.getItems().add(finalToken);
+                            }
+                            int currPlayer = i;
+                            Alert chooseToken = new Alert(AlertType.CONFIRMATION);
+                            chooseToken.setContentText("Player " + i + " select your Token");
+                            chooseToken.setGraphic(tokenRemainign);
+                            chooseToken.setOnCloseRequest(lam ->
+                            {
+                                if (tokenRemainign.getSelectionModel().getSelectedItem() != null)
+                                {
+                                    tokenPlayer.put(currPlayer,tokenRemainign.getSelectionModel().getSelectedItem().getImage().getUrl());
+                                }
+                                else
+                                {
+                                    lam.consume();
+                                }
+                            });
+                            chooseToken.showAndWait();
+                        }
+                        playerOrderStage.close();
+                        setupPlaySession();
+                        gameBoard();
+                    });
+                    done.showAndWait();
+                }
+            }
+            else
+            {
+                Alert sameValueAlert = new Alert(AlertType.WARNING);
+                sameValueAlert.setContentText("Roll Value of " + rollDicesValues + " already obtained by another player!\nTry Again!");
+                sameValueAlert.showAndWait();
             }
         });
         //Adding nodes to VBox
@@ -1794,7 +1965,6 @@ public class GUI extends Application {
         HashMap<Integer,Color> newPlayerIndex = new HashMap<>();
         while (playerOrderInt.peek() != null)
         {
-            System.out.println(playerRolls.get(playerOrderInt.peek()));
             int currPlayer = playerRolls.get(playerOrderInt.poll());
             newPlayerIndex.put(count,player_Index.get(currPlayer));
             count++;
@@ -1806,5 +1976,17 @@ public class GUI extends Application {
     private void agentPlayerTurn()
     {
         aiLogBox.setText("idk");
+    }
+
+    private ArrayList<String> getTokens()
+    {
+        ArrayList<String> tokens = new ArrayList<>();
+        tokens.add(0, "file:resources/Tokens/catto.png");
+        tokens.add(1, "file:resources/Tokens/armando.png");
+        tokens.add(2, "file:resources/Tokens/fe.png");
+        tokens.add(3, "file:resources/Tokens/ponyo.png");
+        tokens.add(4, "file:resources/Tokens/woody.png");
+        tokens.add(5, "file:resources/Tokens/2000s.png");
+        return tokens;
     }
 }
