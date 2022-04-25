@@ -78,6 +78,7 @@ public abstract class Player {
         int returnvalue = 0;
         if (balance >= money){
             balance -= money;
+            returnvalue = money;
         }
         else {
             returnvalue = balance;
