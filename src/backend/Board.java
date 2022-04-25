@@ -1,6 +1,9 @@
 package backend;
 
 import backend.Exception.*;
+import backend.Player.AI.AIEvent;
+import backend.Player.AI.AIPlayer;
+import backend.Player.AI.AIReport;
 import backend.Player.HumanPlayer;
 import backend.Player.Player;
 import backend.Tiles.Tile;
@@ -324,6 +327,15 @@ public class Board {
 
     public void setTiles(Tile[] tiles) {
         this.tiles = tiles;
+    }
+
+    public int getTileIndex(Tile searchTile) {
+        for (int i = 0; i < tiles.length; i++) {
+            if (tiles[i].equals(searchTile)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public int getFreeParkingPos() {
