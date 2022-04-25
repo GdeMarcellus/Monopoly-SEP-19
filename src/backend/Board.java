@@ -350,6 +350,10 @@ public class Board {
         return players.get(index);
     }
 
+    public int getPlayerIndex(Player player) {
+        return players.indexOf(player);
+    }
+
     public ArrayList<Player> getPlayers() {
         return players;
     }
