@@ -1,5 +1,6 @@
 package backend.Tiles;
 
+import backend.Exception.IsInJail;
 import backend.Exception.IsMortgagedException;
 import backend.Exception.PropertyDevelopedException;
 import backend.Player.Player;
@@ -20,15 +21,19 @@ public class TileUtility extends TileProperty {
      * @throws IsMortgagedException thrown if the property has a mortgage on it
      */
     @Override
-    public int payRent(Player player, int diceRoll) throws IsMortgagedException {
+    public int payRent(Player player, int diceRoll) throws IsMortgagedException, IsInJail {
+        if(getOwner().isInJail()){
+            throw new IsInJail();
+        }
+
         if (!isMortgaged()) {
             int amountOutstanding = 0;
             if (ownsNeighborhood()){
-                amountOutstanding = player.removeMoney(10 * diceRoll);
+                amountOutstanding = (10 * diceRoll) - player.removeMoney(10 * diceRoll);
                 getOwner().addMoney((10 * diceRoll) - amountOutstanding);
             }
             else {
-                amountOutstanding = player.removeMoney(4 * diceRoll);
+                amountOutstanding = (4 * diceRoll) - player.removeMoney(4 * diceRoll);
                 getOwner().addMoney((4 * diceRoll) - amountOutstanding);
             }
             return amountOutstanding;

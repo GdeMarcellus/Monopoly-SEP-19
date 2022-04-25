@@ -16,7 +16,13 @@ import java.util.*;
 public class  JsonLoader {
 
 
-
+    /**
+     * method to create a board from multiple json file, it turns the data within the file into java objects
+     * @param jsonLocationTiles the string path to the Json file containing the tile information
+     * @param jsonLocationOpportunity the string path to the Json file containing the opportunity information
+     * @param jsonLocationLuck the string path to the Json file containing the pot of luck cards information
+     * @return a board with the information from the files setted up
+     */
     public Board startUp(String jsonLocationTiles, String jsonLocationOpportunity, String jsonLocationLuck){
         Board board = new Board();
         Tile[] tiles = setUpTiles(jsonLocationTiles);
@@ -31,7 +37,9 @@ public class  JsonLoader {
 
 
     /**
-     * @param jsonLocation
+     * set up an Queue of Cards from the data in a json file and return said Queue of Cards
+     * @param jsonLocation the string path to the Json file
+     * @return an Queue of Cards build from the data in the file
      */
     public Queue<Card> setUpCard(String jsonLocation){
         JSONParser jsonParser = new JSONParser();
@@ -94,6 +102,7 @@ public class  JsonLoader {
     }
 
     /**
+     * set up an array of tiles from the data in a json file and return said array of tiles
      * @param jsonLocation the string path to the Json file
      * @return an Array of tile build from the data in the file
      */
@@ -168,9 +177,10 @@ public class  JsonLoader {
 
 
     /**
-     * @param object
-     * @param neighborhoods
-     * @return
+     * method to build a tileBuilding object from a json object
+     * @param object the Json object to build the tile from
+     * @param neighborhoods the map of neighborhoods on the board
+     * @return the tile tileBuilding object build
      */
     public TileBuilding buildBuildingTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
         String hexColour = (String) object.get("Colour");
@@ -195,9 +205,10 @@ public class  JsonLoader {
     }
 
     /**
-     * @param object
-     * @param neighborhoods
-     * @return
+     *  method to build a tileStation object from a json object
+     * @param object the Json object to build the tile from
+     * @param neighborhoods the map of neighborhoods on the board
+     * @return the tile TileStation object build
      */
     public TileStation buildStationTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
         String name = (String) object.get("Name");
@@ -221,9 +232,10 @@ public class  JsonLoader {
     }
 
     /**
-     * @param object
-     * @param neighborhoods
-     * @return
+     *  method to build a TileUtility object from a json object
+     * @param object the Json object to build the tile from
+     * @param neighborhoods the map of neighborhoods on the board
+     * @return the tile TileUtility object build
      */
     public TileUtility buildUtilityTile(JSONObject object,  Map<String, ArrayList<TileProperty>> neighborhoods){
         String name = (String) object.get("Name");
