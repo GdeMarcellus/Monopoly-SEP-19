@@ -31,8 +31,9 @@ public class TileCard extends Tile{
 
 
 
-    public TileCard(Type type) {
+    public TileCard(Type type, String name) {
         this.type = type;
+        this.name = name;
     }
 
     public Type getType() {

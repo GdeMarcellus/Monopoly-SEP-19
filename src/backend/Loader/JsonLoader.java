@@ -113,18 +113,22 @@ public class  JsonLoader {
             assert boardData != null;
             JSONObject current = (JSONObject) boardData.get(Integer.toString(i+1));
             String type = (String) current.get("Type");
+            String name;
 
             switch (type){
                 case "PotLuck":
-                    tiles[i] = new TileCard(TileCard.Type.Luck);
+                    name = (String) current.get("Name");
+                    tiles[i] = new TileCard(TileCard.Type.Luck, name);
                     break;
                 case "Opportunity":
-                    tiles[i] = new TileCard(TileCard.Type.Opportunity);
+                    name = (String) current.get("Name");
+                    tiles[i] = new TileCard(TileCard.Type.Opportunity, name);
                     break;
 
                 case "Tax":
+                    name = (String) current.get("Name");
                     int tax = (int) current.get("Tax");
-                    tiles[i] = new TileTax(tax);
+                    tiles[i] = new TileTax(tax, name);
                     break;
 
                 case "JailVisit":

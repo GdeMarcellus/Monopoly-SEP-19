@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="googlecode.json.simple" type="repository">
+  <library name="googlecode.json.simple1" type="repository">
     <properties maven-id="com.googlecode.json-simple:json-simple:1.1.1" />
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar!/" />
