@@ -25,7 +25,7 @@ public class Dice {
      */
     public void rollDice() {
         for (int i = 0; i < numDice; i++) {
-            dice.set(ThreadLocalRandom.current().nextInt(diceMin, diceMax + 1), i);
+            dice.set(i ,ThreadLocalRandom.current().nextInt(diceMin, diceMax + 1));
         }
     }
 
