@@ -10,7 +10,6 @@ public class TileCard extends Tile{
     }
     Type type;
 
-
     /**
      * @param board the board on which the tile is
      * @return a card from the deck (doers not put the card back at the bottom of the pack)

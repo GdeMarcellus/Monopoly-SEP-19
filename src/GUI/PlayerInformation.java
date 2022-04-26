@@ -1,14 +1,9 @@
 package GUI;
 
-import javafx.beans.binding.Bindings;
-import javafx.scene.CacheHint;
 import javafx.scene.control.Button;
-import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.ImagePattern;
-import javafx.scene.shape.Circle;
 
 
 
@@ -17,8 +12,10 @@ public class PlayerInformation {
     Button playerToken;
     String playerColor_String;
     int playerNumber;
+    int playerTurn;
     PlayerInformation(String color_string, Color color, int playerNo, String tokenLocation)
     {
+        playerTurn = 0;
        playerColor = color;
        playerNumber = playerNo;
        playerColor_String = color_string;
@@ -41,6 +38,16 @@ public class PlayerInformation {
 
     public Color getPlayerColor() {
         return playerColor;
+    }
+
+    public void incrementPlayerTurn()
+    {
+        playerTurn++;
+    }
+
+    public int getPlayerTurn()
+    {
+        return playerTurn;
     }
 
     public String getPlayerColor_String()

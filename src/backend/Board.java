@@ -1,6 +1,9 @@
 package backend;
 
 import backend.Exception.*;
+import backend.Player.AI.AIEvent;
+import backend.Player.AI.AIPlayer;
+import backend.Player.AI.AIReport;
 import backend.Player.HumanPlayer;
 import backend.Player.Player;
 import backend.Tiles.Tile;
@@ -33,6 +36,11 @@ public class Board {
         this.bank = new HumanPlayer();
         bank.setBalance(999999999);
 
+    }
+
+    public int getPlayerIndex(Player player)
+    {
+        return players.indexOf(player);
     }
 
     /***
@@ -79,10 +87,6 @@ public class Board {
         return dices.get(0) == dices.get(1);
     }
 
-    public int getPlayerNum()
-    {
-        return players.size();
-    }
     /**
      * Returns amount remaining if player purchased property
      * @param playerIndex index of player making the purchase
@@ -326,9 +330,17 @@ public class Board {
         return tiles;
     }
 
-    public void setTiles(Tile[] tiles)
-    {
+    public void setTiles(Tile[] tiles) {
         this.tiles = tiles;
+    }
+
+    public int getTileIndex(Tile searchTile) {
+        for (int i = 0; i < tiles.length; i++) {
+            if (tiles[i].equals(searchTile)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public int getFreeParkingPos() {
