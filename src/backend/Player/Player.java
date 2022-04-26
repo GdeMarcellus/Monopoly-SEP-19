@@ -1,6 +1,9 @@
 package backend.Player;
 
+import backend.Board;
+import backend.Tiles.Tile;
 import backend.Tiles.TileBuilding;
+import backend.Tiles.TileJail;
 import backend.Tiles.TileProperty;
 
 import java.util.ArrayList;
@@ -37,8 +40,8 @@ public abstract class Player {
         }
 
         //check position not beyond board limits
-        if (position + diceValue > 40) {
-            position = (position + diceValue) - 39;
+        if (this.position + diceValue > 40) {
+            this.position = (position + diceValue) % 41;
             passedGo = true;
         }
         else {
@@ -66,8 +69,14 @@ public abstract class Player {
     /**
      *
      */
-    public void toJail() {
+    public void toJail(){
+        if (getNoGOJF() > 0){
+            if (removeGOJFCard()){
+                return;
+            };
+        }
         this.position = 41;
+
     }
 
     public void addMoney(int money) {
@@ -192,4 +201,28 @@ public abstract class Player {
             return false;
         }
     }
+
+    public boolean isInJail(){
+        return position == 41;
+    }
+
+    /**
+     * reset the player turn in jail to 0 and return the location of
+     * either the first just visting tile or the first tile of the board
+     * @param board the board of the game
+     * @return
+     */
+    public int getOuOfJail(Board board){
+        setTurnsInJail(0);
+        Tile[] tiles = board.getTiles();
+        for (int i = 0; i < tiles.length; i++) {
+            Tile tile = tiles[i];
+            if (tile instanceof TileJail){
+
+                return i;
+            }
+        }
+        return 0;
+    }
+
 }

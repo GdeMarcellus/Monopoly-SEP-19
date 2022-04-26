@@ -5,6 +5,10 @@ import backend.Player.Player;
 public class TileGo extends Tile{
     private int goMoney = 200;
 
+    public TileGo() {
+        this.name = "Go";
+    }
+
     /**
      * Gives money to player for passing Go
      * @param player players who passed Go

@@ -31,14 +31,18 @@ public class TileBuilding extends TileProperty {
      * @throws IsMortgagedException thrown if the property has a mortgage on it
      */
     @Override
-    public int payRent(Player player, int diceRoll) throws IsMortgagedException {
+    public int payRent(Player player, int diceRoll) throws IsMortgagedException, IsInJail {
+        if(getOwner().isInJail()){
+            throw new IsInJail();
+        }
+
         if (!isMortgaged()) {
             int amountOutstanding;
             if (development == 0 && ownsNeighborhood()) {
-                amountOutstanding = player.removeMoney(rent.get(0) * 2);
+                amountOutstanding = (rent.get(0) * 2) - player.removeMoney(rent.get(0) * 2);
                 getOwner().addMoney((rent.get(0) * 2) - amountOutstanding);
             } else {
-                amountOutstanding = player.removeMoney(rent.get(development));
+                amountOutstanding = rent.get(development)- player.removeMoney(rent.get(development));
                 getOwner().addMoney(rent.get(development) - amountOutstanding);
             }
             return amountOutstanding;

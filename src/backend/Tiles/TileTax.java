@@ -10,8 +10,9 @@ public class TileTax extends Tile{
     /**
      * @param tax
      */
-    public TileTax(int tax) {
+    public TileTax(int tax, String name) {
         this.tax = tax;
+        this.name = name;
     }
 
     /**

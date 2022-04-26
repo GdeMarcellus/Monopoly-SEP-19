@@ -120,24 +120,23 @@ public class AIPlayer extends Player {
             int balanceTemp = balance;
             try {
                 moneyOwed = currentTile.payRent(this, diceRoll);
-            } catch (IsMortgagedException e) {
-                //continue
-            }
 
-            //check debt
-            if (moneyOwed > 0) {
-                //TODO loop needed?
-                debt = inDebt(moneyOwed, board, myIndex);
-                repayDebtToPlayer(currentTile.getOwner(), moneyOwed);
-            }
+                //check debt
+                if (moneyOwed > 0) {
+                    //TODO loop needed?
+                    debt = inDebt(moneyOwed, board, myIndex);
+                    repayDebtToPlayer(currentTile.getOwner(), moneyOwed);
+                }
 
-            //add to report
-            report.setRentProperty(currentTile);
-            report.setRentPaid(balanceTemp - balance);
-            report.addEvent(Event.PaidRent);
-            if (debt) {
-                report.setBankrupt(true);
-                report.addEvent(Event.Bankrupt);
+                //add to report
+                report.setRentProperty(currentTile);
+                report.setRentPaid(balanceTemp - balance);
+                report.addEvent(Event.PaidRent);
+                if (debt) {
+                    report.setBankrupt(true);
+                    report.addEvent(Event.Bankrupt);
+                }
+            } catch (IsMortgagedException | IsInJail ignored) {
             }
         }
         //else own property
@@ -211,8 +210,7 @@ public class AIPlayer extends Player {
      * @param amountOwed amount owed to player
      */
     public void repayDebtToPlayer(Player player, int amountOwed) {
-        this.removeMoney(amountOwed);
-        player.addMoney(amountOwed);
+        player.addMoney(this.removeMoney(amountOwed));
         //TODO log
     }
 

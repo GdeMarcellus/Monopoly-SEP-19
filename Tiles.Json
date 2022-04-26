@@ -10,7 +10,7 @@
     "developmentCost" : 50
   },
 
-  "3" : {"Type" : "PotLuck"},
+  "3" : {"Type" : "PotLuck", "Name" : "Pot Luck"},
 
   "4" : {
     "Type" : "building",
@@ -23,6 +23,7 @@
 
   "5" : {
     "Type" : "Tax",
+    "Name" : "Income Tax",
     "Tax" : 200
   },
 
@@ -42,7 +43,7 @@
     "developmentCost" : 50
   },
 
-  "8" : {"Type" : "Opportunity"},
+  "8" : {"Type" : "Opportunity","Name" : "Opportunity Knocks"},
 
   "9" : {
     "Type" : "building",
@@ -115,7 +116,7 @@
     "developmentCost" : 100
   },
 
-  "18" : {"Type" : "PotLuck"},
+  "18" : {"Type" : "PotLuck" , "Name" : "Pot Luck"},
 
   "19" : {
     "Type" : "building",
@@ -146,7 +147,7 @@
     "developmentCost" : 50
   },
 
-  "23" : {"Type" : "PotLuck"},
+  "23" : {"Type" : "PotLuck" , "Name" : "Pot Luck"},
 
   "24" : {
     "Type" : "building",
@@ -226,7 +227,7 @@
     "developmentCost" : 200
   },
 
-  "34" : {"Type" : "PotLuck"},
+  "34" : {"Type" : "PotLuck", "Name" : "Pot Luck"},
 
   "35" : {
     "Type" : "building",
@@ -244,7 +245,7 @@
     "rent" : [25,50,100,200]
   },
 
-  "37" : {"Type" : "Opportunity"},
+  "37" : {"Type" : "Opportunity", "Name" : "Opportunity Knocks"},
 
   "38" : {
     "Type" : "building",
@@ -257,6 +258,7 @@
 
   "39" : {
     "Type" : "Tax",
+    "Name" : "Super Tax",
     "Tax" : 100
   },
 

@@ -1,7 +1,7 @@
 package backend.Tiles;
 
 public abstract class Tile {
-    private String name;
+    protected String name;
 
     //utility methods
     public void setName(String name) {

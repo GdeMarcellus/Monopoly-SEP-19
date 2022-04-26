@@ -7,6 +7,7 @@ public class TileFreeParking extends Tile{
 
     public TileFreeParking() {
         freeParkingFines = 0;
+        this.name = "Free Parking";
     }
 
     /**

@@ -16,7 +16,13 @@ import java.util.*;
 public class  JsonLoader {
 
 
-
+    /**
+     * method to create a board from multiple json file, it turns the data within the file into java objects
+     * @param jsonLocationTiles the string path to the Json file containing the tile information
+     * @param jsonLocationOpportunity the string path to the Json file containing the opportunity information
+     * @param jsonLocationLuck the string path to the Json file containing the pot of luck cards information
+     * @return a board with the information from the files setted up
+     */
     public Board startUp(String jsonLocationTiles, String jsonLocationOpportunity, String jsonLocationLuck){
         Board board = new Board();
         Tile[] tiles = setUpTiles(jsonLocationTiles);
@@ -31,7 +37,9 @@ public class  JsonLoader {
 
 
     /**
-     * @param jsonLocation
+     * set up an Queue of Cards from the data in a json file and return said Queue of Cards
+     * @param jsonLocation the string path to the Json file
+     * @return an Queue of Cards build from the data in the file
      */
     public Queue<Card> setUpCard(String jsonLocation){
         JSONParser jsonParser = new JSONParser();
@@ -46,11 +54,12 @@ public class  JsonLoader {
             e.printStackTrace();
         }
         int counter = 1;
-        while (cardData.containsKey(String.valueOf(counter))){
-            JSONObject current = (JSONObject) cardData.get(String.valueOf(counter));
+        while (cardData.containsKey(counter)){
+            JSONObject current = (JSONObject) cardData.get(counter);
             String description = (String) current.get("description");
 
-            JSONArray effects = (JSONArray) current.get("effects");
+
+            JSONArray effects = (JSONArray) cardData.get("effects");
 
             Map<Integer, Properties> map = itterateEffects(effects);
 
@@ -68,21 +77,19 @@ public class  JsonLoader {
         for (Object effect : effects) {
             Properties properties = new Properties();
             JSONObject current = (JSONObject) effect;
-            int effectId = Math.toIntExact((Long) current.get("effectId"));
+            int effectId = (int) current.get("effectId");
 
-            properties.put("effectId",effectId);
             if (current.containsKey("amount")){
-                properties.put("amount", Math.toIntExact((Long) current.get("amount")));
+                properties.put("amount", Integer.parseInt((String) current.get("amount")));
             }
             if (current.containsKey("houseCost")){
-                properties.put("houseCost", Math.toIntExact((Long) current.get("houseCost")));
+                properties.put("houseCost", Integer.parseInt((String) current.get("houseCost")));
             }
             if (current.containsKey("hotelCost")){
-                properties.put("hotelCost", Math.toIntExact((Long) current.get("hotelCost")));
+                properties.put("hotelCost", Integer.parseInt((String) current.get("hotelCost")));
             }
             if (current.containsKey("location")){
-                if(current.get("location") instanceof String) properties.put("location", (String) current.get("location"));
-                else if (current.get("location") instanceof Long) properties.put("location",Math.toIntExact((Long) current.get("location")));
+                properties.put("location", (String) current.get("location"));
             }
             if (current.containsKey("cardPick")){
                 properties.put("cardPick", (String) current.get("cardPick"));
@@ -95,6 +102,7 @@ public class  JsonLoader {
     }
 
     /**
+     * set up an array of tiles from the data in a json file and return said array of tiles
      * @param jsonLocation the string path to the Json file
      * @return an Array of tile build from the data in the file
      */
@@ -111,53 +119,57 @@ public class  JsonLoader {
             e.printStackTrace();
         }
         for (int i = 0; i < 41; i++) {
-            JSONObject current = (JSONObject) boardData.get(Integer.toString(i + 1));
-            if (current != null) {
-                String type = (String) current.get("Type");
-                switch (type) {
-                    case "PotLuck":
-                        tiles[i] = new TileCard(TileCard.Type.Luck);
-                        break;
-                    case "Opportunity":
-                        tiles[i] = new TileCard(TileCard.Type.Opportunity);
-                        break;
+            assert boardData != null;
+            JSONObject current = (JSONObject) boardData.get(Integer.toString(i+1));
+            String type = (String) current.get("Type");
+            String name;
 
-                    case "Tax":
-                        int tax = Math.toIntExact((Long) current.get("Tax"));
-                        tiles[i] = new TileTax(tax);
-                        break;
+            switch (type){
+                case "PotLuck":
+                    name = (String) current.get("Name");
+                    tiles[i] = new TileCard(TileCard.Type.Luck, name);
+                    break;
+                case "Opportunity":
+                    name = (String) current.get("Name");
+                    tiles[i] = new TileCard(TileCard.Type.Opportunity, name);
+                    break;
 
-                    case "JailVisit":
-                        tiles[i] = new TileJail();
-                        break;
+                case "Tax":
+                    name = (String) current.get("Name");
+                    int tax = (int) current.get("Tax");
+                    tiles[i] = new TileTax(tax, name);
+                    break;
 
-                    case "FreeParking":
-                        tiles[i] = new TileFreeParking();
-                        break;
+                case "JailVisit":
+                    tiles[i] = new TileJail();
+                    break;
 
-                    case "Go":
-                        tiles[i] = new TileGo();
-                        break;
+                case "FreeParking":
+                    tiles[i] = new TileFreeParking();
+                    break;
 
-                    case "GoToJail":
-                        tiles[i] = new TileGoToJail();
-                        break;
+                case "Go":
+                    tiles[i] = new TileGo();
+                    break;
 
-                    case "building":
-                        tiles[i] = buildBuildingTile(current, neighborhoods);
-                        break;
+                case "GoToJail":
+                    tiles[i] = new TileGoToJail();
+                    break;
 
-                    case "Station":
-                        tiles[i] = buildStationTile(current, neighborhoods);
-                        break;
+                case "building":
+                    tiles[i] = buildBuildingTile(current, neighborhoods);
+                    break;
 
-                    case "Utility":
-                        tiles[i] = buildUtilityTile(current, neighborhoods);
-                        break;
+                case "Station":
+                    tiles[i] = buildStationTile(current, neighborhoods);
+                    break;
 
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + type);
-                }
+                case "Utility":
+                    tiles[i] = buildUtilityTile(current, neighborhoods);
+                    break;
+
+                default:
+                    throw new IllegalStateException("Unexpected value: " + type);
             }
         }
         return tiles;
@@ -165,21 +177,18 @@ public class  JsonLoader {
 
 
     /**
-     * @param object
-     * @param neighborhoods
-     * @return
+     * method to build a tileBuilding object from a json object
+     * @param object the Json object to build the tile from
+     * @param neighborhoods the map of neighborhoods on the board
+     * @return the tile tileBuilding object build
      */
     public TileBuilding buildBuildingTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
         String hexColour = (String) object.get("Colour");
         String name = (String) object.get("Name");
-        int developmentCost = Math.toIntExact((Long) object.get("developmentCost"));
-        int price = Math.toIntExact((Long) object.get("Price"));
-        JSONArray rentJSONArray = (JSONArray) object.get("rent");
-        int[] rentIntArray = new int[rentJSONArray.size()];
-        for (int i = 0; i < rentJSONArray.size(); i++)
-        {
-            rentIntArray[i] = Math.toIntExact((Long) rentJSONArray.get(i));
-        }
+        int developmentCost = (int) object.get("developmentCost");
+        int price = (int) object.get("Price");
+
+        int[] rentIntArray = (int[]) object.get("Rent");
         Integer[] rentArray = Arrays.stream(rentIntArray).boxed().toArray( Integer[]::new );
         ArrayList<Integer> rent = new ArrayList<>(Arrays.asList(rentArray));
         ArrayList<TileProperty> neighborhood;
@@ -196,19 +205,16 @@ public class  JsonLoader {
     }
 
     /**
-     * @param object
-     * @param neighborhoods
-     * @return
+     *  method to build a tileStation object from a json object
+     * @param object the Json object to build the tile from
+     * @param neighborhoods the map of neighborhoods on the board
+     * @return the tile TileStation object build
      */
     public TileStation buildStationTile(JSONObject object, Map<String, ArrayList<TileProperty>> neighborhoods){
         String name = (String) object.get("Name");
-        int price = Math.toIntExact((Long) object.get("Price"));
-        JSONArray rentJSONArray = (JSONArray) object.get("rent");
-        int[] rentIntArray = new int[rentJSONArray.size()];
-        for (int i = 0; i < rentJSONArray.size(); i++)
-        {
-            rentIntArray[i] = Math.toIntExact((Long) rentJSONArray.get(i));
-        }
+        int price = (int) object.get("Price");
+
+        int[] rentIntArray = (int[]) object.get("Rent");
         Integer[] rentArray = Arrays.stream(rentIntArray).boxed().toArray( Integer[]::new );
         ArrayList<Integer> rent = new ArrayList<>(Arrays.asList(rentArray));
         ArrayList<TileProperty> neighborhood;
@@ -226,14 +232,15 @@ public class  JsonLoader {
     }
 
     /**
-     * @param object
-     * @param neighborhoods
-     * @return
+     *  method to build a TileUtility object from a json object
+     * @param object the Json object to build the tile from
+     * @param neighborhoods the map of neighborhoods on the board
+     * @return the tile TileUtility object build
      */
     public TileUtility buildUtilityTile(JSONObject object,  Map<String, ArrayList<TileProperty>> neighborhoods){
         String name = (String) object.get("Name");
 
-        int price = Math.toIntExact((Long) object.get("Price"));
+        int price = (int) object.get("Price");
 
         ArrayList<TileProperty> neighborhood;
         String neighborhoodName = "Utility";

@@ -11,4 +11,7 @@ public class TileGoToJail extends Tile{
         player.toJail();
     }
 
+    public TileGoToJail() {
+        this.name = "Go to jail";
+    }
 }
