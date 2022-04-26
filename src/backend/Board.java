@@ -205,7 +205,7 @@ public class Board {
      * @throws IsMortgagedException if tile mortgaged
      */
 
-    public int payRent(int playerIndex, int tileIndex, ArrayList<Integer> dice) throws NonPropertyTileException, IsMortgagedException {
+    public int payRent(int playerIndex, int tileIndex, ArrayList<Integer> dice) throws NonPropertyTileException, IsMortgagedException, IsInJail {
         //Check tile is ownable by player
         if (!(tiles[tileIndex] instanceof TileProperty)) {
             throw new NonPropertyTileException();
