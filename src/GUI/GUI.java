@@ -34,10 +34,6 @@ public class GUI extends Application {
     private final Label inspect = new Label();
     private final ArrayList<Image> facePNG = dice();
     private final Circle playerTest = new Circle();
-    public static void main(String []args)
-    {
-        launch();
-    }
     public void start(Stage primaryStage)
     {
         gameBoard();
