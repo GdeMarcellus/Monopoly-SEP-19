@@ -38,11 +38,6 @@ public class Board {
 
     }
 
-    public int getPlayerIndex(Player player)
-    {
-        return players.indexOf(player);
-    }
-
     /***
      * takes the turn for the player
      * moves the player by the total of the dices
