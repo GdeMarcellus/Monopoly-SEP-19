@@ -207,10 +207,12 @@ public class Board {
 
     public int payRent(int playerIndex, int tileIndex, ArrayList<Integer> dice) throws NonPropertyTileException, IsMortgagedException, IsInJail {
         //Check tile is ownable by player
-        if (!(tiles[tileIndex] instanceof TileProperty)) {
+        if (!(tiles[tileIndex] instanceof TileProperty))
+        {
             throw new NonPropertyTileException();
         }
-        else {
+        else
+        {
             return ((TileProperty) tiles[tileIndex]).payRent(players.get(playerIndex), dice.get(0) + dice.get(1));
         }
     }

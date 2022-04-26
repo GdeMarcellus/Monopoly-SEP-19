@@ -71,6 +71,8 @@ public class GUI extends Application {
     private HashMap<Integer, String> tokenPlayer;
     private AIPlayer aiPlayer;
     private int highestTurn;
+    private ArrayList<TextField> auctionArray;
+    private Stage mortgageStage;
 
     public static void main(String []args)
     {
@@ -260,7 +262,7 @@ public class GUI extends Application {
         aiLogBox.setMaxWidth(200);
 
         //Creating AI logBox title
-        Text aiLogBoxTitle = createText("Agent Player LogBox!",20,Color.BLACK,"arial");
+        Text aiLogBoxTitle = createText("Agent Player LogBox",20,Color.BLACK,"arial");
 
         //Add AI logBox and Title into VBox
         playerList.getChildren().add(aiLogBoxTitle);
@@ -470,6 +472,7 @@ public class GUI extends Application {
             try
             {
                 Alert mortgageYesNo = new Alert(AlertType.CONFIRMATION);
+                assert chosenBuilding != null;
                 if (chosenBuilding.isMortgaged()) mortgageYesNo.setContentText("Do you want to unmortgage " + chosenBuilding.getName() + "?");
                 else mortgageYesNo.setContentText("Do you want to mortgage " + chosenBuilding.getName() + "?");
                 mortgageYesNo.setOnCloseRequest(lambda ->
@@ -529,6 +532,16 @@ public class GUI extends Application {
         playerToChoose.getChildren().add(playerBuildings);
         playerToChoose.setPadding(new Insets(50));
         mainPane.setCenter(playerToChoose);
+
+        //Set up of Exit Button
+        Button exit = new Button("Exit");
+        exit.setOnAction(e ->
+                {
+                    mortgageStage.close();
+                }
+        );
+        exit.setAlignment(Pos.CENTER);
+        mainPane.setBottom(exit);
         playerToChoose.setAlignment(Pos.CENTER);
         return mainPane;
     }
@@ -641,6 +654,8 @@ public class GUI extends Application {
             {
                     gameBoard.auctionMakeBid(gameBoard.getPlayers().indexOf(players.get(playerBid.getSelectionModel().getSelectedIndex())), Integer.parseInt(playerBid.getItems().get(playerBid.getSelectionModel().getSelectedIndex()).getText()));
                     playerBid.getSelectionModel().getSelectedItem().setEditable(false);
+                    auctionArray.add(playerBid.getSelectionModel().getSelectedItem());
+                    playerBid.getSelectionModel().getSelectedItem().setText("");
                     playerBid.getSelectionModel().selectNext();
                     if (players.get(playerBid.getSelectionModel().getSelectedIndex()) instanceof AIPlayer)
                     {
@@ -686,6 +701,12 @@ public class GUI extends Application {
                     ((TileProperty) gameBoard.getTiles()[gameBoard.getPlayer(playerTurn).getPosition()]).setOwner(gameBoard.getPlayer(higherPlayer));
                     gameBoard.getPlayer(higherPlayer).removeMoney(higherBid);
 
+                    //Show all Bids
+                    for (int i = 0; i < gameBoard.getPlayers().size()-1; i++)
+                    {
+                        playerBid.getItems().get(i).setText(auctionArray.get(i).getText());
+                    }
+
                     //Remove Money and show Alert
                     moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(higherPlayer).getBalance()));
                     Alert auctionWinner = new Alert(AlertType.INFORMATION);
@@ -726,7 +747,7 @@ public class GUI extends Application {
         }
         playerInfo.getItems().get(playerTurn).setStroke(playerInformation[playerTurn].playerColor);
         playerInfo.refresh();
-        playerTurnText.setText(("Player Turn:  " + (playerTurn + 1)));
+        playerTurnText.setText(("Player " + (playerTurn + 1) + " turn"));
         moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
         finishedTurn = false;
         playerBoughtProperty = false;
@@ -872,7 +893,7 @@ public class GUI extends Application {
                         {
                             int freeMoney = ((TileFreeParking) gameBoard.getPlayerTile(playerTurn)).getFreeParkingFines();
                             ((TileFreeParking) gameBoard.getPlayerTile(playerTurn)).payToPlayer(gameBoard.getPlayer(playerTurn));
-                            Alert freeParkingMoney = new Alert(AlertType.CONFIRMATION);
+                            Alert freeParkingMoney = new Alert(AlertType.INFORMATION);
                             freeParkingMoney.setContentText("Player " + playerTurn + "has landed on the free parking tile!\nThey obtain " + freeMoney);
                             freeParkingMoney.showAndWait();
                             moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
@@ -920,6 +941,12 @@ public class GUI extends Application {
                         {
                             //Not Important but necessary
                         }
+                        catch (IsInJail ex)
+                        {
+                            Alert inJail = new Alert(AlertType.ERROR);
+                            inJail.setContentText("Player " + playerTurn + " is in jail!");
+                            inJail.showAndWait();
+                        }
                     }
                     }
                 }
@@ -938,9 +965,12 @@ public class GUI extends Application {
             else {
                 try
                 {
-                    if (!playerBoughtProperty && ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getBank()) {
+                    if (!playerBoughtProperty && ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getBank())
+                    {
                         auctionHouse(gameBoard.getPlayers());
-                    } else {
+                    }
+                    else
+                    {
                         updatePriceAndEndTurn();
                         if (gameBoard.getPlayer(playerTurn) instanceof AIPlayer) agentPlayerTurn();
                     }
@@ -982,10 +1012,10 @@ public class GUI extends Application {
 
         Button mortgage = new Button("Mortgage");
         mortgage.setOnAction(e ->{
-            Stage tradeStage = new Stage();
-            tradeStage.setResizable(false);
-            tradeStage.setScene(new Scene((Parent) mortgageStage(), 800,800));
-            tradeStage.showAndWait();
+            mortgageStage = new Stage();
+            mortgageStage.setResizable(false);
+            mortgageStage.setScene(new Scene((Parent) mortgageStage(), 800,800));
+            mortgageStage.showAndWait();
         });
 
         //Setting up HBox to finalize the controls
@@ -1076,6 +1106,7 @@ public class GUI extends Application {
         gameBoard.auctionStart();
         auctionWindow = new Stage();
         auctionWindow.setResizable(false);
+        auctionArray = new ArrayList<>();
         auctionWindow.setScene(new Scene((Parent) auctionNode(players), 800, 800));
         auctionWindow.show();
         //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
@@ -1150,13 +1181,6 @@ public class GUI extends Application {
     private void removePlayer()
     {
         ArrayList<Player> newPlayerList = new ArrayList<>();
-        for (int i = 0; i < gameBoard.getPlayers().size(); i++)
-        {
-            if (i == playerTurn)
-            {
-
-            }
-        }
         for (Player player : gameBoard.getPlayers())
         {
             if (!(player == gameBoard.getPlayer(playerTurn)))
@@ -1172,7 +1196,7 @@ public class GUI extends Application {
      * can build a house or not.
      *
      * @return Whether the player owns all properties in the neighbourhood
-     * @param selectedItem
+     * @param selectedItem selected Property
      */
     private TileBuilding ownsAllProperties(String selectedItem)
     {
@@ -1180,7 +1204,7 @@ public class GUI extends Application {
         TileProperty buildingSelected = null;
         for (Tile tile : gameBoard.getTiles())
         {
-            if (tile.getName() == selectedItem)
+            if (Objects.equals(tile.getName(), selectedItem))
             {
                 buildingSelected =((TileProperty) tile);
                 break;
@@ -1193,6 +1217,7 @@ public class GUI extends Application {
             cannotBuildOnStation.setContentText("Cannot build on Station!");
             cannotBuildOnStation.showAndWait();
         }
+        assert buildingSelected != null;
         for (TileProperty property : buildingSelected.getNeighborhood())
         {
             if (property.getOwner() != gameBoard.getPlayer(playerTurn))
@@ -1200,7 +1225,10 @@ public class GUI extends Application {
                 ownsAll = false;
             }
         }
-        if (ownsAll) return (TileBuilding) buildingSelected;
+        if (ownsAll) {
+            assert buildingSelected instanceof TileBuilding;
+            return (TileBuilding) buildingSelected;
+        }
         return null;
     }
 
@@ -1215,7 +1243,7 @@ public class GUI extends Application {
      */
     private Text getPlayerInfo(int playerNo)
     {
-        return new Text("Player Number: " + (playerNo + 1)  + "\n" +
+        return new Text("Player " + (playerNo + 1)  + "\n" +
                 "Player Bank Deposit: " + gameBoard.getPlayer(playerNo).getBalance() + "\n" +
                 "Number of properties owned: " + gameBoard.getPlayer(playerNo).getProperties().size() + "\n");
     }
@@ -1450,6 +1478,7 @@ public class GUI extends Application {
                 Alert agentPlayerOrTryAgain = new Alert(AlertType.CONFIRMATION);
                 ButtonType yesButton = ButtonType.YES;
                 ButtonType noButton = ButtonType.NO;
+                agentPlayerOrTryAgain.setContentText("Continue to play alone with the an Agent Player!");
                 agentPlayerOrTryAgain.getButtonTypes().setAll(yesButton,noButton);
                 agentPlayerOrTryAgain.showAndWait().ifPresent(type ->
                 {
@@ -1568,7 +1597,8 @@ public class GUI extends Application {
                ((TileProperty) tiles).setOwner(gameBoard.getBank());
            }
        }
-       playerInformation = new PlayerInformation[player_Index.size()+1];
+       if (player_Index.size() < 5) playerInformation = new PlayerInformation[player_Index.size()+1];
+       else playerInformation = new PlayerInformation[player_Index.size()];
 
        //Initialising the players for the game session.
        for (int i = 0; i < player_Index.size(); i++)
@@ -1588,17 +1618,19 @@ public class GUI extends Application {
        }
 
        //AI
-       gameBoard.addPlayer(aiPlayer);
-       gameBoard.getPlayer(gameBoard.getPlayers().size()-1).addMoney(1500);
-       playerInformation[gameBoard.getPlayers().size()-1] = new PlayerInformation("idk",Color.GRAY,gameBoard.getPlayers().size()-1,"file:resources/Tokens/catto.png");
-       playerInformation[gameBoard.getPlayers().size()-1].getPlayerToken().setOnMouseClicked(e ->
+        if (gameBoard.getPlayers().size() < 5)
         {
-            Alert listOfBuildings = new Alert(AlertType.INFORMATION);
-            listOfBuildings.setHeaderText("Property List of Player " + (playerInformation[gameBoard.getPlayers().size()-1].getPlayerNumber()+1));
-            listOfBuildings.setContentText(getPropertyString(gameBoard.getPlayers().size()-1));
-            listOfBuildings.showAndWait();
-        });
-
+            gameBoard.addPlayer(aiPlayer);
+            gameBoard.getPlayer(gameBoard.getPlayers().size() - 1).addMoney(1500);
+            playerInformation[gameBoard.getPlayers().size() - 1] = new PlayerInformation("idk", Color.GRAY, gameBoard.getPlayers().size() - 1, "file:resources/Tokens/catto.png");
+            playerInformation[gameBoard.getPlayers().size() - 1].getPlayerToken().setOnMouseClicked(e ->
+            {
+                Alert listOfBuildings = new Alert(AlertType.INFORMATION);
+                listOfBuildings.setHeaderText("Property List of Player " + (playerInformation[gameBoard.getPlayers().size() - 1].getPlayerNumber() + 1));
+                listOfBuildings.setContentText(getPropertyString(gameBoard.getPlayers().size() - 1));
+                listOfBuildings.showAndWait();
+            });
+        }
         //Creating new player Icon Button
        currPlayerIcon = new Button();
        currPlayerIcon.setMinHeight(100);
@@ -1708,6 +1740,7 @@ public class GUI extends Application {
 
         //Set Tile Visuals
 
+        assert tileButton != null;
         tileButton.setPadding(new Insets(5));
         tileButton.setPrefWidth(150);
         tileButton.setPrefHeight(150);
@@ -1970,7 +2003,9 @@ public class GUI extends Application {
                     }
 
                     //Create Alert, showing the new ordering
-                    Alert done = new Alert(AlertType.CONFIRMATION);
+                    Alert done = new Alert(AlertType.INFORMATION);
+                    done.setHeaderText("The game is about to begin!");
+                    done.setContentText("Player Selection Finished!\nPlease Select your desired token.");
                     getPlayerOrder(playerHashMap);
 
                     //Once closed, the game will begin
@@ -1991,7 +2026,8 @@ public class GUI extends Application {
                             }
                             int currPlayer = i;
                             Alert chooseToken = new Alert(AlertType.CONFIRMATION);
-                            chooseToken.setContentText("Player " + i + " select your Token");
+                            chooseToken.setHeaderText("Token List");
+                            chooseToken.setContentText("Player " + (i+1) + " select your Token");
                             chooseToken.setGraphic(tokenRemainign);
                             chooseToken.setOnCloseRequest(lam ->
                             {
@@ -2063,7 +2099,6 @@ public class GUI extends Application {
     private void getPlayerOrder(HashMap<Integer,Integer> playerRolls)
     {
         //Placeholder
-        StringBuilder playerOrder = new StringBuilder();
         PriorityQueue<Integer> playerOrderInt = new PriorityQueue<>(Collections.reverseOrder());
 
         //Get the keys of the hashmap (roll values) and insert into priority queue
