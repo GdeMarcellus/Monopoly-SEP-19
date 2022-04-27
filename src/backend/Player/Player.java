@@ -75,7 +75,8 @@ public abstract class Player {
                 return;
             };
         }
-        this.position = 41;
+        setTurnsInJail(2);
+        this.position = 10;
 
     }
 
@@ -203,7 +204,7 @@ public abstract class Player {
     }
 
     public boolean isInJail(){
-        return position == 41;
+        return turnsInJail > 0;
     }
 
     /**

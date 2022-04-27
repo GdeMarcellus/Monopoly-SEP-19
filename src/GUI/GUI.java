@@ -836,6 +836,11 @@ public class GUI extends Application {
         move.setPrefSize(100,50);
         move.setOnAction(e ->
                 {
+                    if (gameBoard.getPlayer(playerTurn).isInJail())
+                    {
+                        System.out.println("In Jail!");
+                        e.consume();
+                    }
                     if (!finishedTurn) {
                         rollDices();
                     if (gameBoard.checkDouble(dices.getDiceValues()))
@@ -880,6 +885,15 @@ public class GUI extends Application {
                                 moneyOfPlayer.setFill(Color.GREEN);
                                 transition.playFromStart();
                             }
+                        }
+                        else if (gameBoard.getPlayerTile(playerTurn) instanceof TileGoToJail)
+                        {
+                            gameBoard.getPlayer(playerTurn).toJail();
+                            playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                            playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                            Alert wentToJail = new Alert(AlertType.WARNING);
+                            wentToJail.setContentText("Player " + (playerTurn+1) + " has gone to Jail!");
+                            wentToJail.showAndWait();
                         }
                         else if (gameBoard.getPlayerTile(playerTurn) instanceof TileTax)
                         {
@@ -961,7 +975,13 @@ public class GUI extends Application {
         newTurn = new Button("Next Turn");
         newTurn.setOnAction(e->
         {
-            if (!finishedTurn)
+            if(gameBoard.getPlayer(playerTurn).isInJail())
+            {
+                gameBoard.getPlayer(playerTurn).jailNewTurn();
+
+                updatePriceAndEndTurn();
+            }
+            else if (!finishedTurn)
             {
                 Alert d = new Alert(AlertType.WARNING);
                 d.setContentText("Roll dies and move before playing another action!");
@@ -970,8 +990,6 @@ public class GUI extends Application {
             else {
                 try
                 {
-                    if (gameBoard.getPlayerTile(playerTurn) != null)
-                    {
                         if (!playerBoughtProperty && ((TileProperty) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getBank()) {
                             auctionHouse(gameBoard.getPlayers());
                         }
@@ -981,7 +999,6 @@ public class GUI extends Application {
                             updatePriceAndEndTurn();
                             if (gameBoard.getPlayer(playerTurn) instanceof AIPlayer) agentPlayerTurn();
                         }
-                    }
                 }
                 catch (ClassCastException ex)
                 {
@@ -1794,14 +1811,7 @@ public class GUI extends Application {
         Button tileButton = null;
 
         //Set Tile Name depending on Object Class
-        if (gameBoard.getTile(count) instanceof TileProperty) tileButton = new Button(gameBoard.getTile(count).getName());
-        else if (gameBoard.getTile(count) instanceof TileGo) tileButton = new Button("Go!");
-        else if (gameBoard.getTile(count) instanceof TileJail) tileButton = new Button("Jail");
-        else if (gameBoard.getTile(count) instanceof TileTax) tileButton = new Button("Tax");
-        else if (gameBoard.getTile(count) instanceof TileGoToJail) tileButton = new Button("Go Jail!");
-        else if (gameBoard.getTile(count) instanceof TileFreeParking) tileButton = new Button("Parking");
-        else if (gameBoard.getTile(count) instanceof TileCard) tileButton = new Button("Card \n" + (((TileCard) gameBoard.getTile(count)).getType().name()));
-        else if (gameBoard.getTile(count) instanceof TileUtility) tileButton = new Button("Utility");
+        tileButton = new Button(gameBoard.getTile(count).getName());
 
         //Set Tile Visuals
 
