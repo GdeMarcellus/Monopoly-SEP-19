@@ -45,4 +45,12 @@ public class TileStation extends TileProperty{
             throw new IsMortgagedException();
         }
     }
+
+    public ArrayList<Integer> getRent() {
+        return rent;
+    }
+
+    public void setRent(ArrayList<Integer> rent) {
+        this.rent = rent;
+    }
 }

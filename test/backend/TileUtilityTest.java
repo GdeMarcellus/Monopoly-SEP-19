@@ -1,5 +1,6 @@
 package backend;
 
+import backend.Exception.IsInJail;
 import backend.Exception.IsMortgagedException;
 import backend.Player.HumanPlayer;
 import backend.Player.Player;
@@ -48,6 +49,8 @@ public class TileUtilityTest {
             utility1.payRent(secondPlayer, diceRoll);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
+        } catch (IsInJail e) {
+            throw new RuntimeException(e);
         }
 
         assertEquals(expected,secondPlayer.getBalance());
@@ -66,6 +69,8 @@ public class TileUtilityTest {
             utility1.payRent(secondPlayer, diceRoll);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
+        } catch (IsInJail e) {
+            throw new RuntimeException(e);
         }
 
         assertEquals(expected,secondPlayer.getBalance());
@@ -83,7 +88,7 @@ public class TileUtilityTest {
 
         try {
             utility1.payRent(secondPlayer, diceRoll);
-        } catch (IsMortgagedException e) {
+        } catch (IsMortgagedException | IsInJail e) {
             e.printStackTrace();
         }
 
@@ -102,7 +107,7 @@ public class TileUtilityTest {
 
         try {
             utility1.payRent(secondPlayer, diceRoll);
-        } catch (IsMortgagedException e) {
+        } catch (IsMortgagedException | IsInJail e) {
             e.printStackTrace();
         }
 
@@ -121,6 +126,8 @@ public class TileUtilityTest {
             utility1.payRent(secondPlayer, 0);
         } catch (IsMortgagedException e) {
             actual = IsMortgagedException.class;
+        } catch (IsInJail e) {
+            throw new RuntimeException(e);
         }
 
         assertEquals(expected,actual);
@@ -137,7 +144,7 @@ public class TileUtilityTest {
 
         try {
             utility1.payRent(secondPlayer, diceRoll);
-        } catch (IsMortgagedException e) {
+        } catch (IsMortgagedException | IsInJail e) {
             e.printStackTrace();
         }
         assertEquals(expected,owner.getBalance());

@@ -1,0 +1,10 @@
+{
+  "1" : {
+    "Type" : "building",
+    "Name" : "Gangsters Paradise",
+    "Colour" : "#8b4513",
+    "Price" : 60,
+    "rent" : [4,20,60,180,320,450],
+    "developmentCost" : 50
+  }
+}

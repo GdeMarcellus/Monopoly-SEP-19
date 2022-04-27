@@ -60,7 +60,7 @@ public class TilePropertyTest {
         Object actual = null;
         property.setMortgaged(true);
         try {
-            property.mortgaged(bank);
+            property.mortgage();
         } catch (IsMortgagedException e) {
            actual = IsMortgagedException.class;
         } catch (PropertyDevelopedException e) {
