@@ -48,12 +48,12 @@ public class GUI extends Application {
     private final Dice dices = new Dice(2,1,6);
     private final Button dice1 = new Button();
     private final Button dice2 = new Button();
-    private final ArrayList<Image> facePNG = getDiceFaces();
+    private ArrayList<Image> facePNG ;
 
     private boolean inspectWindow = false;
     private final ArrayList<Button> tiles = new ArrayList<>();
     private  final Stage gameBoard_GUI = new Stage();
-    private Board gameBoard = new Board();
+    private Board gameBoard;
     private Text moneyOfPlayer;
     private Text playerTurnText;
     private ListView<Text> playerInfo = new ListView<>();
@@ -77,6 +77,7 @@ public class GUI extends Application {
      */
     public void start_screen()
     {
+        facePNG = getDiceFaces();
         //Setting up Stages
         Stage introduction = new Stage();
 
@@ -291,11 +292,11 @@ public class GUI extends Application {
                 {
                     if (!finishedTurn) {
                     dices.rollDice();
-                    ImageView first = new ImageView(facePNG.get(dices.getDiceValues().get(0)-1));
+                    ImageView first = new ImageView(facePNG.get(dices.getDiceValues().get(0)));
                     first.setFitWidth(60);
                     first.setFitHeight(60);
                     dice1.setGraphic(first);
-                    ImageView second = new ImageView(facePNG.get(dices.getDiceValues().get(1)-1));
+                    ImageView second = new ImageView(facePNG.get(dices.getDiceValues().get(1)));
                     second.setFitWidth(60);
                     second.setFitHeight(60);
                     dice2.setGraphic(second);
@@ -608,8 +609,8 @@ public class GUI extends Application {
             //String location used to test button functionality
             String location = 0 + "  " + i + "\nName: " + tile.getUrl();
             ImageView set = new ImageView(tile);
-            set.setFitHeight(80);
-            set.setFitWidth(80);
+            set.setFitHeight(50);
+            set.setFitWidth(50);
             //Setting up the Button for each tile
             count = getCount(count, gridPane, 0, i, tile, location, set);
         }
@@ -626,8 +627,8 @@ public class GUI extends Application {
             //String location used to test button functionality
             String location = i + "  " + 9 + "\nName: " + tile.getUrl();
             ImageView set = new ImageView(tile);
-            set.setFitHeight(80);
-            set.setFitWidth(80);
+            set.setFitHeight(50);
+            set.setFitWidth(50);
             //Setting up the Button for each tile
             count = getCount(count, gridPane, i, 10, tile, location, set);
         }
@@ -643,8 +644,8 @@ public class GUI extends Application {
             //String location used to test button functionality
             String location = 9 + "  " + i + "\nName: " + tile.getUrl();
             ImageView set = new ImageView(tile);
-            set.setFitHeight(80);
-            set.setFitWidth(80);
+            set.setFitHeight(50);
+            set.setFitWidth(50);
             //Setting up the Button for each tile
             count = getCount(count, gridPane, 10, i, tile, location, set);
 
@@ -661,8 +662,8 @@ public class GUI extends Application {
             //String location used to test button functionality
             String location = i + "  " + 0 + "\nName: " + tile.getUrl();
             ImageView set = new ImageView(tile);
-            set.setFitHeight(80);
-            set.setFitWidth(80);
+            set.setFitHeight(50);
+            set.setFitWidth(50);
             //Setting up the Button for each tile
             count = getCount(count, gridPane, i, 0, tile, location, set);
         }
@@ -699,6 +700,7 @@ public class GUI extends Application {
                // The following if statement represents the first dice
                else if (i == 3 && j == 8)
                {
+                   System.out.println(facePNG.size());
                    ImageView face1 = new ImageView(facePNG.get(dices.getDiceValues().get(0)));
                    dice1.setGraphic(face1);
                    face1.setFitHeight(60);

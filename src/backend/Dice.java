@@ -12,6 +12,8 @@ public class Dice {
     ArrayList<Integer> dice = new ArrayList<>(); //array of dice
 
     public Dice(int numDice, int diceMin, int diceMax){
+        dice.add(0);
+        dice.add(0);
         this.numDice = numDice;
         this.diceMin = diceMin;
         this.diceMax = diceMax;
