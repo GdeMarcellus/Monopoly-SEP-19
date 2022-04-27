@@ -238,6 +238,8 @@ public class GUI extends Application {
         main.setBottom(controls);
         main.setTop(top);
         board.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+        board.setMaxHeight(600);
+        board.setMaxWidth(900);
         main.setCenter(board);
         main.setLeft(playerList);
 
@@ -324,8 +326,10 @@ public class GUI extends Application {
         StackPane.setAlignment(exit,Pos.TOP_LEFT);
         final_main.getChildren().add(exit);
 
+        AnchorPane idk = new AnchorPane(final_main);
+
         //Creating a new Scene
-        Scene finalScene = new Scene(final_main);
+        Scene finalScene = new Scene(idk,screenBounds.getMaxX(),screenBounds.getMaxY());
         gameBoard_GUI.setScene(finalScene);
         gameBoard_GUI.show();
 
@@ -374,7 +378,7 @@ public class GUI extends Application {
         VBox mainVBox = new VBox();
         mainVBox.setAlignment(Pos.CENTER);
         for (Text text : playerFinalValueText) mainVBox.getChildren().add(text);
-        finalStageAbridged.setScene(new Scene(mainVBox));
+        finalStageAbridged.setScene(new Scene(mainVBox,screenBounds.getMaxX(),screenBounds.getMaxY()));
         finalStageAbridged.show();
         finalStageAbridged.setOnCloseRequest(e -> System.exit(0));
     }
@@ -1432,7 +1436,7 @@ public class GUI extends Application {
         StackPane finalPane = new StackPane(main,exit,references);
         StackPane.setAlignment(exit,Pos.TOP_RIGHT);
         StackPane.setAlignment(references,Pos.TOP_LEFT);
-        mainMenu.setScene(new Scene(finalPane));
+        mainMenu.setScene(new Scene(finalPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         mainMenu.show();
     }
 
@@ -1476,7 +1480,7 @@ public class GUI extends Application {
         settingOptions.getChildren().add(goBack);
 
         //Finish Stage
-        settings_Stage.setScene(new Scene(mainPane));
+        settings_Stage.setScene(new Scene(mainPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         settings_Stage.show();
     }
 
@@ -1523,7 +1527,7 @@ public class GUI extends Application {
         BorderPane.setAlignment(menuTitle,Pos.CENTER);
         mainBox.getChildren().add(exit);
         mainPane.setCenter(mainBox);
-        changeColourStage.setScene(new Scene(mainPane));
+        changeColourStage.setScene(new Scene(mainPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         changeColourStage.show();
     }
 
@@ -1557,7 +1561,7 @@ public class GUI extends Application {
         //Creating Stage and setting Scene (Also start game button functionality)
         Stage playerSelection = new Stage();
         playerSelection.setResizable(false);
-        playerSelection.setScene(new Scene(mainPane));
+        playerSelection.setScene(new Scene(mainPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         startGameButton.setOnAction(e ->
         {
             if(player_Index.size() == 1)
@@ -2161,7 +2165,7 @@ public class GUI extends Application {
         mainPane.setCenter(mainControls);
 
         //Preparing stage and scene
-        playerOrderStage.setScene(new Scene(mainPane));
+        playerOrderStage.setScene(new Scene(mainPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         playerOrderStage.show();
     }
 
