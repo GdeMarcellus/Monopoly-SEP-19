@@ -106,6 +106,8 @@ public class GUI extends Application {
         //Setting up Stages
         Stage introduction = new Stage();
         introduction.setResizable(false);
+        introduction.setFullScreen(false);
+        gameBoard_GUI.setResizable(false);
         gameBoard_GUI.setResizable(false);
 
         //Setting up Title Text
@@ -282,7 +284,7 @@ public class GUI extends Application {
             timeline = new Timeline();
             timeline.setCycleCount(Timeline.INDEFINITE);
             //Every Second do this
-            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(1),
+            timeline.getKeyFrames().add(new KeyFrame(Duration.minutes(1),
                     actionEvent -> {
                         time--;
                         if (time >= 0)
@@ -352,6 +354,8 @@ public class GUI extends Application {
     private void endGameScreenAbridged()
     {
         Stage finalStageAbridged = new Stage();
+        finalStageAbridged.setFullScreen(false);
+        finalStageAbridged.setResizable(false);
         PriorityQueue<Integer> playerFinalValue = new PriorityQueue<>(Collections.reverseOrder());
         Text[] playerFinalValueText = new Text[gameBoard.getPlayers().size()];
         for (int i = 0; i < gameBoard.getPlayers().size(); i++)
