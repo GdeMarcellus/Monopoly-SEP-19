@@ -19,6 +19,7 @@ public class Card {
     }
 
     public void playCard(Player player, Board board){
+        System.out.println("Play Card Tiles Array: ");
         Integer currentID = null;
         Properties current = null;
         for(Map.Entry<Integer,Properties> pair : effects.entrySet())
@@ -26,10 +27,11 @@ public class Card {
             currentID = pair.getKey();
             current = pair.getValue();
         }
+        System.out.println(current);
             int amount = (int) current.getOrDefault("amount", 0 );
             int houseCost = (int) current.getOrDefault("houseCost", 0 );
             int hotelCost = (int) current.getOrDefault("hotelCost", 0 );
-            String name = (String) current.getOrDefault("name","NA");
+            String name = (String) current.getOrDefault("location","NA");
             int noSpaces = (int) current.getOrDefault("noSpaces", 0 );
             
             switch (currentID)
@@ -184,8 +186,11 @@ public class Card {
         boolean passedGo;
 
         //find tile position
-        for(int i = 0; i < tiles.length; i++) {
+        for(int i = 0; i < tiles.length-1; i++) {
+            System.out.println("TileName" + tiles[i].getName());
+            System.out.println("TileName Find:" + tileName);
             if (tiles[i].getName().equals(tileName)) {
+                System.out.println("Chosen: " + i);
                 pos = i;
             }
         }
@@ -206,7 +211,8 @@ public class Card {
     public void moveBackwardTo(Player player, String tileName, Tile[] tiles){
         int pos = 0;
         //find tile position
-        for(int i = 0; i < tiles.length; i++) {
+        for(int i = 0; i < tiles.length-1; i++) {
+            System.out.println(tiles[i].getName());
             if (Objects.equals(tiles[i].getName(), tileName))
             {
                 pos = i;

@@ -17,14 +17,18 @@ public class TileCard extends Tile{
     public Card pickCard(Board board){
         Card card = null;
         
-        if (type == Type.Luck){
+        if (type == Type.Luck)
+        {
             card = board.getPotLuckCard().poll();
-        } else if (type == Type.Opportunity) {
+        }
+        else if (type == Type.Opportunity)
+        {
             card = board.getOpportunityCard().poll();
         }
         else{
             throw new RuntimeException();
         }
+        System.out.println(card);
         return card;
     }
 

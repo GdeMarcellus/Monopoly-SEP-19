@@ -45,4 +45,22 @@ public class TileStation extends TileProperty{
             throw new IsMortgagedException();
         }
     }
+
+    public ArrayList<Integer> getRent()
+    {
+        return rent;
+    }
+
+    public int getOwnedStations(Player player)
+    {
+        int ownedStation = 0;
+
+        for (TileProperty each: getOwner().getProperties()) {
+            if (each instanceof TileStation){
+                ownedStation+= 1;
+            }
+        }
+        return ownedStation;
+
+    }
 }

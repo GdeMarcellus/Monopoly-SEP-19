@@ -14,6 +14,7 @@ import backend.Tiles.*;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.event.Event;
+import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -73,6 +74,7 @@ public class GUI extends Application {
     private int highestTurn;
     private ArrayList<TextField> auctionArray;
     private Stage mortgageStage;
+    private Button newTurn;
 
     public static void main(String []args)
     {
@@ -92,7 +94,7 @@ public class GUI extends Application {
      */
     private void start_screen()
     {
-        setUserAgentStylesheet(STYLESHEET_MODENA);
+        setUserAgentStylesheet(STYLESHEET_CASPIAN);
         //Colors (Color) set up
         colors_Color = new Color[5];
         colors_Color[0] = Color.BLUE;
@@ -881,7 +883,8 @@ public class GUI extends Application {
                         }
                         else if (gameBoard.getPlayerTile(playerTurn) instanceof TileTax)
                         {
-                            ((TileTax) gameBoard.getPlayerTile(playerTurn)).payTax(gameBoard.getPlayer(playerTurn),((TileFreeParking) gameBoard.getTile(20)));
+                            int outstandingTax = ((TileTax) gameBoard.getPlayerTile(playerTurn)).payTax(gameBoard.getPlayer(playerTurn),((TileFreeParking) gameBoard.getTile(20)));
+                            if (outstandingTax > 0) checkIfBankrupt();
                             Alert payedTax = new Alert(AlertType.WARNING);
                             payedTax.setContentText("Player " + (playerTurn+1) + " has payed the parking tax!");
                             payedTax.showAndWait();
@@ -894,7 +897,7 @@ public class GUI extends Application {
                             int freeMoney = ((TileFreeParking) gameBoard.getPlayerTile(playerTurn)).getFreeParkingFines();
                             ((TileFreeParking) gameBoard.getPlayerTile(playerTurn)).payToPlayer(gameBoard.getPlayer(playerTurn));
                             Alert freeParkingMoney = new Alert(AlertType.INFORMATION);
-                            freeParkingMoney.setContentText("Player " + playerTurn + "has landed on the free parking tile!\nThey obtain " + freeMoney);
+                            freeParkingMoney.setContentText("Player " + (playerTurn+1) + " has landed on the free parking tile!\nThey obtain " + freeMoney);
                             freeParkingMoney.showAndWait();
                             moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                             moneyOfPlayer.setFill(Color.GREEN);
@@ -905,6 +908,7 @@ public class GUI extends Application {
                         //Pay Rent
                         try {
                             Player playerOwed;
+                            System.out.println(gameBoard.getPlayer(playerTurn).getPosition());
                             if ((playerOwed = ((TileProperty) gameBoard.getPlayerTile(playerTurn)).getOwner()) != gameBoard.getBank())
                             {
                                 //Pay for Rent
@@ -917,7 +921,8 @@ public class GUI extends Application {
 
                                 //Alert player that they paid for the rent
                                 Alert payedRent = new Alert(AlertType.WARNING);
-                                payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + rentPrice + " for Rent!\nThe Rent has gone to Player " + playerOwed);
+                                if(gameBoard.getPlayerTile(playerTurn) instanceof TileBuilding) payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + ((TileBuilding)gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getDevelopment()) + " for Rent!\nThe Rent has gone to Player " + playerOwed);
+                                else payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + ((TileStation)gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileStation) gameBoard.getPlayerTile(playerTurn)).getOwnedStations(gameBoard.getPlayer(playerTurn))) + " for Rent!\nThe Rent has gone to Player " + playerOwed);
                                 payedRent.showAndWait();
 
                                 //Property Owned by Player
@@ -953,7 +958,7 @@ public class GUI extends Application {
         );
 
         //Setting up newTurn button
-        Button newTurn = new Button("Next Turn");
+        newTurn = new Button("Next Turn");
         newTurn.setOnAction(e->
         {
             if (!finishedTurn)
@@ -965,14 +970,17 @@ public class GUI extends Application {
             else {
                 try
                 {
-                    if (!playerBoughtProperty && ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getBank())
+                    if (gameBoard.getPlayerTile(playerTurn) != null)
                     {
-                        auctionHouse(gameBoard.getPlayers());
-                    }
-                    else
-                    {
-                        updatePriceAndEndTurn();
-                        if (gameBoard.getPlayer(playerTurn) instanceof AIPlayer) agentPlayerTurn();
+                        if (!playerBoughtProperty && ((TileProperty) gameBoard.getPlayerTile(playerTurn)).getOwner() == gameBoard.getBank()) {
+                            auctionHouse(gameBoard.getPlayers());
+                        }
+                        else
+                        {
+                            if (gameBoard.getPlayers().size() == 0) System.exit(0);
+                            updatePriceAndEndTurn();
+                            if (gameBoard.getPlayer(playerTurn) instanceof AIPlayer) agentPlayerTurn();
+                        }
                     }
                 }
                 catch (ClassCastException ex)
@@ -1171,16 +1179,17 @@ public class GUI extends Application {
                 bankrupt.setScene(new Scene(mainPane, screenBounds.getMaxX(), screenBounds.getMaxY()));
                 bankrupt.showAndWait();
             }
-        }
-        else
-        {
-            removePlayer();
+            else
+            {
+                removePlayer();
+            }
         }
     }
 
     private void removePlayer()
     {
         ArrayList<Player> newPlayerList = new ArrayList<>();
+        ArrayList<PlayerInformation> newPlayerInfo = new ArrayList<>();
         for (Player player : gameBoard.getPlayers())
         {
             if (!(player == gameBoard.getPlayer(playerTurn)))
@@ -1188,7 +1197,46 @@ public class GUI extends Application {
                 newPlayerList.add(player);
             }
         }
-        gameBoard.setPlayers(newPlayerList);
+        for (int i = 0; i < gameBoard.getPlayers().size(); i++)
+        {
+            if (i != playerTurn)
+            {
+                newPlayerInfo.add(playerInformation[i]);
+            }
+        }
+        Alert lost = new Alert(AlertType.WARNING);
+        lost.setHeaderText("Player " + (playerTurn+1) + " has gone bankrupt!");
+        lost.setOnCloseRequest(e ->
+        {
+            playerInformation[playerTurn].playerToken.setGraphic(null);
+            playerInformation[playerTurn].playerToken.setStyle("-fx-background-color: transparent");
+            PlayerInformation[] finalList = new PlayerInformation[newPlayerInfo.size()];
+            for(int i = 0; i < finalList.length; i++)
+            {
+                finalList[i] = newPlayerInfo.get(i);
+            }
+            playerInformation = finalList;
+            playerInfo.getItems().remove(playerTurn);
+            gameBoard.setPlayers(newPlayerList);
+            if (gameBoard.getPlayers().size() <= 1)
+            {
+                Button winnerPlayerToke = new Button();
+                winnerPlayerToke.setStyle(playerInformation[0].getPlayerToken().getStyle());
+                winnerPlayerToke.setGraphic(playerInformation[0].getPlayerToken().getGraphic());
+                winnerPlayerToke.setPrefSize(100,100);
+                Alert winner = new Alert(AlertType.INFORMATION);
+                winner.setGraphic(winnerPlayerToke);
+                winner.setContentText("You are the winner!");
+                winner.setHeaderText("Congratulations!");
+                winner.showAndWait();
+                winner.setOnCloseRequest(lambda ->
+                {
+                    System.exit(0);
+                });
+            }
+            else newTurn.fire();
+        });
+        lost.showAndWait();
     }
 
     /**
@@ -1259,13 +1307,26 @@ public class GUI extends Application {
         //Creating stage for the mainMenu
         Stage mainMenu = new Stage();
         mainMenu.setResizable(false);
+
         //Creating exit button
         Button exit = new Button("Exit");
+        exit.setPrefSize(100,50);
         exit.setOnAction( e -> System.exit(0));
+
         //Main Text set up
         Text main_Text = createText("Main Menu",50,Color.BLACK,"arial");
         BorderPane.setAlignment(main_Text,Pos.CENTER);
         BorderPane main = new BorderPane();
+
+        //Creating Resources Button
+        Button references = new Button("References");
+        references.setOnAction(e ->
+        {
+            Alert showReferences = new Alert(AlertType.INFORMATION);
+            showReferences.setHeaderText("References");
+            showReferences.setContentText("Dice Faces from pngwing.\n\nTokens Created by Zeno's Sister, Cosima de Angeli.\n\nProperty Tycoon Logo Created using BrandCrowd.");
+            showReferences.showAndWait();
+        });
         //Creating Buttons
         Button fullGameButton = new Button("Full Game");
         //Style of Button Gotten from:
@@ -1334,18 +1395,22 @@ public class GUI extends Application {
                 });
 
         //Creating and Setting up HBox title
-        HBox title =  new HBox(main_Text, exit);
+        HBox title =  new HBox(main_Text);
         title.setAlignment(Pos.TOP_CENTER);
-
         //Creating and Setting up VBox main_buttons
         VBox main_buttons = new VBox(fullGameButton, abridgedGameButton, settings_button);
+
         main_buttons.setAlignment(Pos.CENTER);
         main_buttons.setSpacing(50);
 
         //Setting up Main
         main.setCenter(main_buttons);
         main.setTop(title);
-        mainMenu.setScene(new Scene(main,screenBounds.getMaxX(),screenBounds.getMaxY()));
+
+        StackPane finalPane = new StackPane(main,exit,references);
+        StackPane.setAlignment(exit,Pos.TOP_RIGHT);
+        StackPane.setAlignment(references,Pos.TOP_LEFT);
+        mainMenu.setScene(new Scene(finalPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         mainMenu.show();
     }
 
@@ -1748,6 +1813,7 @@ public class GUI extends Application {
         {
             if (!inspectWindow)
             {
+                BorderPane mainPane = new BorderPane();
                 VBox cardInfoIDK = new VBox();
                 if (gameBoard.getTile(cardNum) instanceof  TileBuilding)
                 {
@@ -1767,11 +1833,13 @@ public class GUI extends Application {
                 for(int x = 2; x < cardInfo.length; x++)
                 {
                     mainBox.getChildren().add(cardInfo[x]);
+                    BorderPane.setAlignment(cardInfo[x],Pos.CENTER);
                     System.out.println(4);
                 }
-                BorderPane mainPane = new BorderPane();
                 mainPane.setTop(cardInfo[0]);
+                mainPane.setAlignment(cardInfo[0],Pos.CENTER);
                 mainPane.setCenter(mainBox);
+                BorderPane.setAlignment(mainBox,Pos.CENTER);
                 mainBox.setAlignment(Pos.BOTTOM_CENTER);
                 cardInfoIDK.getChildren().add(mainPane);
                 inspectWindow = true;
@@ -1844,27 +1912,39 @@ public class GUI extends Application {
         if (gameBoard.getTile(tileNum) instanceof TileProperty)
         {
             Text[] cardInformation = new Text[4];
-            cardInformation[0] = createText(gameBoard.getTile(tileNum).getName(), 30, Color.WHITE, "arial");
+            cardInformation[0] = createText("\n" + gameBoard.getTile(tileNum).getName(), 30, Color.WHITE, "arial");
             cardInformation[0].setStroke(Color.BLACK);
+            cardInformation[0].setFill(Color.WHITE);
 
             if (gameBoard.getTile(tileNum) instanceof TileProperty)
             {
-                if (gameBoard.getTile(tileNum) instanceof TileBuilding) cardInformation[2] = createText(String.valueOf(((TileBuilding) gameBoard.getTile(tileNum)).getDevelopment()), 20, Color.BLACK, "arial");
+                if (gameBoard.getTile(tileNum) instanceof TileBuilding)
+                {
+                    String neighbours = "===Neighbourhood===\n";
+                    for (TileProperty building : ((TileBuilding) gameBoard.getTile(tileNum)).getNeighborhood())
+                    {
+                        neighbours += building.getName() + "\n";
+                    }
+                    String rentPrice = "===Rent===\n";
+                    for (int i = 0; i < ((TileBuilding) gameBoard.getTile(tileNum)).getRent().size(); i++)
+                    {
+                        rentPrice += i + " : " + ((TileBuilding) gameBoard.getTile(tileNum)).getRent().get(i) + "\n";
+                    }
+                    cardInformation[2] = createText("\nCurrent Development: " + String.valueOf(((TileBuilding) gameBoard.getTile(tileNum)).getDevelopment() + "\n" + "\n" + neighbours + "\n" + rentPrice), 15, Color.BLACK, "arial");
+                }
+                else cardInformation[2] = createText("\n\n\nNo Development", 20, Color.BLACK, "arial");
 
-                else cardInformation[2] = createText("No Development", 20, Color.BLACK, "arial");
-
-                cardInformation[3] = createText(String.valueOf(((TileProperty) gameBoard.getTile(tileNum)).getPrice()), 20, Color.BLACK, "arial");
+                cardInformation[3] = createText("Price: " + String.valueOf(((TileProperty) gameBoard.getTile(tileNum)).getPrice()), 20, Color.BLACK, "arial");
             }
             else
             {
-                cardInformation[2] = createText("No Development", 20, Color.BLACK, "arial");
+                cardInformation[2] = createText("\n\n\n\n\nNo Development", 20, Color.BLACK, "arial");
 
                 cardInformation[3] = createText("No Price", 20, Color.BLACK, "arial");
             }
             return cardInformation;
         }
-        else
-            return new Text[]{new Text("poop")};
+            return new Text[]{createText("\n" + gameBoard.getTile(tileNum).getName(), 30, Color.WHITE, "arial")};
     }
 
     /**
@@ -1939,6 +2019,7 @@ public class GUI extends Application {
         //Preparing titleMenu of the scene
         Text mainTitle = createText("Roll Dices to Choose Player Order!",70,Color.BLACK,"arial");
         mainPane.setTop(mainTitle);
+        BorderPane.setAlignment(mainTitle,Pos.CENTER);
 
         //Preparing the player icons and associated space to insert roll values
         GridPane playerInfo_RollVal = new GridPane();
@@ -2022,12 +2103,14 @@ public class GUI extends Application {
                                 ImageView finalToken = new ImageView(image);
                                 finalToken.setFitWidth(80);
                                 finalToken.setFitHeight(80);
+                                tokenRemainign.setStyle("-fx-border-color: #" + player_Index.get(i).toString().substring(2));
                                 tokenRemainign.getItems().add(finalToken);
                             }
                             int currPlayer = i;
                             Alert chooseToken = new Alert(AlertType.CONFIRMATION);
                             chooseToken.setHeaderText("Token List");
-                            chooseToken.setContentText("Player " + (i+1) + " select your Token");
+                            Text selectToken = createText("Player " + (i+1) + " select your Token",20,player_Index.get(i),"arial");
+                            chooseToken.setContentText(selectToken.getText());
                             chooseToken.setGraphic(tokenRemainign);
                             chooseToken.setOnCloseRequest(lam ->
                             {
@@ -2211,6 +2294,7 @@ public class GUI extends Application {
         aiLogBox.setText(aiMessage);
         playerInformation[playerTurn].incrementPlayerTurn();
         finishedTurn = true;
+        newTurn.fire();
     }
 
     private ArrayList<String> getTokens()

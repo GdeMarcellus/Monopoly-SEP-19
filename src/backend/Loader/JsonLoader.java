@@ -60,7 +60,6 @@ public class  JsonLoader {
 
 
             JSONArray effects = (JSONArray) current.get("effects");
-            System.out.println(effects);
 
             Map<Integer, Properties> map = itterateEffects(effects);
 
