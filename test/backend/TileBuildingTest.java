@@ -59,6 +59,8 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer, 5);
         } catch (IsMortgagedException e) {
             actual = IsMortgagedException.class;
+        } catch (IsInJail e) {
+            throw new RuntimeException(e);
         }
         assertEquals(expected,actual);
 
@@ -75,6 +77,8 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer,5);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
+        } catch (IsInJail e) {
+            throw new RuntimeException(e);
         }
         assertEquals(expected,secondPlayer.getBalance());
     }
@@ -91,6 +95,8 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer,5);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
+        } catch (IsInJail e) {
+            throw new RuntimeException(e);
         }
         assertEquals(expected,owner.getBalance());
     }
@@ -108,6 +114,8 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer,5);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
+        } catch (IsInJail e) {
+            throw new RuntimeException(e);
         }
         assertEquals(expected,secondPlayer.getBalance());
     }
@@ -124,6 +132,8 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer,5);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
+        } catch (IsInJail e) {
+            throw new RuntimeException(e);
         }
         assertEquals(expected,secondPlayer.getBalance());
     }
@@ -140,6 +150,8 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer, 0);
         } catch (IsMortgagedException e) {
             actual = IsMortgagedException.class;
+        } catch (IsInJail e) {
+            throw new RuntimeException(e);
         }
 
         assertEquals(expected,actual);
@@ -153,7 +165,7 @@ public class TileBuildingTest {
         int expectedValue = 5;
         int checkValue = 0;
         try {
-            checkValue = tileBuilding.mortgaged(secondPlayer);
+            checkValue = tileBuilding.mortgage();
         }
         catch (IsMortgagedException | PropertyDevelopedException e) {
             fail();
@@ -171,7 +183,7 @@ public class TileBuildingTest {
         Object actual = null;
         tileBuilding.setMortgaged(true);
         try {
-            tileBuilding.mortgaged(secondPlayer);
+            tileBuilding.mortgage();
         } catch (IsMortgagedException e) {
             actual = IsMortgagedException.class;
 
@@ -191,7 +203,7 @@ public class TileBuildingTest {
         Object actual = null;
         tileBuilding.setDevelopment(2);
         try {
-            tileBuilding.mortgaged(secondPlayer);
+            tileBuilding.mortgage();
         } catch (IsMortgagedException e) {
             fail();
 
