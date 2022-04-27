@@ -325,7 +325,7 @@ public class GUI extends Application {
         final_main.getChildren().add(exit);
 
         //Creating a new Scene
-        Scene finalScene = new Scene(final_main,1920,1080);
+        Scene finalScene = new Scene(final_main);
         gameBoard_GUI.setScene(finalScene);
         gameBoard_GUI.show();
 
@@ -374,7 +374,7 @@ public class GUI extends Application {
         VBox mainVBox = new VBox();
         mainVBox.setAlignment(Pos.CENTER);
         for (Text text : playerFinalValueText) mainVBox.getChildren().add(text);
-        finalStageAbridged.setScene(new Scene(mainVBox,1920,1080));
+        finalStageAbridged.setScene(new Scene(mainVBox));
         finalStageAbridged.show();
         finalStageAbridged.setOnCloseRequest(e -> System.exit(0));
     }
@@ -1432,7 +1432,7 @@ public class GUI extends Application {
         StackPane finalPane = new StackPane(main,exit,references);
         StackPane.setAlignment(exit,Pos.TOP_RIGHT);
         StackPane.setAlignment(references,Pos.TOP_LEFT);
-        mainMenu.setScene(new Scene(finalPane,1920,1080));
+        mainMenu.setScene(new Scene(finalPane));
         mainMenu.show();
     }
 
@@ -1476,7 +1476,7 @@ public class GUI extends Application {
         settingOptions.getChildren().add(goBack);
 
         //Finish Stage
-        settings_Stage.setScene(new Scene(mainPane,1920,1080));
+        settings_Stage.setScene(new Scene(mainPane));
         settings_Stage.show();
     }
 
@@ -1523,7 +1523,7 @@ public class GUI extends Application {
         BorderPane.setAlignment(menuTitle,Pos.CENTER);
         mainBox.getChildren().add(exit);
         mainPane.setCenter(mainBox);
-        changeColourStage.setScene(new Scene(mainPane,1920,1080));
+        changeColourStage.setScene(new Scene(mainPane));
         changeColourStage.show();
     }
 
@@ -1557,7 +1557,7 @@ public class GUI extends Application {
         //Creating Stage and setting Scene (Also start game button functionality)
         Stage playerSelection = new Stage();
         playerSelection.setResizable(false);
-        playerSelection.setScene(new Scene(mainPane,1920,1080));
+        playerSelection.setScene(new Scene(mainPane));
         startGameButton.setOnAction(e ->
         {
             if(player_Index.size() == 1)
@@ -2161,7 +2161,7 @@ public class GUI extends Application {
         mainPane.setCenter(mainControls);
 
         //Preparing stage and scene
-        playerOrderStage.setScene(new Scene(mainPane,1920,1080));
+        playerOrderStage.setScene(new Scene(mainPane));
         playerOrderStage.show();
     }
 
