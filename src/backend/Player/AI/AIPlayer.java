@@ -276,4 +276,19 @@ public class AIPlayer extends Player {
         }
         return ThreadLocalRandom.current().nextInt(0, balance);
     }
+
+    /**
+     * AI decides if to pay to leave jail
+     * @param board game board
+     * @return if paid to leave jail or not
+     */
+    public boolean payToLeaveJail(Board board) {
+        TileFreeParking freeParking = (TileFreeParking) board.getTile(board.getFreeParkingPos());
+        if (balance > 100) {
+            freeParking.payFine(50);
+            return true;
+        }
+        return false;
+    }
+
 }
