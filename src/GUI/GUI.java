@@ -944,7 +944,7 @@ public class GUI extends Application {
 
                                 //Alert player that they paid for the rent
                                 Alert payedRent = new Alert(AlertType.WARNING);
-                                if(gameBoard.getPlayerTile(playerTurn) instanceof TileBuilding) payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + ((TileBuilding)gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getDevelopment()) + " for Rent!\nThe Rent has gone to Player " + playerOwed);
+                                if(gameBoard.getPlayerTile(playerTurn) instanceof TileBuilding) payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + ((TileBuilding)gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getDevelopment()) + " for Rent!\nThe Rent has gone to Player " + gameBoard.getPlayerIndex(playerOwed));
                                 else payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + ((TileStation)gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileStation) gameBoard.getPlayerTile(playerTurn)).getOwnedStations(gameBoard.getPlayer(playerTurn))) + " for Rent!\nThe Rent has gone to Player " + gameBoard.getPlayerIndex(playerOwed));
                                 payedRent.showAndWait();
 
@@ -1861,7 +1861,8 @@ public class GUI extends Application {
                 cardInfoIDK.getChildren().add(mainPane);
                 inspectWindow = true;
                 Alert cardStage = new Alert(AlertType.INFORMATION);
-                cardStage.setHeaderText("Tile Information");
+                cardStage.setHeaderText("");
+                cardStage.setTitle("Tile Information");
                 cardStage.setGraphic(cardInfoIDK);
                 cardStage.setResizable(false);
                 cardStage.show();
