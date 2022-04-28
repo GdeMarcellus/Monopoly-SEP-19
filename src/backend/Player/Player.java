@@ -69,15 +69,10 @@ public abstract class Player {
     /**
      *
      */
-    public void toJail(){
-        if (getNoGOJF() > 0){
-            if (removeGOJFCard()){
-                return;
-            };
-        }
+    public void toJail()
+    {
         setTurnsInJail(2);
         this.position = 10;
-
     }
 
     public void addMoney(int money) {

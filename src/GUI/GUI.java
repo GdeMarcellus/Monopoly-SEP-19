@@ -300,15 +300,11 @@ public class GUI extends Application {
                         //If time = 0, end game
                         if (time <= 0)
                         {
-                            if (allPlayerFinished(highestTurn))
-                            {
-
                                 Alert endGame = new Alert(AlertType.WARNING);
                                 endGame.setOnCloseRequest(e -> endGameScreenAbridged());
                                 endGame.setContentText("Game Finished");
                                 endGame.show();
                                 timeline.stop();
-                            }
                         }
                     }));
             timeline.playFromStart();
@@ -806,8 +802,6 @@ public class GUI extends Application {
         if(gameBoard.getPlayer(playerTurn).isInJail())
         {
             gameBoard.getPlayer(playerTurn).jailNewTurn();
-            Alert playerInJail = new Alert(AlertType.WARNING);
-            playerInJail.setContentText("Player " + (playerTurn+1) + " is in Jail\nPay 50 to get out of Jail?");
             updatePriceAndEndTurn();
         }
         else if (gameBoard.getPlayer(playerTurn) instanceof AIPlayer) agentPlayerTurn();
@@ -907,27 +901,37 @@ public class GUI extends Application {
                             //rolledDouble jail
                             if (rolledDouble == 3)
                             {
-                                Alert goingToJail = new Alert(AlertType.WARNING);
-                                goingToJail.setContentText("Player " + (playerTurn+1) + " has rolled double twice!\nPay £50 to stay out of jail?");
-                                ButtonType yesButton = ButtonType.YES;
-                                ButtonType noButton = ButtonType.NO;
-                                goingToJail.getButtonTypes().setAll(yesButton,noButton);
-                                goingToJail.showAndWait().ifPresent(type ->
+                                if (gameBoard.getPlayer(playerTurn).getNoGOJF() > 0)
                                 {
-                                    if (type == ButtonType.YES) {
-                                        gameBoard.getPlayer(playerTurn).removeMoney(50);
-                                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                                        moneyOfPlayer.setFill(Color.RED);
-                                        transition.playFromStart();
-                                        finishedTurn = true;
-                                        move.fire();
+                                    Alert notGoingToJail = new Alert(AlertType.WARNING);
+                                    gameBoard.getPlayer(playerTurn).removeGOJFCard();
+                                    notGoingToJail.setContentText("Player " + (playerTurn+1) + " has rolled double twice!\nOut of Jail Free Card Used!");
+                                    notGoingToJail.showAndWait();
+                                }
+                                else
+                                {
+                                    Alert goingToJail = new Alert(AlertType.WARNING);
+                                    goingToJail.setContentText("Player " + (playerTurn + 1) + " has rolled double twice!\nPay £50 to stay out of jail?");
+                                    ButtonType yesButton = ButtonType.YES;
+                                    ButtonType noButton = ButtonType.NO;
+                                    goingToJail.getButtonTypes().setAll(yesButton, noButton);
+                                    goingToJail.showAndWait().ifPresent(type ->
+                                    {
+                                        if (type == ButtonType.YES) {
+                                            gameBoard.getPlayer(playerTurn).removeMoney(50);
+                                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                            moneyOfPlayer.setFill(Color.RED);
+                                            transition.playFromStart();
+                                            finishedTurn = true;
+                                            move.fire();
 
-                                    } else {
-                                        gameBoard.getPlayer(playerTurn).toJail();
-                                        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
-                                        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
-                                    }
-                                });
+                                        } else {
+                                            gameBoard.getPlayer(playerTurn).toJail();
+                                            playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                            playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                        }
+                                    });
+                                }
                             }
                         }
                         else
@@ -947,50 +951,97 @@ public class GUI extends Application {
                             {
                                 int currentBalance = gameBoard.getPlayer(playerTurn).getBalance();
                                 Card newCard = ((TileCard) gameBoard.getPlayerTile(playerTurn)).pickCard(gameBoard);
-                                Alert cardEffect = new Alert(AlertType.WARNING);
-                                cardEffect.setContentText(newCard.getDescription());
-                                cardEffect.showAndWait();
-                                int outstanding = newCard.playCard(gameBoard.getPlayer(playerTurn),gameBoard);
-                                if(outstanding > 0) checkIfBankrupt((currentBalance-gameBoard.getPlayer(playerTurn).getBalance()),gameBoard.getBank());
-                                playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
-                                playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
-                                //If current player loses money due to card
-                                if (currentBalance > gameBoard.getPlayer(playerTurn).getBalance())
+
+                                if (newCard.getDescription().equals("Go to jail. Do not pass GO, do not collect £200"))
                                 {
-                                    moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                                    moneyOfPlayer.setFill(Color.RED);
-                                    transition.playFromStart();
+                                    newCard = null;
+                                    if (gameBoard.getPlayer(playerTurn).getNoGOJF() > 0)
+                                    {
+                                        Alert notGoingToJail = new Alert(AlertType.WARNING);
+                                        gameBoard.getPlayer(playerTurn).removeGOJFCard();
+                                        notGoingToJail.setContentText("Player " + (playerTurn+1) + " has used Out of Jail Free Card!");
+                                        notGoingToJail.showAndWait();
+                                    }
+                                    else {
+                                        Alert goingToJail = new Alert(AlertType.WARNING);
+                                        goingToJail.setContentText("Player " + (playerTurn + 1) + " : Pay £50 to stay out of jail?");
+                                        ButtonType yesButton = ButtonType.YES;
+                                        ButtonType noButton = ButtonType.NO;
+                                        goingToJail.getButtonTypes().setAll(yesButton, noButton);
+                                        goingToJail.showAndWait().ifPresent(type ->
+                                        {
+                                            if (type == ButtonType.YES) {
+                                                gameBoard.getPlayer(playerTurn).removeMoney(50);
+                                                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                                moneyOfPlayer.setFill(Color.RED);
+                                                transition.playFromStart();
+                                                finishedTurn = true;
+                                                move.fire();
+
+                                            } else {
+                                                gameBoard.getPlayer(playerTurn).toJail();
+                                                playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                                playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                            }
+                                        });
+                                    }
                                 }
-                                if (currentBalance < gameBoard.getPlayer(playerTurn).getBalance())
+                                else
                                 {
-                                    moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                                    moneyOfPlayer.setFill(Color.GREEN);
-                                    transition.playFromStart();
+                                    Alert cardEffect = new Alert(AlertType.WARNING);
+                                    cardEffect.setContentText(newCard.getDescription());
+                                    cardEffect.showAndWait();
+                                    int outstanding = newCard.playCard(gameBoard.getPlayer(playerTurn), gameBoard);
+                                    if (outstanding > 0)
+                                        checkIfBankrupt((currentBalance - gameBoard.getPlayer(playerTurn).getBalance()), gameBoard.getBank());
+                                    playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                    playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                    //If current player loses money due to card
+                                    if (currentBalance > gameBoard.getPlayer(playerTurn).getBalance()) {
+                                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                        moneyOfPlayer.setFill(Color.RED);
+                                        transition.playFromStart();
+                                    }
+                                    if (currentBalance < gameBoard.getPlayer(playerTurn).getBalance()) {
+                                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                        moneyOfPlayer.setFill(Color.GREEN);
+                                        transition.playFromStart();
+                                    }
                                 }
                             }
                             else if (gameBoard.getPlayerTile(playerTurn) instanceof TileGoToJail)
                             {
-                                Alert goingToJail = new Alert(AlertType.WARNING);
-                                goingToJail.setContentText("Player " + (playerTurn+1) + " has landed on Go to Jail Tile!\nPay £50 to stay out of jail?");
-                                ButtonType yesButton = ButtonType.YES;
-                                ButtonType noButton = ButtonType.NO;
-                                goingToJail.getButtonTypes().setAll(yesButton,noButton);
-                                goingToJail.showAndWait().ifPresent(type ->
+                                if (gameBoard.getPlayer(playerTurn).getNoGOJF() > 0)
                                 {
-                                    if (type == ButtonType.YES) {
-                                        gameBoard.getPlayer(playerTurn).removeMoney(50);
-                                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                                        moneyOfPlayer.setFill(Color.RED);
-                                        transition.playFromStart();
-                                        finishedTurn = true;
-                                        move.fire();
+                                    Alert notGoingToJail = new Alert(AlertType.WARNING);
+                                    gameBoard.getPlayer(playerTurn).removeGOJFCard();
+                                    notGoingToJail.setContentText("Player " + (playerTurn+1) + " has rolled double twice!\nOut of Jail Free Card Used!");
+                                    notGoingToJail.showAndWait();
+                                }
+                                else
+                                {
+                                    Alert goingToJail = new Alert(AlertType.WARNING);
+                                    goingToJail.setContentText("Player " + (playerTurn + 1) + " has landed on Go to Jail Tile!\nPay £50 to stay out of jail?");
+                                    ButtonType yesButton = ButtonType.YES;
+                                    ButtonType noButton = ButtonType.NO;
+                                    goingToJail.getButtonTypes().setAll(yesButton, noButton);
+                                    goingToJail.showAndWait().ifPresent(type ->
+                                    {
+                                        if (type == ButtonType.YES) {
+                                            gameBoard.getPlayer(playerTurn).removeMoney(50);
+                                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                            moneyOfPlayer.setFill(Color.RED);
+                                            transition.playFromStart();
+                                            finishedTurn = true;
+                                            move.fire();
 
-                                    } else {
-                                        gameBoard.getPlayer(playerTurn).toJail();
-                                        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
-                                        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
-                                    }
-                                });
+                                        } else {
+                                            gameBoard.getPlayer(playerTurn).toJail();
+                                            playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                            playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                        }
+                                    });
+                                }
                             }
                             else if (gameBoard.getPlayerTile(playerTurn) instanceof TileTax)
                             {
@@ -1339,7 +1390,7 @@ public class GUI extends Application {
                 playerToChoose.setPadding(new Insets(50));
                 mainPane.setCenter(playerToChoose);
                 playerToChoose.setAlignment(Pos.CENTER);
-                bankrupt.setScene(new Scene(mainPane, screenBounds.getMaxX(), screenBounds.getMaxY()));
+                bankrupt.setScene(new Scene(mainPane, screenBounds.getMaxX()/2, screenBounds.getMaxY()/2));
                 bankrupt.showAndWait();
             }
             else
@@ -1530,9 +1581,18 @@ public class GUI extends Application {
             choseTime.setGraphic(timeDecided);
             choseTime.setOnCloseRequest( x->
                     {
-                        if (!Objects.equals(timeDecided.getText(), ""))this.time = Integer.valueOf(timeDecided.getText());
-                        mainMenu.close();
-                        playerSelection();
+                        if (!Objects.equals(timeDecided.getText(), "") || Integer.parseInt(timeDecided.getText()) > 0)
+                        {
+                            this.time = Integer.valueOf(timeDecided.getText());
+                            mainMenu.close();
+                            playerSelection();
+                        }
+                        else
+                        {
+                            Alert warning = new Alert(AlertType.WARNING);
+                            warning.setContentText("Please Insert a number greater than 0!");
+                            warning.showAndWait();
+                        }
                     }
             );
             choseTime.showAndWait();
@@ -2369,6 +2429,13 @@ public class GUI extends Application {
                         rolledDouble++;
                         if (rolledDouble == 3)
                         {
+                            if (gameBoard.getPlayer(playerTurn).getNoGOJF() > 0)
+                            {
+                                Alert notGoingToJail = new Alert(AlertType.WARNING);
+                                gameBoard.getPlayer(playerTurn).removeGOJFCard();
+                                notGoingToJail.setContentText("Player " + (playerTurn+1) + " has rolled double twice!\nOut of Jail Free Card Used!");
+                                notGoingToJail.showAndWait();
+                            }
                             Alert goingToJail = new Alert(AlertType.WARNING);
                             goingToJail.setContentText("Player " + (playerTurn+1) + " has rolled double twice!\nGoing to Jail!");
                             gameBoard.getPlayer(playerTurn).toJail();
