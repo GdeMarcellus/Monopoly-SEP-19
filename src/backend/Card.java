@@ -13,6 +13,11 @@ public class Card {
     String description;
     Map<Integer, Properties> effects;
 
+    /**
+     * createse a card with these two value set
+     * @param description the string description of a card
+     * @param effects the map of effect of the card
+     */
     public Card(String description, Map<Integer, Properties> effects) {
         this.description = description;
         this.effects = effects;
@@ -66,7 +71,18 @@ public class Card {
         }
 
 
-
+    /**
+     * a method to play card by directly inputting the values
+     * @param effectId the effects id
+     * @param player the player using the card
+     * @param amount the amount to be paid
+     * @param houseCost the cost per houses to be paid
+     * @param hotelCost the cost per hotel to be paid
+     * @param noSpaces the number of space to move
+     * @param name the name of the tile to move too
+     * @param choiceIDs if the card is a choice card
+     * @param board the board the game is on
+     */
     public void playCard(int effectId, Player player, int amount, int houseCost, int hotelCost, int noSpaces, String name, int[] choiceIDs, Board board) {    }
 
     /**
