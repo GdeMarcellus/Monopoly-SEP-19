@@ -14,7 +14,6 @@ import backend.Tiles.*;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.event.Event;
-import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -52,7 +51,6 @@ public class GUI extends Application {
     private final Button dice2 = new Button();
     private final ArrayList<Image> facePNG = getDiceFaces();
 
-    private boolean inspectWindow = false;
     private  final Stage gameBoard_GUI = new Stage();
     private Board gameBoard = new Board();
     private Text moneyOfPlayer;
@@ -411,6 +409,45 @@ public class GUI extends Application {
             int tileIndex = getTileIndex(chosenBuilding);
             try
             {
+                if (chosenBuilding instanceof TileBuilding)
+                {
+                   if(((TileBuilding) chosenBuilding).getDevelopment()>1)
+                   {
+                       Alert sellHouse = new Alert(AlertType.CONFIRMATION);
+                       sellHouse.setTitle("Would you like to sell a house on the Property " + chosenBuilding.getName() + "?");
+                       sellHouse.showAndWait();
+                       ButtonType yesButton = ButtonType.YES;
+                       ButtonType noButton = ButtonType.NO;
+                       sellHouse.getButtonTypes().setAll(yesButton,noButton);
+                       TileBuilding finalChosenBuilding = (TileBuilding) chosenBuilding;
+                       sellHouse.showAndWait().ifPresent(type ->
+                       {
+                           if (type == ButtonType.YES)
+                           {
+                               try {
+                                   finalChosenBuilding.sellHouse(gameBoard.getBank());
+                               }
+                               catch (LargeDevelopmentDifferenceException ex)
+                               {
+                                   ex.printStackTrace();
+                               }
+                               catch (NoDevelopmentException ex)
+                               {
+                                   ex.printStackTrace();
+                               }
+                               moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                               moneyOfPlayer.setFill(Color.GREEN);
+                               transition.playFromStart();
+
+                               //Change Tile Color
+                               int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
+                               Color tileColour = Color.valueOf(((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour());
+                               tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, #" +
+                                       tileColour.toString().substring(2) + " " + developmentPercentage + "%, white 0%);\n" + "-fx-background-radius: 0");
+                           }
+                       });
+                   }
+                }
                 gameBoard.sellToBank(playerTurn,tileIndex);
 
                 //Change GUI (Money Counter)
@@ -449,6 +486,14 @@ public class GUI extends Application {
         playerBuildings.setMaxWidth(400);
         playerToChoose.getChildren().add(playerBuildings);
         playerToChoose.setPadding(new Insets(50));
+
+        //Set up of Exit Button
+        Button exit = new Button("Exit");
+        exit.setOnAction(e ->
+                mortgageStage.close()
+        );
+        exit.setAlignment(Pos.CENTER);
+        mainPane.setBottom(exit);
         mainPane.setCenter(playerToChoose);
         playerToChoose.setAlignment(Pos.CENTER);
         return mainPane;
@@ -547,9 +592,7 @@ public class GUI extends Application {
         //Set up of Exit Button
         Button exit = new Button("Exit");
         exit.setOnAction(e ->
-                {
-                    mortgageStage.close();
-                }
+                mortgageStage.close()
         );
         exit.setAlignment(Pos.CENTER);
         mainPane.setBottom(exit);
@@ -845,11 +888,6 @@ public class GUI extends Application {
         move.setPrefSize(100,50);
         move.setOnAction(e ->
                 {
-                    if (gameBoard.getPlayer(playerTurn).isInJail())
-                    {
-                        System.out.println("In Jail!");
-                        e.consume();
-                    }
                     if (!finishedTurn) {
                         rollDices();
                     if (gameBoard.checkDouble(dices.getDiceValues()))
@@ -887,6 +925,7 @@ public class GUI extends Application {
                                 moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                                 moneyOfPlayer.setFill(Color.RED);
                                 transition.playFromStart();
+                                checkIfBankrupt();
                             }
                             if (currentBalance < gameBoard.getPlayer(playerTurn).getBalance())
                             {
@@ -939,9 +978,6 @@ public class GUI extends Application {
 
                                 if (rentPrice > 0) checkIfBankrupt();
 
-                                //Give Money to player who owns buildings
-                                playerOwed.setBalance(playerOwed.getBalance() + ((TileProperty) gameBoard.getPlayerTile(playerTurn)).getPrice());
-
                                 //Alert player that they paid for the rent
                                 Alert payedRent = new Alert(AlertType.WARNING);
                                 if(gameBoard.getPlayerTile(playerTurn) instanceof TileBuilding) payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + ((TileBuilding)gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getDevelopment()) + " for Rent!\nThe Rent has gone to Player " + gameBoard.getPlayerIndex(playerOwed));
@@ -987,7 +1023,6 @@ public class GUI extends Application {
             if(gameBoard.getPlayer(playerTurn).isInJail())
             {
                 gameBoard.getPlayer(playerTurn).jailNewTurn();
-
                 updatePriceAndEndTurn();
             }
             else if (!finishedTurn)
@@ -1006,7 +1041,14 @@ public class GUI extends Application {
                         {
                             if (gameBoard.getPlayers().size() == 0) System.exit(0);
                             updatePriceAndEndTurn();
+                            System.out.println("Player " + playerTurn + " " + gameBoard.getPlayer(playerTurn).isInJail());
                             if (gameBoard.getPlayer(playerTurn) instanceof AIPlayer) agentPlayerTurn();
+                            else if (gameBoard.getPlayer(playerTurn).isInJail())
+                        {
+                            Alert playerInJail = new Alert(AlertType.WARNING);
+                            playerInJail.setContentText("Player " + playerTurn + " is in Jail\nTurns Left: " + gameBoard.getPlayer(playerTurn).getTurnsInJail());
+                            newTurn.fire();
+                        }
                         }
                 }
                 catch (ClassCastException ex)
@@ -1136,6 +1178,10 @@ public class GUI extends Application {
     }
     private void auctionHouse(ArrayList<Player> players)
     {
+        //Remove players in jail from the arrayList
+        players.removeIf(Player::isInJail);
+
+        //Initialise auction for the backend
         gameBoard.auctionInitialise();
         gameBoard.auctionStart();
         auctionWindow = new Stage();
@@ -1256,9 +1302,7 @@ public class GUI extends Application {
                 winner.setHeaderText("Congratulations!");
                 winner.showAndWait();
                 winner.setOnCloseRequest(lambda ->
-                {
-                    System.exit(0);
-                });
+                        System.exit(0));
             }
             else newTurn.fire();
         });
@@ -1509,6 +1553,7 @@ public class GUI extends Application {
                 });
                 Alert setColor = new Alert(AlertType.INFORMATION);
                 setColor.setTitle("Please Select the new desired Color!");
+                setColor.setHeaderText("Select Color ---->");
                 setColor.setGraphic(colorPicker);
                 setColor.showAndWait();
             });
@@ -1738,7 +1783,6 @@ public class GUI extends Application {
      */
     private String getPropertyString(int playerNum)
     {
-
         StringBuilder list_of_properties = new StringBuilder();
         for(int i = 0; i < gameBoard.getPlayer(playerNum).getProperties().size(); i++)
         {
@@ -1817,14 +1861,12 @@ public class GUI extends Application {
     private int tileCreation(int count, GridPane gridPane, int i, int j) {
         //Setting up the Button for each tile
         int cardNum = count;
-        Button tileButton = null;
 
         //Set Tile Name depending on Object Class
-        tileButton = new Button(gameBoard.getTile(count).getName());
+        Button tileButton = new Button(gameBoard.getTile(count).getName());
 
         //Set Tile Visuals
 
-        assert tileButton != null;
         tileButton.setPadding(new Insets(5));
         tileButton.setPrefWidth(150);
         tileButton.setPrefHeight(150);
@@ -1859,7 +1901,6 @@ public class GUI extends Application {
                 BorderPane.setAlignment(mainBox,Pos.CENTER);
                 mainBox.setAlignment(Pos.BOTTOM_CENTER);
                 cardInfoIDK.getChildren().add(mainPane);
-                inspectWindow = true;
                 Alert cardStage = new Alert(AlertType.INFORMATION);
                 cardStage.setHeaderText("");
                 cardStage.setTitle("Tile Information");
@@ -1942,11 +1983,11 @@ public class GUI extends Application {
                     {
                         rentPrice += i + " : " + ((TileBuilding) gameBoard.getTile(tileNum)).getRent().get(i) + "\n";
                     }
-                    cardInformation[2] = createText("\nCurrent Development: " + String.valueOf(((TileBuilding) gameBoard.getTile(tileNum)).getDevelopment() + "\n" + "\n" + neighbours + "\n" + rentPrice), 15, Color.BLACK, "arial");
+                    cardInformation[2] = createText("\nCurrent Development: " + ((TileBuilding) gameBoard.getTile(tileNum)).getDevelopment() + "\n" + "\n" + neighbours + "\n" + rentPrice, 15, Color.BLACK, "arial");
                 }
                 else cardInformation[2] = createText("\n\n\nNo Development", 20, Color.BLACK, "arial");
 
-                cardInformation[3] = createText("Price: " + String.valueOf(((TileProperty) gameBoard.getTile(tileNum)).getPrice()), 20, Color.BLACK, "arial");
+                cardInformation[3] = createText("Price: " + ((TileProperty) gameBoard.getTile(tileNum)).getPrice(), 20, Color.BLACK, "arial");
             }
             else
             {
@@ -2189,7 +2230,6 @@ public class GUI extends Application {
      *
      * @param playerRolls HashMap<Integer,Integer> Where the first value is the dice roll and the second is the player index
      *
-     * @return Returns a String stating the playing order, based on the HashMap
      */
     private void getPlayerOrder(HashMap<Integer,Integer> playerRolls)
     {
@@ -2230,57 +2270,54 @@ public class GUI extends Application {
             if (event != null) {
                 aiMessage += event.getDescription() + "\n";
                 switch (event.getEvent()) {
-                    case DiceRoll: {
+                    case DiceRoll -> {
                         //update dice
                         break;
                     }
-                    case DiceRollDouble: {
+                    case DiceRollDouble -> {
                         //update dice, call AIPlayer.takeTurn again after finished processing his turn
                         break;
                     }
-                    case Move: {
+                    case Move, GoneToJail -> {
                         //update token
+                        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                         break;
                     }
-                    case PaidTax: {
+                    case PaidTax, PaidRent -> {
                         //should be handled by AI
+
+                        checkIfBankrupt();
                         break;
                     }
-                    case PaidRent: {
-                        //should be handled by AI
-                        break;
-                    }
-                    case GoneToJail: {
-                        //not implemented yet
-                        break;
-                    }
-                    case FreeParking: {
+                    //not implemented yet
+                    case FreeParking -> {
                         //handled by AI
                         break;
                     }
-                    case OwnProperty: {
+                    case OwnProperty -> {
                         //handled by AI
                         break;
                     }
-                    case PropertyPurchase: {
+                    case PropertyPurchase -> {
                         //update property, actual purchase handled by AI
                         break;
                     }
-                    case HousePurchase: {
-                        //update property, actual purchase handled by AI
+                    case HousePurchase, HouseSell -> {
+                        //Change Tile Color
+                        int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
+                        Color tileColour = Color.valueOf(((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour());
+                        tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, #" +
+                                tileColour.toString().substring(2) + " " + developmentPercentage + "%, white 0%);\n" + "-fx-background-radius: 0");
                         break;
                     }
-                    case PropertySell: {
+                    case PropertySell -> {
                         //update property, actual sale handled by AI
                         break;
                     }
-                    case HouseSell: {
-                        //update property, actual sale handled by AI
-                        break;
-                    }
-                    case Bankrupt: {
+                    case Bankrupt -> {
                         turnOngoing = false;
-                        //remove AI from game
+                        checkIfBankrupt();
                         break;
                     }
                 }
@@ -2289,8 +2326,6 @@ public class GUI extends Application {
                 turnOngoing = false;
             }
         }
-        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
-        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
         if (aiPlayer.getBalance() > intialMoney)
         {
             moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
@@ -2309,6 +2344,11 @@ public class GUI extends Application {
         newTurn.fire();
     }
 
+    /**
+     * Simple method that gets all the tokens from the token resource folder, and places them in an ArrayList
+     *
+     * @return ArrayList of the URL of the tokens
+     */
     private ArrayList<String> getTokens()
     {
         ArrayList<String> tokens = new ArrayList<>();
