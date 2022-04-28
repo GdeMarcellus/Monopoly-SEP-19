@@ -18,8 +18,8 @@ public class Card {
         this.effects = effects;
     }
 
-    public void playCard(Player player, Board board){
-        System.out.println("Play Card Tiles Array: ");
+    public int playCard(Player player, Board board){
+        int outstandingAmount = 0;
         Integer currentID = null;
         Properties current = null;
         for(Map.Entry<Integer,Properties> pair : effects.entrySet())
@@ -40,13 +40,13 @@ public class Card {
                     bankPayPlayer(player, amount);
                     break;
                 case 1:
-                    payBank(player, amount);
+                    outstandingAmount = payBank(player, amount);
                     break;
                 case 2:
-                    payRepairs(player, houseCost, hotelCost);
+                    outstandingAmount = payRepairs(player, houseCost, hotelCost);
                     break;
                 case 3:
-                    payFine(player, (TileFreeParking) board.getTile(board.getFreeParkingPos()), amount);
+                    outstandingAmount = payFine(player, (TileFreeParking) board.getTile(board.getFreeParkingPos()), amount);
                     break;
                 case 4:
                     paidByPlayers(player, board.getPlayers(), amount);
@@ -62,7 +62,7 @@ public class Card {
                 case 8:
 
             }
-
+            return outstandingAmount;
         }
 
 

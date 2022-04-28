@@ -830,7 +830,7 @@ public class GUI extends Application {
         Buy.setOnAction(e->
         {
             //Roll before buying
-            if (!finishedTurn)
+            if (!finishedTurn && rolledDouble == 0)
             {
                 Alert d = new Alert(AlertType.WARNING);
                 d.setContentText("Roll dies and move before playing another action!");
@@ -900,8 +900,10 @@ public class GUI extends Application {
                         {
                             finishedTurn = false;
                             rolledDouble++;
+                            gameBoard.getPlayer(playerTurn).move(dices.getDiceValues());
                             playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                             playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+
                             //rolledDouble jail
                             if (rolledDouble == 3)
                             {
@@ -935,6 +937,7 @@ public class GUI extends Application {
                             playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                             if (passedGo)
                             {
+                                gameBoard.getPlayer(playerTurn).addMoney(200);
                                 //Change GUI (Money Counter)
                                 moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                                 moneyOfPlayer.setFill(Color.GREEN);
@@ -947,7 +950,8 @@ public class GUI extends Application {
                                 Alert cardEffect = new Alert(AlertType.WARNING);
                                 cardEffect.setContentText(newCard.getDescription());
                                 cardEffect.showAndWait();
-                                newCard.playCard(gameBoard.getPlayer(playerTurn),gameBoard);
+                                int outstanding = newCard.playCard(gameBoard.getPlayer(playerTurn),gameBoard);
+                                if(outstanding > 0) checkIfBankrupt((currentBalance-gameBoard.getPlayer(playerTurn).getBalance()),gameBoard.getBank());
                                 playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                                 playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                                 //If current player loses money due to card
@@ -956,7 +960,6 @@ public class GUI extends Application {
                                     moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                                     moneyOfPlayer.setFill(Color.RED);
                                     transition.playFromStart();
-                                    checkIfBankrupt((currentBalance-gameBoard.getPlayer(playerTurn).getBalance()),gameBoard.getBank());
                                 }
                                 if (currentBalance < gameBoard.getPlayer(playerTurn).getBalance())
                                 {
@@ -1024,7 +1027,7 @@ public class GUI extends Application {
                                 }
                                 else
                                 {
-                                    if (playerOwed != gameBoard.getBank())
+                                    if (playerOwed != gameBoard.getBank() && playerOwed != gameBoard.getPlayer(playerTurn))
                                     {
                                         //Pay for Rent
                                         int rentPrice = gameBoard.payRent(playerTurn, gameBoard.getPlayer(playerTurn).getPosition(), dices.getDiceValues());
@@ -2344,7 +2347,7 @@ public class GUI extends Application {
     /**
      *
      */
-    private void agentPlayerTurn()
+    private String agentPlayerTurn()
     {
         String aiMessage = "";
         PauseTransition transition = new PauseTransition(Duration.seconds(0.5));
@@ -2372,7 +2375,7 @@ public class GUI extends Application {
                             playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                             playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                         }
-                        else agentPlayerTurn();
+                        else aiMessage += agentPlayerTurn();
                     }
                     case Move, GoneToJail -> {
                         //update token
@@ -2427,6 +2430,7 @@ public class GUI extends Application {
         playerInformation[playerTurn].incrementPlayerTurn();
         finishedTurn = true;
         newTurn.fire();
+        return aiMessage;
     }
 
     /**
