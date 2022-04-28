@@ -71,6 +71,11 @@ public class  JsonLoader {
         return cards;
     }
 
+    /**
+     * iterate over the data of a card effect and return the effects processed
+     * @param effects the json Array containing a cards effect
+     * @return a map of each effect with their number and their properties.
+     */
     public Map<Integer, Properties> itterateEffects(JSONArray effects){
         Map<Integer, Properties> map = new HashMap<>();
 

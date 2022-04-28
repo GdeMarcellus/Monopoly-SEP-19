@@ -2,7 +2,9 @@ package backend;
 
 import backend.Player.HumanPlayer;
 import backend.Player.Player;
+import backend.Tiles.Tile;
 import backend.Tiles.TileBuilding;
+import backend.Tiles.TileJail;
 import backend.Tiles.TileProperty;
 import org.junit.Before;
 import org.junit.Test;
@@ -108,4 +110,42 @@ public class    PlayerTest {
     public void hasProperty2(){
         assertFalse(player.hasProperty(property));
     }
+
+    @Test
+    public void addGOJFTest(){
+        player.addGOJFCard();
+        assertEquals(1,player.getNoGOJF());
+    }
+    @Test
+    public void RemoveGOJFest(){
+        player.addGOJFCard();
+        player.addGOJFCard();
+        player.addGOJFCard();
+        player.removeGOJFCard();
+        assertEquals(2,player.getNoGOJF());
+    }
+
+    @Test
+    public void getOutOfJailTestSetTurnInJailSet(){
+        player.setTurnsInJail(10);
+        Board board = new Board();
+        player.getOuOfJail(board);
+        assertEquals(0,player.getTurnsInJail());
+    }
+    @Test
+    public void getOutOfJailTestSetPositionTo0(){
+        Board board = new Board();
+        player.getOuOfJail(board);
+        assertEquals(0,player.getOuOfJail(board););
+    }
+    @Test
+    public void getOutOfJailTestSetPositionToProperPosition(){
+        Board board = new Board();
+        Tile[] tiles = new Tile[41];
+        tiles[11] = new TileJail();
+        board.setTiles(tiles);
+
+        assertEquals(11,player.getOuOfJail(board););
+    }
+
 }
