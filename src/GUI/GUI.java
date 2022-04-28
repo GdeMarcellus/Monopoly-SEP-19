@@ -238,8 +238,8 @@ public class GUI extends Application {
         main.setBottom(controls);
         main.setTop(top);
         board.setBorder(new Border(new BorderStroke(Color.RED,BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
-        board.setMaxHeight(600);
-        board.setMaxWidth(900);
+        board.setMaxHeight(620);
+        board.setMaxWidth(910);
         main.setCenter(board);
         main.setLeft(playerList);
 
@@ -945,7 +945,7 @@ public class GUI extends Application {
                                 //Alert player that they paid for the rent
                                 Alert payedRent = new Alert(AlertType.WARNING);
                                 if(gameBoard.getPlayerTile(playerTurn) instanceof TileBuilding) payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + ((TileBuilding)gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getDevelopment()) + " for Rent!\nThe Rent has gone to Player " + playerOwed);
-                                else payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + ((TileStation)gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileStation) gameBoard.getPlayerTile(playerTurn)).getOwnedStations(gameBoard.getPlayer(playerTurn))) + " for Rent!\nThe Rent has gone to Player " + playerOwed);
+                                else payedRent.setContentText("Player " + (playerTurn+1) + " has payed " + ((TileStation)gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileStation) gameBoard.getPlayerTile(playerTurn)).getOwnedStations(gameBoard.getPlayer(playerTurn))) + " for Rent!\nThe Rent has gone to Player " + gameBoard.getPlayerIndex(playerOwed));
                                 payedRent.showAndWait();
 
                                 //Property Owned by Player
@@ -1830,8 +1830,6 @@ public class GUI extends Application {
         tileButton.setPrefHeight(150);
         tileButton.setOnAction(e->
         {
-            if (!inspectWindow)
-            {
                 BorderPane mainPane = new BorderPane();
                 VBox cardInfoIDK = new VBox();
                 if (gameBoard.getTile(cardNum) instanceof  TileBuilding)
@@ -1862,17 +1860,11 @@ public class GUI extends Application {
                 mainBox.setAlignment(Pos.BOTTOM_CENTER);
                 cardInfoIDK.getChildren().add(mainPane);
                 inspectWindow = true;
-                Scene cardInfoScene = new Scene(cardInfoIDK, 300, 400);
-                Stage cardStage = new Stage();
+                Alert cardStage = new Alert(AlertType.INFORMATION);
+                cardStage.setHeaderText("Tile Information");
+                cardStage.setGraphic(cardInfoIDK);
                 cardStage.setResizable(false);
-                cardStage.setScene(cardInfoScene);
                 cardStage.show();
-                cardInfoIDK.setOnMouseClicked(a ->
-                {
-                    inspectWindow = false;
-                    cardStage.close();
-                });
-            }
         });
         if (gameBoard.getTile(count) instanceof TileBuilding)
         {
@@ -2012,11 +2004,11 @@ public class GUI extends Application {
         double location = 0;
         if (axis == 'X')
         {
-                location =  board.getChildren().get(tileNum).getLayoutX()-430+(playerNumber*3);
+                location =  board.getChildren().get(tileNum).getLayoutX()-435+(playerNumber*3);
         }
         else if (axis == 'Y')
         {
-                location =  board.getChildren().get(tileNum).getLayoutY()-290;
+                location =  board.getChildren().get(tileNum).getLayoutY()-300;
         }
         return location;
     }
