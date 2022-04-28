@@ -77,7 +77,7 @@ public class AIReport {
             case DiceRollDouble -> description = "Rolled a " + diceRoll.get(0) + " and a " + diceRoll.get(1) + ", a double!";
             case Move -> description = "Moved to: " + landedTile.getName();
             case PaidTax -> description = "Paid £" + taxMoney + "in tax";
-            case PaidRent -> description = "Paid £" + rentPaid + "in rent to player " + (board.getPlayers().indexOf(rentProperty.getOwner()) + 1);
+            case PaidRent -> description = "Paid £" + rentPaid + "in rent to player " + ((board.getPlayers().indexOf(rentProperty.getOwner())) + 1);
             case GoneToJail -> description = "Sent to jail :(";
             case FreeParking -> description = "Collected £" + freeParkingMoney + " from free parking";
             case OwnProperty -> description = "Relaxing at my own property";

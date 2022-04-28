@@ -271,9 +271,9 @@ public class AIPlayer extends Player {
      * @return bid
      */
     public int makeBid(TileProperty property, Board board) {
-        if (board.auctionHighestBid()[0] < property.getPrice() && board.auctionHighestBid()[0] != -1) {
+        if (board.auctionHighestBid()[0] < property.getPrice() && board.auctionHighestBid()[0] != -1 && board.auctionHighestBid()[0] < balance) {
             return board.auctionHighestBid()[0] + 1;
         }
-        return ThreadLocalRandom.current().nextInt((property.getPrice() / 2), (int) (property.getPrice() * 1.1));
+        return ThreadLocalRandom.current().nextInt(0, balance);
     }
 }
