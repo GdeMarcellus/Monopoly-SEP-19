@@ -274,6 +274,13 @@ public class AIPlayer extends Player {
         if (board.auctionHighestBid()[0] < property.getPrice() && board.auctionHighestBid()[0] != -1 && board.auctionHighestBid()[0] < balance) {
             return board.auctionHighestBid()[0] + 1;
         }
+        int limit;
+        if (balance > property.getPrice()) {
+            limit = property.getPrice();
+        }
+        else {
+            limit = balance;
+        }
         return ThreadLocalRandom.current().nextInt(0, balance);
     }
 
