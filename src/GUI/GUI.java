@@ -906,10 +906,26 @@ public class GUI extends Application {
                             if (rolledDouble == 3)
                             {
                                 Alert goingToJail = new Alert(AlertType.WARNING);
-                                goingToJail.setContentText("Player " + (playerTurn+1) + " has rolled double twice!\nGoing to Jail!");
-                                gameBoard.getPlayer(playerTurn).toJail();
-                                playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
-                                playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                                goingToJail.setContentText("Player " + (playerTurn+1) + " has rolled double twice!\nPay £50 to stay out of jail?");
+                                ButtonType yesButton = ButtonType.YES;
+                                ButtonType noButton = ButtonType.NO;
+                                goingToJail.getButtonTypes().setAll(yesButton,noButton);
+                                goingToJail.showAndWait().ifPresent(type ->
+                                {
+                                    if (type == ButtonType.YES) {
+                                        gameBoard.getPlayer(playerTurn).removeMoney(50);
+                                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                        moneyOfPlayer.setFill(Color.RED);
+                                        transition.playFromStart();
+                                        finishedTurn = true;
+                                        move.fire();
+
+                                    } else {
+                                        gameBoard.getPlayer(playerTurn).toJail();
+                                        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                    }
+                                });
                             }
                         }
                         else
@@ -951,12 +967,27 @@ public class GUI extends Application {
                             }
                             else if (gameBoard.getPlayerTile(playerTurn) instanceof TileGoToJail)
                             {
-                                gameBoard.getPlayer(playerTurn).toJail();
-                                playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
-                                playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
-                                Alert wentToJail = new Alert(AlertType.WARNING);
-                                wentToJail.setContentText("Player " + (playerTurn+1) + " has gone to Jail!");
-                                wentToJail.showAndWait();
+                                Alert goingToJail = new Alert(AlertType.WARNING);
+                                goingToJail.setContentText("Player " + (playerTurn+1) + " has landed on Go to Jail Tile!\nPay £50 to stay out of jail?");
+                                ButtonType yesButton = ButtonType.YES;
+                                ButtonType noButton = ButtonType.NO;
+                                goingToJail.getButtonTypes().setAll(yesButton,noButton);
+                                goingToJail.showAndWait().ifPresent(type ->
+                                {
+                                    if (type == ButtonType.YES) {
+                                        gameBoard.getPlayer(playerTurn).removeMoney(50);
+                                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                                        moneyOfPlayer.setFill(Color.RED);
+                                        transition.playFromStart();
+                                        finishedTurn = true;
+                                        move.fire();
+
+                                    } else {
+                                        gameBoard.getPlayer(playerTurn).toJail();
+                                        playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                        playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X', gameBoard.getPlayer(playerTurn).getPosition(), playerTurn));
+                                    }
+                                });
                             }
                             else if (gameBoard.getPlayerTile(playerTurn) instanceof TileTax)
                             {
