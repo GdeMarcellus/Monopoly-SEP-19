@@ -67,7 +67,7 @@ public class    PlayerTest {
     @Test
     public void testToJail() {
         player.toJail();
-        assertEquals(player.getPosition(),41);
+        assertEquals(player.getPosition(),10);
     }
 
     @Test
@@ -136,7 +136,7 @@ public class    PlayerTest {
     public void getOutOfJailTestSetPositionTo0(){
         Board board = new Board();
         player.getOuOfJail(board);
-        assertEquals(0,player.getOuOfJail(board););
+        assertEquals(0,player.getOuOfJail(board));
     }
     @Test
     public void getOutOfJailTestSetPositionToProperPosition(){
@@ -145,7 +145,7 @@ public class    PlayerTest {
         tiles[11] = new TileJail();
         board.setTiles(tiles);
 
-        assertEquals(11,player.getOuOfJail(board););
+        assertEquals(11,player.getOuOfJail(board));
     }
 
 }
