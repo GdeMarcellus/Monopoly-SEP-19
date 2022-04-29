@@ -1,0 +1,117 @@
+{
+  "1" : {
+    "description" : "Bank pays you divided of £50",
+    "effects" : [
+      {"effectId" : 0, "amount" : 50 }
+    ]
+  },
+
+  "2" : {
+    "description" : "You have won a lip sync battle. Collect £100",
+    "effects" :
+    [
+      {"effectId" : 0, "amount" : 100 }
+    ]
+  },
+
+  "3" : {
+    "description" : "Advance to Turing Heights",
+    "effects" :
+    [
+      {"effectId" : 5,  "location" :  "Turing Heights"}
+    ]
+  },
+
+  "4" : {
+    "description" : "Advance to Han Xin Gardens. If you pass GO, collect £200",
+    "effects" :
+    [
+      {"effectId" : 5,  "location" :  "Han Xin Gardens"}
+    ]
+  },
+
+  "5" : {
+    "description" : "Fined £15 for speeding",
+    "effects" :
+    [
+      {"effectId" : 3, "amount" : 15 }
+    ]
+  },
+
+  "6" : {
+    "description" : "Pay university fees of £150",
+    "effects" :
+    [
+      {"effectId" : 1, "amount" : 150 }
+    ]
+  },
+
+  "7" : {
+    "description" : "Take a trip to Hove station. If you pass GO collect £200",
+    "effects" :
+    [
+      {"effectId" : 5, "location" : "Hove station" }
+    ]
+  },
+
+  "8" : {
+  "description" : "Loan matures, collect £150",
+  "effects" :
+  [
+    {"effectId" : 0, "amount" : 150 }
+  ]
+},
+
+  "9" : {
+    "description" : "You are assessed for repairs, £40/house, £115/hotel",
+    "effects" :
+    [
+      {"effectId" : 2, "houseCost" :  40, "hotelCost" :  115  }
+    ]
+  },
+
+  "10" : {
+    "description" : "Advance to go",
+    "effects" :
+    [
+      {"effectId" : 5, "location" : "Go" }
+    ]
+  },
+
+  "11" : {
+    "description" : "You are assessed for repairs, £25/house, £100/hotel",
+    "effects" :
+    [
+      {"effectId" : 2, "houseCost" :  25, "hotelCost" :  100  }
+    ]
+  },
+
+  "12" : {
+    "description" : "Go back 3 spaces",
+    "effects" : [
+      {"effectId" : 7, "location" : 3 }
+    ]
+  },
+
+  "13" : {
+    "description" : "Go to jail. Do not pass GO, do not collect £200",
+    "effects" : [
+      {"effectId" : 6,  "location" :  "Jail"}
+    ]
+  },
+
+  "14" : {
+    "description" : "Drunk in charge of a hoverboard. Fine £30",
+    "effects" :
+    [
+      {"effectId" : 3, "amount" : 30 }
+    ]
+  },
+
+  "15" : {
+    "description" : "Get out of jail free",
+    "effects" : [
+      {"effectId" : 9}
+    ]
+  }
+}
