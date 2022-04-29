@@ -281,7 +281,7 @@ public class AIPlayer extends Player {
         else {
             limit = balance;
         }
-        return ThreadLocalRandom.current().nextInt(0, balance);
+        return ThreadLocalRandom.current().nextInt(0, limit);
     }
 
     /**
