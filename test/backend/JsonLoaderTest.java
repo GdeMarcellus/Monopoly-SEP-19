@@ -32,11 +32,13 @@ public class JsonLoaderTest {
         Tile[] boardTiles = board.getTiles();
         boolean result = true;
         for (int i = 0; i < boardTiles.length; i++) {
-            if (tiles[i] != boardTiles[i]){
-                System.out.printf(tiles[i].toString());
-                System.out.printf(boardTiles[i].toString());
-                result = false;
+            System.out.println(tiles[i]);
+            if (tiles[i] != null){
+                if (tiles[i].getName() != boardTiles[i].getName() ){
+                    result = false;
+                }
             }
+
         }
         assertTrue(result);
     }
@@ -67,7 +69,7 @@ public class JsonLoaderTest {
         effect.put("amount" , 100L);
         effects.add(effect);
 
-        Map<Integer, Properties> integerPropertiesMap = jsonLoader.itterateEffects(effects);
+        Map<Integer, Properties> integerPropertiesMap = jsonLoader.iterateEffects(effects);
 
         Map<Integer, Properties> expected = new HashMap<>();
         Properties properties = new Properties();
@@ -85,7 +87,7 @@ public class JsonLoaderTest {
         effect.put("houseCost" , 100L);
         effects.add(effect);
 
-        Map<Integer, Properties> integerPropertiesMap = jsonLoader.itterateEffects(effects);
+        Map<Integer, Properties> integerPropertiesMap = jsonLoader.iterateEffects(effects);
 
         Map<Integer, Properties> expected = new HashMap<>();
         Properties properties = new Properties();
@@ -103,7 +105,7 @@ public class JsonLoaderTest {
         effect.put("hotelCost" , 100L);
         effects.add(effect);
 
-        Map<Integer, Properties> integerPropertiesMap = jsonLoader.itterateEffects(effects);
+        Map<Integer, Properties> integerPropertiesMap = jsonLoader.iterateEffects(effects);
 
         Map<Integer, Properties> expected = new HashMap<>();
         Properties properties = new Properties();
@@ -121,7 +123,7 @@ public class JsonLoaderTest {
         effect.put("location" , "old Steine");
         effects.add(effect);
 
-        Map<Integer, Properties> integerPropertiesMap = jsonLoader.itterateEffects(effects);
+        Map<Integer, Properties> integerPropertiesMap = jsonLoader.iterateEffects(effects);
 
         Map<Integer, Properties> expected = new HashMap<>();
         Properties properties = new Properties();
@@ -139,7 +141,7 @@ public class JsonLoaderTest {
         effect.put("location" , "Luck");
         effects.add(effect);
 
-        Map<Integer, Properties> integerPropertiesMap = jsonLoader.itterateEffects(effects);
+        Map<Integer, Properties> integerPropertiesMap = jsonLoader.iterateEffects(effects);
 
         Map<Integer, Properties> expected = new HashMap<>();
         Properties properties = new Properties();
@@ -164,7 +166,7 @@ public class JsonLoaderTest {
         effects.add(effect2);
 
 
-        Map<Integer, Properties> integerPropertiesMap = jsonLoader.itterateEffects(effects);
+        Map<Integer, Properties> integerPropertiesMap = jsonLoader.iterateEffects(effects);
 
         Map<Integer, Properties> expected = new HashMap<>();
         Properties properties1 = new Properties();
