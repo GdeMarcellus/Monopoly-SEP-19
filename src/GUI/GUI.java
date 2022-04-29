@@ -602,9 +602,9 @@ public class GUI extends Application {
     }
 
     /**
-     * Method used to create the Select Player Node
+     * Method used to create the Mortgage Stage Node
      *
-     * @return Node (BorderPane) that contains all the functions for the selectPlayer
+     * @return Node (BorderPane) that contains all the functions for the Mortgage Stage
      */
     private Node mortgageStage()
     {
@@ -2162,7 +2162,13 @@ public class GUI extends Application {
         playerSelection.setScene(new Scene(mainPane,screenBounds.getMaxX(),screenBounds.getMaxY()));
         startGameButton.setOnAction(e ->
         {
-            if(player_Index.size() == 1)
+            if (player_Index.size() == 0)
+            {
+                Alert notEnoughPlayer = new Alert(AlertType.WARNING);
+                notEnoughPlayer.setContentText("Please select at least one human player before starting!");
+                notEnoughPlayer.showAndWait();
+            }
+            else if(player_Index.size() == 1)
             {
                 Alert agentPlayerOrTryAgain = new Alert(AlertType.CONFIRMATION);
                 ButtonType yesButton = ButtonType.YES;
