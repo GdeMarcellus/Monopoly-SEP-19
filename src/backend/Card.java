@@ -228,7 +228,8 @@ public class Card {
             }
         }
 
-        player.jump(pos);
+        if (Objects.equals(tileName, "The Old Creek")) player.jump(1);
+        else player.jump(pos);
     }
 
     /**
