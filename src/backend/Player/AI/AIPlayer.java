@@ -15,7 +15,6 @@ public class AIPlayer extends Player {
         report = new AIReport(board);
     }
 
-    //TODO add double roll, jail functionality
     /**
      * Handles a turn
      * @param myIndex index of this AI player object in Board.players list
@@ -57,7 +56,7 @@ public class AIPlayer extends Player {
 
         }
         else if (currentTile instanceof  TileGoToJail) {
-            tileGoToJail();
+            this.toJail();
 
         }
         if (currentTile instanceof TileGo || currentTile instanceof TileJail) {
@@ -196,12 +195,6 @@ public class AIPlayer extends Player {
         return debt;
     }
 
-    private void tileGoToJail() {
-        //TODO report: turnLog.add("I have been sent to jail :(");
-        this.toJail();
-        //TODO implement jail
-    }
-
     //Debt handling
 
     /**
@@ -232,7 +225,7 @@ public class AIPlayer extends Player {
                     if (property instanceof TileBuilding) {
                         if (((TileBuilding) property).getDevelopment() > 0) {
                             try {
-                                ((TileBuilding) property).sellHouse(board.getBank());
+                                ((TileBuilding) property).sellHouse();
                                 report.addSoldHouse((TileBuilding) property);
                                 report.addEvent(Event.HouseSell);
                             } catch (LargeDevelopmentDifferenceException | NoDevelopmentException e) {
@@ -283,19 +276,4 @@ public class AIPlayer extends Player {
         }
         return ThreadLocalRandom.current().nextInt(0, limit);
     }
-
-    /**
-     * AI decides if to pay to leave jail
-     * @param board game board
-     * @return if paid to leave jail or not
-     */
-    public boolean payToLeaveJail(Board board) {
-        TileFreeParking freeParking = (TileFreeParking) board.getTile(board.getFreeParkingPos());
-        if (balance > 100) {
-            freeParking.payFine(50);
-            return true;
-        }
-        return false;
-    }
-
 }

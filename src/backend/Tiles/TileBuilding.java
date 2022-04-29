@@ -29,6 +29,7 @@ public class TileBuilding extends TileProperty {
      * @param diceRoll the dice roll made by the player (as a total)
      * @return amount to be paid by the incoming player
      * @throws IsMortgagedException thrown if the property has a mortgage on it
+     * @throws IsInJail thrown if payee is in jail
      */
     @Override
     public int payRent(Player player, int diceRoll) throws IsMortgagedException, IsInJail {
@@ -53,6 +54,7 @@ public class TileBuilding extends TileProperty {
     }
 
     /**
+     * Mortgages a property
      * @return amount paid by mortgaging the property
      * @throws IsMortgagedException thrown if the property has a mortgage on it
      * @throws PropertyDevelopedException thrown if the property has houses or hotels
@@ -91,7 +93,6 @@ public class TileBuilding extends TileProperty {
             }
         }
         if (getOwner().getBalance() < developmentCost){
-            int amountOustanding = developmentCost - getOwner().getBalance();
             throw new InsufficientFundsException();
         }
         development+= 1;
@@ -101,11 +102,10 @@ public class TileBuilding extends TileProperty {
 
     /**
      * decrease the development of a property and the owner gains money
-     * @param bank the in-game bank
      * @throws LargeDevelopmentDifferenceException throw when the maximum development difference is too large
      * @throws NoDevelopmentException thrown when there is no house to sell
      */
-    public void sellHouse(Player bank) throws LargeDevelopmentDifferenceException, NoDevelopmentException {
+    public void sellHouse() throws LargeDevelopmentDifferenceException, NoDevelopmentException {
         if (development == 0){
             throw new NoDevelopmentException();
         }
@@ -120,7 +120,7 @@ public class TileBuilding extends TileProperty {
 
     /**
      * calculate the largest development difference in the neighborhood
-     * @return Maximum dvelopment difference
+     * @return Maximum development difference
      */
     public int developmentDifference(){
         int maxDiff = 0;

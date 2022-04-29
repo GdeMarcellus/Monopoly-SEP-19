@@ -17,11 +17,11 @@ public class  JsonLoader {
 
 
     /**
-     * method to create a board from multiple json file, it turns the data within the file into java objects
+     * method to create a board from multiple json files, it turns the data within the file into java objects
      * @param jsonLocationTiles the string path to the Json file containing the tile information
      * @param jsonLocationOpportunity the string path to the Json file containing the opportunity information
      * @param jsonLocationLuck the string path to the Json file containing the pot of luck cards information
-     * @return a board with the information from the files setted up
+     * @return a board object with the information from the files set up
      */
     public Board startUp(String jsonLocationTiles, String jsonLocationOpportunity, String jsonLocationLuck){
         Board board = new Board();
@@ -37,9 +37,9 @@ public class  JsonLoader {
 
 
     /**
-     * set up an Queue of Cards from the data in a json file and return said Queue of Cards
+     * set up a Queue of Cards from the data in a json file and return said Queue of Cards
      * @param jsonLocation the string path to the Json file
-     * @return an Queue of Cards build from the data in the file
+     * @return a Queue of Cards built from the data in the file
      */
     public Queue<Card> setUpCard(String jsonLocation){
         JSONParser jsonParser = new JSONParser();
@@ -61,7 +61,7 @@ public class  JsonLoader {
 
             JSONArray effects = (JSONArray) current.get("effects");
 
-            Map<Integer, Properties> map = itterateEffects(effects);
+            Map<Integer, Properties> map = iterateEffects(effects);
 
             Card card = new Card(description, map );
             cards.add(card);
@@ -76,7 +76,7 @@ public class  JsonLoader {
      * @param effects the json Array containing a cards effect
      * @return a map of each effect with their number and their properties.
      */
-    public Map<Integer, Properties> itterateEffects(JSONArray effects){
+    public Map<Integer, Properties> iterateEffects(JSONArray effects){
         Map<Integer, Properties> map = new HashMap<>();
 
         for (Object effect : effects) {

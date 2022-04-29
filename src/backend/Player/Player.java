@@ -28,7 +28,7 @@ public abstract class Player {
     }
 
     /**
-     * @return ruterns the player current position 
+     * @return ruterns the player current position
      */
     public int getPosition() {
         return position;
@@ -58,34 +58,38 @@ public abstract class Player {
         return passedGo;
     }
 
+    /**
+     * Sets player position
+     * @param position board position to move player to
+     * @return Whether player passed go
+     */
     public boolean setPosition(int position) {
         boolean passedGo = false;
         if (position < this.position){
             passedGo = true;
         }
-            this.position = position;
+        this.position = position;
         return passedGo;
     }
 
     /**
-     * jump to a position on the board and sskips go
-     * @param position the positin ot jump to
+     * jump to a position on the board, skips go
+     * @param position the position ot jump to
      */
     public void jump(int position){
         this.position = position;
     }
 
     /**
-     *send the player to jail and takes away a GOJ card if possible
+     *send the player to jail
      */
-    public void toJail()
-    {
+    public void toJail(){
         setTurnsInJail(2);
         this.position = 10;
     }
 
     /**
-     * add an amout of money to the players balance
+     * add an amount of money to the players balance
      * @param money amount to be added
      */
     public void addMoney(int money) {
@@ -93,8 +97,9 @@ public abstract class Player {
     }
 
     /**
-     * remove an amout of money to the players balance
+     * remove an amount of money to the players balance
      * @param money amount to be removed
+     * @return amount removed
      */
     public int removeMoney(int money){
         int returnvalue = 0;
@@ -159,7 +164,7 @@ public abstract class Player {
     /**
      * removes a property from the player
      * @param property property to be removed
-     * @return if the removal was succesfull
+     * @return if the property was removed
      */
     public boolean removeProperty(TileProperty property){
        if (properties.contains(property)){
@@ -177,15 +182,6 @@ public abstract class Player {
      */
     public ArrayList<TileProperty> getProperties(){
         return properties;
-    }
-
-    /**
-     * check if the player has this property
-     * @param property to be checked for
-     * @return if the player has it or not
-     */
-    public boolean hasProperty(TileProperty property){
-        return properties.contains(property);
     }
 
     /**
@@ -242,19 +238,11 @@ public abstract class Player {
     }
 
     /**
-     * set the number of turn the player cna spend in jail
+     * set the number of turn the player can spend in jail
      * @param turns number of turns
      */
     public void setTurnsInJail(int turns) {
         turnsInJail = turns;
-    }
-
-    /**
-     * get the number of turn the player cna spend in jail
-     * @return number of turns
-     */
-    public int getTurnsInJail() {
-        return turnsInJail;
     }
 
     /**
@@ -276,25 +264,6 @@ public abstract class Player {
      */
     public boolean isInJail(){
         return turnsInJail > 0;
-    }
-
-    /**
-     * reset the player turn in jail to 0 and return the location of
-     * either the first just visting tile or the first tile of the board
-     * @param board the board of the game
-     * @return
-     */
-    public int getOuOfJail(Board board){
-        setTurnsInJail(0);
-        Tile[] tiles = board.getTiles();
-        for (int i = 0; i < tiles.length; i++) {
-            Tile tile = tiles[i];
-            if (tile instanceof TileJail){
-
-                return i;
-            }
-        }
-        return 0;
     }
 
 }

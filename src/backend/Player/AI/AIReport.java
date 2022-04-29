@@ -34,6 +34,9 @@ public class AIReport {
         this.board = board;
     }
 
+    /**
+     * Resets all values to their default
+     */
     public void newTurn() {
         bankrupt = false;
         purchasedProperty = null;
@@ -51,8 +54,6 @@ public class AIReport {
         soldPropertysCounter = 0;
         soldHousesCounter = 0;
     }
-
-    //get/set methods
 
     /**
      * adds a new event in an AI players turn
@@ -105,6 +106,8 @@ public class AIReport {
         }
         return events.poll();
     }
+
+    //get/set methods
 
     public void setRentProperty(TileProperty rentProperty) {
         this.rentProperty = rentProperty;
