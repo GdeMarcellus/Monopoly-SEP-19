@@ -1,7 +1,7 @@
 package backend.Tiles;
 
 import backend.Exception.InsufficientFundsException;
-import backend.Exception.IsInJail;
+import backend.Exception.IsInJailException;
 import backend.Exception.IsMortgagedException;
 import backend.Exception.PropertyDevelopedException;
 import backend.Player.Player;
@@ -28,8 +28,9 @@ public abstract class TileProperty extends Tile {
      * @param diceRoll the dice roll made by the player (as a total)
      * @return amount to be still paid by the incoming player
      * @throws IsMortgagedException exception thrown when the property is mortgaged
+     * @throws IsInJailException if payee is in jail
      */
-    public int payRent(Player player, int diceRoll) throws IsMortgagedException, IsInJail {
+    public int payRent(Player player, int diceRoll) throws IsMortgagedException, IsInJailException {
        return 0;
     }
 
@@ -48,6 +49,7 @@ public abstract class TileProperty extends Tile {
     }
 
     /**
+     * Mortgages a property
      * @return amount paid by mortgaging the property
      * @throws IsMortgagedException exception thrown when the property is already mortgaged
      * @throws PropertyDevelopedException exception thrown when the property has houses or hotels

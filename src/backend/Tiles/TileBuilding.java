@@ -29,12 +29,12 @@ public class TileBuilding extends TileProperty {
      * @param diceRoll the dice roll made by the player (as a total)
      * @return amount to be paid by the incoming player
      * @throws IsMortgagedException thrown if the property has a mortgage on it
-     * @throws IsInJail thrown if payee is in jail
+     * @throws IsInJailException thrown if payee is in jail
      */
     @Override
-    public int payRent(Player player, int diceRoll) throws IsMortgagedException, IsInJail {
+    public int payRent(Player player, int diceRoll) throws IsMortgagedException, IsInJailException {
         if(getOwner().isInJail()){
-            throw new IsInJail();
+            throw new IsInJailException();
         }
 
         if (!isMortgaged()) {

@@ -59,9 +59,6 @@ public class AIPlayer extends Player {
             this.toJail();
 
         }
-        if (currentTile instanceof TileGo || currentTile instanceof TileJail) {
-            //TODO
-        }
 
         if (!bankrupt) {
             //Make improvments
@@ -115,7 +112,7 @@ public class AIPlayer extends Player {
         }
         //pay rent
         else if (tileOwner != this) {
-            int moneyOwed = 0;
+            int moneyOwed;
             int balanceTemp = balance;
             try {
                 moneyOwed = currentTile.payRent(this, diceRoll);
@@ -135,7 +132,7 @@ public class AIPlayer extends Player {
                     report.setBankrupt(true);
                     report.addEvent(Event.Bankrupt);
                 }
-            } catch (IsMortgagedException | IsInJail ignored) {
+            } catch (IsMortgagedException | IsInJailException ignored) {
             }
         }
         //else own property

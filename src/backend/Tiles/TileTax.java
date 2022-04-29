@@ -9,6 +9,7 @@ public class TileTax extends Tile{
 
     /**
      * @param tax
+     * @param name
      */
     public TileTax(int tax, String name) {
         this.tax = tax;
@@ -18,7 +19,7 @@ public class TileTax extends Tile{
     /**
      * Fines player
      * @param player Player being fined
-     * @param tileFreeParking
+     * @param tileFreeParking object of the free parking tile
      * @return amount outstanding
      */
     public int payTax(Player player, TileFreeParking tileFreeParking){
@@ -31,6 +32,7 @@ public class TileTax extends Tile{
         return (tax - paid);
     }
 
+    //get/set methods
     public void setTax(int tax) {
         this.tax = tax;
     }

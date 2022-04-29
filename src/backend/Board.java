@@ -1,9 +1,6 @@
 package backend;
 
 import backend.Exception.*;
-import backend.Player.AI.AIEvent;
-import backend.Player.AI.AIPlayer;
-import backend.Player.AI.AIReport;
 import backend.Player.HumanPlayer;
 import backend.Player.Player;
 import backend.Tiles.Tile;
@@ -12,6 +9,7 @@ import backend.Tiles.TileFreeParking;
 import backend.Tiles.TileProperty;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Queue;
 
 public class Board {
@@ -38,41 +36,6 @@ public class Board {
 
     }
 
-    /***
-     * takes the turn for the player
-     * moves the player by the total of the dices
-     * check if the player has a double
-     * check if player goes to jail
-     * @param playerIndex index of current player
-     * @param dices arraylist of dice values
-     * @return boolean true if player rolled double and not in jail, false otherwise
-     */
-    public boolean turn(int playerIndex, ArrayList<Integer> dices) {
-        //update player position
-        players.get(playerIndex).setPosition(players.get(playerIndex).getPosition()
-                + dices.get(0) + dices.get(1));
-
-        //roll double check
-        boolean rolledDouble;
-        rolledDouble = checkDouble(dices);
-
-        if (rolledDouble){
-            players.get(playerIndex).setNumDoubles(players.get(playerIndex).getNumDoubles() + 1);
-
-            //jail check
-            if (players.get(playerIndex).getNumDoubles() == 3) {
-                //send to jail (tile 41)
-                players.get(playerIndex).toJail();
-                rolledDouble = false;
-            }
-        }
-        else {
-            players.get(playerIndex).setNumDoubles(0);
-        }
-
-        return rolledDouble;
-    }
-
     /**
      * check if the dice are a double
      * @param dices the size 2 array containing the dice
@@ -80,16 +43,6 @@ public class Board {
      */
     public boolean checkDouble(ArrayList<Integer> dices){
         return dices.get(0) == dices.get(1);
-    }
-
-    /**
-     * Returns amount remaining if player purchased property
-     * @param playerIndex index of player making the purchase
-     * @param tileIndex index of tile being purchased
-     */
-    public int remainingBalance(int playerIndex, int tileIndex) {
-        return players.get(playerIndex).getBalance() -
-                ((TileProperty) tiles[tileIndex]).getPrice();
     }
 
     /**
@@ -103,12 +56,10 @@ public class Board {
      */
     public int playerPurchase(int playerIndex, int tileIndex, int priceOverride) throws NonPropertyTileException, InsufficientFundsException {
         //Check tile is ownable by player
-        if (!(tiles[tileIndex] instanceof TileProperty)) {
+        if (!(tiles[tileIndex] instanceof TileProperty property)) {
             throw new NonPropertyTileException();
         }
 
-        //For readability
-        TileProperty property = (TileProperty) tiles[tileIndex];
         Player player = players.get(playerIndex);
         int moneyOwed;
 
@@ -203,9 +154,10 @@ public class Board {
      * @return Payment outstanding, 0 if rent fully paid
      * @throws NonPropertyTileException if tile not a player own-able tile
      * @throws IsMortgagedException if tile mortgaged
+     * @throws IsInJailException if payee is in jail
      */
 
-    public int payRent(int playerIndex, int tileIndex, ArrayList<Integer> dice) throws NonPropertyTileException, IsMortgagedException, IsInJail {
+    public int payRent(int playerIndex, int tileIndex, ArrayList<Integer> dice) throws NonPropertyTileException, IsMortgagedException, IsInJailException {
         //Check tile is ownable by player
         if (!(tiles[tileIndex] instanceof TileProperty))
         {
@@ -215,19 +167,6 @@ public class Board {
         {
             return ((TileProperty) tiles[tileIndex]).payRent(players.get(playerIndex), dice.get(0) + dice.get(1));
         }
-    }
-
-    /**
-     * Allows player to pay fine to free parking
-     * @param playerIndex Player paying fine
-     * @param amount Fine amount
-     * @return The amount left unpaid
-     */
-    public int payFine(int playerIndex, int amount) {
-        int amountPaid = players.get(playerIndex).removeMoney(amount);
-        int outstanding = amount - amountPaid;
-        ((TileFreeParking)tiles[freeParkingPos]).payFine(amountPaid);
-        return outstanding;
     }
 
     /**
@@ -253,9 +192,7 @@ public class Board {
      * Sets all bids to 0
      */
     public void auctionStart() {
-        for (int i = 0; i < auctionBids.size(); i++) {
-            auctionBids.set(i, 0);
-        }
+        Collections.fill(auctionBids, 0);
     }
 
     /**
@@ -273,16 +210,7 @@ public class Board {
                 numHigh += 1;
             }
         }
-        int[] returnValue = {highest, numHigh, index};
-        return returnValue;
-    }
-
-    /**
-     * @param playerIndex index of player wanting to bid
-     * @return True if player has money to bid
-     */
-    public boolean auctionCanAfford(int playerIndex) {
-        return players.get(playerIndex).getMoney() >= auctionHighestBid()[0];
+        return new int[]{highest, numHigh, index};
     }
 
     /**

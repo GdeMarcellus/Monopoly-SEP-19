@@ -14,7 +14,7 @@ public class Card {
     Map<Integer, Properties> effects;
 
     /**
-     * createse a card with these two value set
+     * creates a card with these two value set
      * @param description the string description of a card
      * @param effects the map of effect of the card
      */
@@ -23,6 +23,12 @@ public class Card {
         this.effects = effects;
     }
 
+    /**
+     * used to play a card in the game, executing its effects
+     * @param player Player who drew the card
+     * @param board the game board
+     * @return any outstanding amount from transactions
+     */
     public int playCard(Player player, Board board){
         int outstandingAmount = 0;
         Integer currentID = null;
@@ -101,19 +107,6 @@ public class Card {
      */
     public void addGOJF(Player player) {
         player.addGOJFCard();
-    }
-
-    /**
-     * one player pays a fine to another
-     * @param finedPlayer player paying money
-     * @param payee player getting paid
-     * @param amount amount to pay
-     * @return amount outstanding
-     */
-    public int playerPayPlayer(Player finedPlayer, Player payee, int amount) {
-        int money = finedPlayer.removeMoney(amount);
-        payee.addMoney(money);
-        return amount - money;
     }
 
     /**

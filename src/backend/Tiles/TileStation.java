@@ -1,6 +1,6 @@
 package backend.Tiles;
 
-import backend.Exception.IsInJail;
+import backend.Exception.IsInJailException;
 import backend.Exception.IsMortgagedException;
 import backend.Player.Player;
 
@@ -22,11 +22,12 @@ public class TileStation extends TileProperty{
      * @param diceRoll the dice roll made by the player (as a total)
      * @return return the amount still to be paid by player
      * @throws IsMortgagedException exception thrown when the property is already mortgaged
+     * @throws IsInJailException if payee is in jail
      */
     @Override
-    public int payRent(Player player, int diceRoll) throws IsMortgagedException, IsInJail {
+    public int payRent(Player player, int diceRoll) throws IsMortgagedException, IsInJailException {
         if(getOwner().isInJail()){
-            throw new IsInJail();
+            throw new IsInJailException();
         }
         if (!isMortgaged()) {
             int amountOutstanding;
