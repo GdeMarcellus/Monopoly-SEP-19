@@ -1425,10 +1425,11 @@ public class GUI extends Application {
                             {
                                 System.err.println("Building is Mortgaged, player does not need to pay!");
                             }
-                            catch(ClassCastException ex)
+                            catch(ClassCastException ignored)
                             {
-                                //Not Important but necessary
-                            } catch (IsInJailException ex)
+
+                            }
+                            catch (IsInJailException ex)
                             {
                                 Alert inJail = new Alert(AlertType.ERROR);
                                 inJail.setContentText("Player " + playerTurn + " is in jail!");
