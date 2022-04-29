@@ -59,7 +59,7 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer, 5);
         } catch (IsMortgagedException e) {
             actual = IsMortgagedException.class;
-        } catch (IsInJail e) {
+        } catch (IsInJailException e) {
             throw new RuntimeException(e);
         }
         assertEquals(expected,actual);
@@ -77,7 +77,7 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer,5);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
-        } catch (IsInJail e) {
+        } catch (IsInJailException e) {
             throw new RuntimeException(e);
         }
         assertEquals(expected,secondPlayer.getBalance());
@@ -95,7 +95,7 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer,5);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
-        } catch (IsInJail e) {
+        } catch (IsInJailException e) {
             throw new RuntimeException(e);
         }
         assertEquals(expected,owner.getBalance());
@@ -114,7 +114,7 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer,5);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
-        } catch (IsInJail e) {
+        } catch (IsInJailException e) {
             throw new RuntimeException(e);
         }
         assertEquals(expected,secondPlayer.getBalance());
@@ -132,7 +132,7 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer,5);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
-        } catch (IsInJail e) {
+        } catch (IsInJailException e) {
             throw new RuntimeException(e);
         }
         assertEquals(expected,secondPlayer.getBalance());
@@ -150,7 +150,7 @@ public class TileBuildingTest {
             tileBuilding.payRent(secondPlayer, 0);
         } catch (IsMortgagedException e) {
             actual = IsMortgagedException.class;
-        } catch (IsInJail e) {
+        } catch (IsInJailException e) {
             throw new RuntimeException(e);
         }
 
@@ -327,7 +327,7 @@ public class TileBuildingTest {
         tileBuilding.setDevelopment(2);
         int expected = 1;
         try {
-            tileBuilding.sellHouse(secondPlayer);
+            tileBuilding.sellHouse();
         } catch (LargeDevelopmentDifferenceException | NoDevelopmentException e) {
            fail();
         }
@@ -349,7 +349,7 @@ public class TileBuildingTest {
         Object expected = LargeDevelopmentDifferenceException.class;
         Object actual = null;
         try {
-            tileBuilding.sellHouse(secondPlayer);
+            tileBuilding.sellHouse();
         } catch (LargeDevelopmentDifferenceException e) {
             actual = LargeDevelopmentDifferenceException.class;
         } catch (NoDevelopmentException e) {
@@ -368,7 +368,7 @@ public class TileBuildingTest {
         Object expected = NoDevelopmentException.class;
         Object actual = null;
         try {
-            tileBuilding.sellHouse(secondPlayer);
+            tileBuilding.sellHouse();
         } catch (NoDevelopmentException e) {
             actual = NoDevelopmentException.class;
         } catch (LargeDevelopmentDifferenceException e) {
