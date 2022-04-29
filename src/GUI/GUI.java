@@ -1428,8 +1428,7 @@ public class GUI extends Application {
                             catch(ClassCastException ex)
                             {
                                 //Not Important but necessary
-                            }
-                            catch(IsInJail ex)
+                            } catch (IsInJailException ex)
                             {
                                 Alert inJail = new Alert(AlertType.ERROR);
                                 inJail.setContentText("Player " + playerTurn + " is in jail!");
