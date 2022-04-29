@@ -96,6 +96,7 @@ public class GUI extends Application {
      * The start_screen method, represents the first screen the user will see
      * It contains a flashy title, and players are allowed to move to the next stage
      * By pressing the Enter button
+     *
      */
     private void start_screen()
     {
@@ -153,6 +154,7 @@ public class GUI extends Application {
 
     /**
      * the gameBoard method is used to create the GUI of the main boardGame for the user
+     *
      */
     private void gameBoard()
     {
@@ -936,7 +938,9 @@ public class GUI extends Application {
 
     /**
      * controlButtons is used to create an HBox containing all the controls the user is going to have
+     *
      * @return Returning the HBox containing all the control buttons for the player
+     *
      */
     private HBox controlButtons()
     {
@@ -1016,7 +1020,10 @@ public class GUI extends Application {
                 {
                     if (!finishedTurn)
                     {
+                        //Roll Dices
                         rollDices();
+
+                        //Check for doubles
                         if (gameBoard.checkDouble(dices.getDiceValues()))
                         {
                             finishedTurn = false;
@@ -1901,6 +1908,7 @@ public class GUI extends Application {
      * - Amount of buildings owned
      * - Name of the user
      * - If the User is a CPU or Not
+     *
      * @return Returns a ListView for all the player information
      */
     private Text getPlayerInfo(int playerNo)
@@ -1915,6 +1923,7 @@ public class GUI extends Application {
      * so far the menu has:
      *  3 buttons
      *  One Animated Title
+     *
      */
     public void mainMenu()
     {
@@ -2082,6 +2091,7 @@ public class GUI extends Application {
     }
 
     /**
+     * Method used to create the change Colour Stage
      *
      */
     private void playerChangeColor()
