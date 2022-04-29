@@ -114,4 +114,8 @@ public abstract class TileProperty extends Tile {
         return mortgaged;
     }
 
+    public void setMortgaged(boolean mortgaged) {
+        this.mortgaged = mortgaged;
+    }
+
 }

@@ -1,6 +1,7 @@
 package backend;
 
-import backend.Exception.IsInJail;
+
+import backend.Exception.IsInJailException;
 import backend.Exception.IsMortgagedException;
 import backend.Player.HumanPlayer;
 import backend.Player.Player;
@@ -57,7 +58,7 @@ public class TileStationTest {
             station1.payRent(secondPlayer, 0);
         } catch (IsMortgagedException e) {
             e.printStackTrace();
-        } catch (IsInJail e) {
+        } catch (IsInJailException e) {
             throw new RuntimeException(e);
         }
 
@@ -74,7 +75,7 @@ public class TileStationTest {
         owner.addProperty(station2);
         try {
             station1.payRent(secondPlayer, 0);
-        } catch (IsMortgagedException | IsInJail e) {
+        } catch (IsMortgagedException | IsInJailException e) {
             e.printStackTrace();
         }
 
@@ -92,7 +93,7 @@ public class TileStationTest {
         owner.addProperty(station3);
         try {
             station1.payRent(secondPlayer, 0);
-        } catch (IsMortgagedException | IsInJail e) {
+        } catch (IsMortgagedException | IsInJailException e) {
             e.printStackTrace();
         }
 
@@ -111,7 +112,7 @@ public class TileStationTest {
         owner.addProperty(station4);
         try {
             station1.payRent(secondPlayer, 0);
-        } catch (IsMortgagedException | IsInJail e) {
+        } catch (IsMortgagedException | IsInJailException e) {
             e.printStackTrace();
         }
 
@@ -128,7 +129,7 @@ public class TileStationTest {
         station1.setMortgaged(true);
         try {
             station1.payRent(secondPlayer, 0);
-        } catch (IsMortgagedException | IsInJail e) {
+        } catch (IsMortgagedException | IsInJailException e) {
             actual = IsMortgagedException.class;
         }
 
@@ -145,7 +146,7 @@ public class TileStationTest {
 
         try {
             station1.payRent(secondPlayer, 0);
-        } catch (IsMortgagedException | IsInJail e) {
+        } catch (IsMortgagedException | IsInJailException e) {
             e.printStackTrace();
         }
         assertEquals(expected,owner.getBalance());

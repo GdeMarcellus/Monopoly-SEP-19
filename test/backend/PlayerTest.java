@@ -102,16 +102,6 @@ public class    PlayerTest {
 
     }
     @Test
-    public void hasProperty(){
-        player.addProperty(property);
-        assertTrue(player.hasProperty(property));
-    }
-    @Test
-    public void hasProperty2(){
-        assertFalse(player.hasProperty(property));
-    }
-
-    @Test
     public void addGOJFTest(){
         player.addGOJFCard();
         assertEquals(1,player.getNoGOJF());
@@ -123,29 +113,6 @@ public class    PlayerTest {
         player.addGOJFCard();
         player.removeGOJFCard();
         assertEquals(2,player.getNoGOJF());
-    }
-
-    @Test
-    public void getOutOfJailTestSetTurnInJailSet(){
-        player.setTurnsInJail(10);
-        Board board = new Board();
-        player.getOuOfJail(board);
-        assertEquals(0,player.getTurnsInJail());
-    }
-    @Test
-    public void getOutOfJailTestSetPositionTo0(){
-        Board board = new Board();
-        player.getOuOfJail(board);
-        assertEquals(0,player.getOuOfJail(board));
-    }
-    @Test
-    public void getOutOfJailTestSetPositionToProperPosition(){
-        Board board = new Board();
-        Tile[] tiles = new Tile[41];
-        tiles[11] = new TileJail();
-        board.setTiles(tiles);
-
-        assertEquals(11,player.getOuOfJail(board));
     }
 
 }
