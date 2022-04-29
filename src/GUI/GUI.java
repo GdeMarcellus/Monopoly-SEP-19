@@ -466,7 +466,7 @@ public class GUI extends Application {
                         //If Yes. sell house
                         if (type == ButtonType.YES) {
                             try {
-                                finalChosenBuilding.sellHouse(gameBoard.getBank());
+                                finalChosenBuilding.sellHouse();
                             } catch (LargeDevelopmentDifferenceException | NoDevelopmentException ex) {
                                 ex.printStackTrace();
                             }
