@@ -63,7 +63,8 @@ public class Card {
                     break;
                 case 7:
                     moveSetSpaces(player, noSpaces);
-                case 8:
+                case 9:
+                    addGOJF(player);
 
             }
             return outstandingAmount;
@@ -92,6 +93,14 @@ public class Card {
      */
     public int payBank(Player player, int amount) {
         return amount - player.removeMoney(amount);
+    }
+
+    /**
+     * adds a Get Out Of Jail Free card to a player
+     * @param player player getting card
+     */
+    public void addGOJF(Player player) {
+        player.addGOJFCard();
     }
 
     /**
