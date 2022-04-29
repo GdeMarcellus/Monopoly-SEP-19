@@ -2,7 +2,6 @@ package backend.Tiles;
 
 import backend.Exception.IsInJail;
 import backend.Exception.IsMortgagedException;
-import backend.Exception.PropertyDevelopedException;
 import backend.Player.Player;
 
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ public class TileUtility extends TileProperty {
         }
 
         if (!isMortgaged()) {
-            int amountOutstanding = 0;
+            int amountOutstanding;
             if (ownsNeighborhood()){
                 amountOutstanding = (10 * diceRoll) - player.removeMoney(10 * diceRoll);
                 getOwner().addMoney((10 * diceRoll) - amountOutstanding);

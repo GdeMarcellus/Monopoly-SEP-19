@@ -37,44 +37,48 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GUI extends Application {
 
-    Integer time = 60;
+    //Default Time for the Timer (Abridged)
+    Integer time = 20;
+    private boolean abridged;
+    private Timeline timeline;
+
     //Backend
     private HashMap<Integer, Color> player_Index;
     private GridPane board;
+    private final Dice dices = new Dice(2,1,6);
+    private Board gameBoard = new Board();
+    private int playerTurn = 0;
+    private boolean finishedTurn = false;
+    private boolean playerBoughtProperty = false;
 
     PlayerInformation[] playerInformation;
     Button currPlayerIcon;
 
-    //Dice Variables
-    private final Dice dices = new Dice(2,1,6);
+    //Dice Variables GUI
     private final Button dice1 = new Button();
     private final Button dice2 = new Button();
     private final ArrayList<Image> facePNG = getDiceFaces();
 
+    //Stages
     private  final Stage gameBoard_GUI = new Stage();
-    private Board gameBoard = new Board();
-    private Text moneyOfPlayer;
-    private Text playerTurnText;
-    private ListView<Text> playerInfo = new ListView<>();
-    private int playerTurn = 0;
-    private boolean finishedTurn = false;
     private Stage auctionWindow;
-    private boolean playerBoughtProperty = false;
+
     private final Button[] tiles = new Button[41];
     private Color[] colors_Color;
-    private boolean abridged;
-    private Text timeRemaining;
-    private Timeline timeline;
-    private TextArea aiLogBox;
     private Rectangle2D screenBounds;
     private HashMap<Integer, String> tokenPlayer;
     private AIPlayer aiPlayer;
-    private int highestTurn;
-    private ArrayList<TextField> auctionArray;
     private Stage mortgageStage;
     private Button newTurn;
     private int rolledDouble;
     private Stage tradeStage;
+
+    //Text Used
+    private Text timeRemaining;
+    private Text moneyOfPlayer;
+    private Text playerTurnText;
+    private TextArea aiLogBox;
+    private ListView<Text> playerInfo = new ListView<>();
 
     public static void main(String []args)
     {
@@ -293,7 +297,6 @@ public class GUI extends Application {
                         if (time >= 0)
                         {
                             timeRemaining.setText("Time Remaining: " + time);
-                            highestTurn = playerInformation[playerTurn].getPlayerTurn();
                         }
                         else timeRemaining.setText("Last Round!");
 
@@ -405,64 +408,61 @@ public class GUI extends Application {
                     break;
                 }
             }
-            int tileIndex = getTileIndex(chosenBuilding);
-            try
-            {
-                if (chosenBuilding instanceof TileBuilding)
-                {
-                   if(((TileBuilding) chosenBuilding).getDevelopment()>1)
-                   {
-                       Alert sellHouse = new Alert(AlertType.CONFIRMATION);
-                       sellHouse.setTitle("Would you like to sell a house on the Property " + chosenBuilding.getName() + "?");
-                       sellHouse.showAndWait();
-                       ButtonType yesButton = ButtonType.YES;
-                       ButtonType noButton = ButtonType.NO;
-                       sellHouse.getButtonTypes().setAll(yesButton,noButton);
-                       TileBuilding finalChosenBuilding = (TileBuilding) chosenBuilding;
-                       sellHouse.showAndWait().ifPresent(type ->
-                       {
-                           if (type == ButtonType.YES)
-                           {
-                               try {
-                                   finalChosenBuilding.sellHouse(gameBoard.getBank());
-                               }
-                               catch (LargeDevelopmentDifferenceException | NoDevelopmentException ex)
-                               {
-                                   ex.printStackTrace();
-                               }
-                               moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                               moneyOfPlayer.setFill(Color.GREEN);
-                               transition.playFromStart();
+                if (((TileBuilding) chosenBuilding).getDevelopment() > 1 && chosenBuilding instanceof TileBuilding) {
+                    Alert sellHouse = new Alert(AlertType.CONFIRMATION);
+                    sellHouse.setTitle("Would you like to sell a house on the Property " + chosenBuilding.getName() + "?");
+                    sellHouse.showAndWait();
+                    ButtonType yesButton = ButtonType.YES;
+                    ButtonType noButton = ButtonType.NO;
+                    sellHouse.getButtonTypes().setAll(yesButton, noButton);
+                    TileBuilding finalChosenBuilding = (TileBuilding) chosenBuilding;
+                    sellHouse.showAndWait().ifPresent(type ->
+                    {
+                        if (type == ButtonType.YES) {
+                            try {
+                                finalChosenBuilding.sellHouse(gameBoard.getBank());
+                            } catch (LargeDevelopmentDifferenceException | NoDevelopmentException ex) {
+                                ex.printStackTrace();
+                            }
+                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                            moneyOfPlayer.setFill(Color.GREEN);
+                            transition.playFromStart();
 
-                               //Change Tile Color
-                               int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
-                               Color tileColour = Color.valueOf(((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour());
-                               tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, #" +
-                                       tileColour.toString().substring(2) + " " + developmentPercentage + "%, white 0%);\n" + "-fx-background-radius: 0");
-                           }
-                       });
-                   }
+                            //Change Tile Color
+                            int developmentPercentage = ((((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getDevelopment()) * 10) + 30;
+                            Color tileColour = Color.valueOf(((TileBuilding) gameBoard.getTile(gameBoard.getPlayer(playerTurn).getPosition())).getHexColour());
+                            tiles[gameBoard.getPlayer(playerTurn).getPosition()].setStyle("-fx-background-color: linear-gradient(to bottom, #" +
+                                    tileColour.toString().substring(2) + " " + developmentPercentage + "%, white 0%);\n" + "-fx-background-radius: 0");
+                        }
+                    });
                 }
-                gameBoard.sellToBank(playerTurn,tileIndex);
-
-                //Change GUI (Money Counter)
-                moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                moneyOfPlayer.setFill(Color.GREEN);
-                transition.playFromStart();
-
-                playerBuildings.getItems().remove(playerBuildings.getSelectionModel().getSelectedItem());
-            }
-            catch (OwnershipException ex)
-            {
-                Alert doesNotHaveOwnership = new Alert(AlertType.WARNING);
-                doesNotHaveOwnership.setContentText("Not Owner");
-                doesNotHaveOwnership.showAndWait();
-            }
-            catch (PropertyDevelopedException ex)
-            {
-                Alert alreadyDeveloped = new Alert(AlertType.WARNING);
-                alreadyDeveloped.setContentText("Not Developed");
-                alreadyDeveloped.showAndWait();
+            else {
+                Alert sellProperty = new Alert(AlertType.CONFIRMATION);
+                sellProperty.setContentText("Would you like to sell the Property " + chosenBuilding.getName() + "?");
+                ButtonType yesButton = ButtonType.YES;
+                ButtonType noButton = ButtonType.NO;
+                sellProperty.getButtonTypes().setAll(yesButton, noButton);
+                TileProperty finalChosenBuilding = chosenBuilding;
+                sellProperty.showAndWait().ifPresent(type ->
+                {
+                    if (type == ButtonType.YES) {
+                        try {
+                            gameBoard.sellToBank(playerTurn, gameBoard.getTileIndex(finalChosenBuilding));
+                            playerBuildings.getItems().remove(playerBuildings.getSelectionModel().getSelectedItem());
+                        } catch (OwnershipException ex) {
+                            Alert doesNotHaveOwnership = new Alert(AlertType.WARNING);
+                            doesNotHaveOwnership.setContentText("Not Owner");
+                            doesNotHaveOwnership.showAndWait();
+                        } catch (PropertyDevelopedException ex) {
+                            Alert alreadyDeveloped = new Alert(AlertType.WARNING);
+                            alreadyDeveloped.setContentText("Not Developed");
+                            alreadyDeveloped.showAndWait();
+                        }
+                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                        moneyOfPlayer.setFill(Color.GREEN);
+                        transition.playFromStart();
+                    }
+                });
             }
         });
         BorderPane mainPane = new BorderPane();
@@ -528,42 +528,30 @@ public class GUI extends Application {
                 assert chosenBuilding != null;
                 if (chosenBuilding.isMortgaged()) mortgageYesNo.setContentText("Do you want to unmortgage " + chosenBuilding.getName() + "?");
                 else mortgageYesNo.setContentText("Do you want to mortgage " + chosenBuilding.getName() + "?");
-                mortgageYesNo.setOnCloseRequest(lambda ->
+                Optional<ButtonType> result = mortgageYesNo.showAndWait();
+                if (result.get() == ButtonType.OK)
                 {
-                    try {
-                        if (((TileProperty) gameBoard.getTile(tileIndex)).isMortgaged())
-                        {
-                            ((TileProperty) gameBoard.getTile(tileIndex)).mortgagedBuyBack();
-                            //Change GUI (Money Counter)
-                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                            moneyOfPlayer.setFill(Color.RED);
-                            transition.playFromStart();
-                        }
-                        else
-                        {
-                            ((TileProperty) gameBoard.getTile(tileIndex)).mortgage();
-                            //Change GUI (Money Counter)
-                            moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
-                            moneyOfPlayer.setFill(Color.GREEN);
-                            transition.playFromStart();
-                        }
-                    }
-                    catch (IsMortgagedException ex)
+                    if (((TileProperty) gameBoard.getTile(tileIndex)).isMortgaged())
                     {
-                        Alert alreadyMortgaged = new Alert(AlertType.ERROR);
-                        alreadyMortgaged.setContentText("Property Already Mortgaged!");
-                        alreadyMortgaged.showAndWait();
+                        ((TileProperty) gameBoard.getTile(tileIndex)).mortgagedBuyBack();
+                        //Change GUI (Money Counter)
+                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                        moneyOfPlayer.setFill(Color.RED);
                     }
-                    catch (PropertyDevelopedException ex) {
-                        Alert propertyAlreadyDeveloped = new Alert(AlertType.ERROR);
-                        propertyAlreadyDeveloped.setContentText("Property Already Developed!");
-                        propertyAlreadyDeveloped.showAndWait();
-                    } catch (InsufficientFundsException ex) {
-                        ex.printStackTrace();
+                    else
+                    {
+                        ((TileProperty) gameBoard.getTile(tileIndex)).mortgage();
+                        //Change GUI (Money Counter)
+                        moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
+                        moneyOfPlayer.setFill(Color.GREEN);
                     }
-                });
-                mortgageYesNo.showAndWait();
-
+                    transition.playFromStart();
+                    mortgageYesNo.close();
+                }
+                else
+                {
+                    mortgageYesNo.close();
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -619,49 +607,6 @@ public class GUI extends Application {
         return -1;
     }
 
-
-    /*
-    public Node tradeP2P(int playerToTradeWith)
-    {
-        BorderPane mainPane = new BorderPane();
-        GridPane playerAndProperties = new GridPane();
-        Button playerIcon = new Button();
-        playerIcon.setOnAction(e ->
-        {
-        });
-        playerIcon.setMinWidth(50);
-        playerIcon.setStyle("" +
-                "-fx-background-color: " + playerInformation[playerToTradeWith].playerColor_String);
-        ListView<String> playerIconProperties = new ListView<>();
-        for (int i = 0; i < gameBoard.getPlayer(playerToTradeWith).getProperties().size(); i++)
-        {
-            playerIconProperties.getItems().add(gameBoard.getPlayer(playerToTradeWith).getProperties().get(i).toString());
-        }
-
-
-        Button playerIcon2 = new Button();
-        playerIcon2.setOnAction(e ->
-        {
-        });
-        playerIcon2.setMinWidth(50);
-        playerIcon2.setStyle("" +
-                "-fx-background-color: " + playerInformation[playerTurn].playerColor_String);
-
-        ListView<String> playerIcon2Properties = new ListView<>();
-        for (int i = 0; i < gameBoard.getPlayer(playerTurn).getProperties().size(); i++)
-        {
-            playerIcon2Properties.getItems().add(gameBoard.getPlayer(playerTurn).getProperties().get(i).toString());
-        }
-
-        playerAndProperties.add(playerIcon,0,0);
-        playerAndProperties.add(playerIconProperties,0,1);
-        playerAndProperties.add(playerIcon2,1,0);
-        playerAndProperties.add(playerIcon2Properties,1,1);
-        mainPane.setCenter(playerAndProperties);
-        return mainPane;
-    }
-     */
-
     /**
      * Method used to create Node for the Auction Stage
      *
@@ -702,13 +647,14 @@ public class GUI extends Application {
         Button nextPlayer =  new Button("Next Player!");
         nextPlayer.setOnAction(e ->
         {
+            boolean done = false;
             //Check if player has enough funds to place bid
             try
             {
                     gameBoard.auctionMakeBid(gameBoard.getPlayers().indexOf(players.get(playerBid.getSelectionModel().getSelectedIndex())), Integer.parseInt(playerBid.getItems().get(playerBid.getSelectionModel().getSelectedIndex()).getText()));
                     playerBid.getSelectionModel().getSelectedItem().setEditable(false);
-                    auctionArray.add(playerBid.getSelectionModel().getSelectedItem());
                     playerBid.getSelectionModel().getSelectedItem().setText("");
+                    if (playerBid.getSelectionModel().getSelectedIndex()+1 == players.size()) done = true;
                     playerBid.getSelectionModel().selectNext();
                     if (players.get(playerBid.getSelectionModel().getSelectedIndex()) instanceof AIPlayer)
                     {
@@ -717,7 +663,7 @@ public class GUI extends Application {
                         playerBid.getSelectionModel().getSelectedItem().setText(String.valueOf(aiBid));
                         gameBoard.auctionMakeBid(gameBoard.getPlayerIndex(aiPlayer),aiBid);
                         playerBid.getSelectionModel().getSelectedItem().setEditable(false);
-                        playerBid.getSelectionModel().selectNext();
+                        done = true;
                     }
                     else playerBid.getSelectionModel().getSelectedItem().setEditable(true);
             }
@@ -730,7 +676,7 @@ public class GUI extends Application {
                 playerBid.getSelectionModel().selectPrevious();
                 playerBid.getSelectionModel().getSelectedItem().setEditable(true);
             }
-            if (playerBid.getSelectionModel().getSelectedIndex()+1 == gameBoard.getPlayers().size() && !Objects.equals(playerBid.getSelectionModel().getSelectedItem().getText(), ""))
+            if (done)
             {
                 int higherPlayer = gameBoard.auctionHighestBid()[2];
                 int higherBid = gameBoard.auctionHighestBid()[0];
@@ -758,9 +704,9 @@ public class GUI extends Application {
                     moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(higherPlayer).getBalance()));
                     Alert auctionWinner = new Alert(AlertType.INFORMATION);
                     auctionWinner.setContentText("Winner of Auction is Player " + (playerInformation[higherPlayer].getPlayerNumber() + 1)
-                                                                                + "!\nThey paid " + higherBid + " for the property!");
-                    auctionWinner.showAndWait();
+                                                                                + "!\nThey paid £" + higherBid + " for the property!");
                     auctionWindow.close();
+                    auctionWinner.showAndWait();
                     updatePriceAndEndTurn();
                 }
             }
@@ -918,7 +864,12 @@ public class GUI extends Application {
                                     goingToJail.showAndWait().ifPresent(type ->
                                     {
                                         if (type == ButtonType.YES) {
+                                            //Remove Money from player
                                             gameBoard.getPlayer(playerTurn).removeMoney(50);
+
+                                            //Add Money to free Parking
+                                            ((TileFreeParking) gameBoard.getTile(gameBoard.getFreeParkingPos())).payFine(50);
+
                                             moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                                             moneyOfPlayer.setFill(Color.RED);
                                             transition.playFromStart();
@@ -971,7 +922,12 @@ public class GUI extends Application {
                                         goingToJail.showAndWait().ifPresent(type ->
                                         {
                                             if (type == ButtonType.YES) {
+                                                //Remove Money from player
                                                 gameBoard.getPlayer(playerTurn).removeMoney(50);
+
+                                                //Add Money to free Parking
+                                                ((TileFreeParking) gameBoard.getTile(gameBoard.getFreeParkingPos())).payFine(50);
+
                                                 moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                                                 moneyOfPlayer.setFill(Color.RED);
                                                 transition.playFromStart();
@@ -1028,7 +984,12 @@ public class GUI extends Application {
                                     goingToJail.showAndWait().ifPresent(type ->
                                     {
                                         if (type == ButtonType.YES) {
+                                            //Remove Money from player
                                             gameBoard.getPlayer(playerTurn).removeMoney(50);
+
+                                            //Add Money to free Parking
+                                            ((TileFreeParking) gameBoard.getTile(gameBoard.getFreeParkingPos())).payFine(50);
+
                                             moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                                             moneyOfPlayer.setFill(Color.RED);
                                             transition.playFromStart();
@@ -1048,7 +1009,7 @@ public class GUI extends Application {
                                 int outstandingTax = ((TileTax) gameBoard.getPlayerTile(playerTurn)).payTax(gameBoard.getPlayer(playerTurn),((TileFreeParking) gameBoard.getTile(20)));
                                 if (outstandingTax > 0) checkIfBankrupt(outstandingTax,gameBoard.getBank());
                                 Alert payedTax = new Alert(AlertType.WARNING);
-                                payedTax.setContentText("Player " + (playerTurn+1) + " has payed the parking tax!");
+                                payedTax.setContentText("Player " + (playerTurn+1) + " has payed £" + ((TileTax) gameBoard.getPlayerTile(playerTurn)).getTax() + " in parking tax!");
                                 payedTax.showAndWait();
                                 moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                                 moneyOfPlayer.setFill(Color.RED);
@@ -1059,7 +1020,7 @@ public class GUI extends Application {
                                 int freeMoney = ((TileFreeParking) gameBoard.getPlayerTile(playerTurn)).getFreeParkingFines();
                                 ((TileFreeParking) gameBoard.getPlayerTile(playerTurn)).payToPlayer(gameBoard.getPlayer(playerTurn));
                                 Alert freeParkingMoney = new Alert(AlertType.INFORMATION);
-                                freeParkingMoney.setContentText("Player " + (playerTurn+1) + " has landed on the free parking tile!\nThey obtain " + freeMoney);
+                                freeParkingMoney.setContentText("Player " + (playerTurn+1) + " has landed on the free parking tile!\nThey obtain £" + freeMoney);
                                 freeParkingMoney.showAndWait();
                                 moneyOfPlayer.setText(String.valueOf(gameBoard.getPlayer(playerTurn).getBalance()));
                                 moneyOfPlayer.setFill(Color.GREEN);
@@ -1080,17 +1041,22 @@ public class GUI extends Application {
                                 {
                                     if (playerOwed != gameBoard.getBank() && playerOwed != gameBoard.getPlayer(playerTurn))
                                     {
+                                        int previousBalance = gameBoard.getPlayer(playerTurn).getBalance();
+
                                         //Pay for Rent
                                         int rentPrice = gameBoard.payRent(playerTurn, gameBoard.getPlayer(playerTurn).getPosition(), dices.getDiceValues());
+
+                                        int afterBalance = gameBoard.getPlayer(playerTurn).getBalance();
 
                                         if (rentPrice > 0) checkIfBankrupt(rentPrice, playerOwed);
 
                                         //Alert player that they paid for the rent
                                         Alert payedRent = new Alert(AlertType.WARNING);
-                                        if (gameBoard.getPlayerTile(playerTurn) instanceof TileBuilding)
-                                            payedRent.setContentText("Player " + (playerTurn + 1) + " has payed " + ((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileBuilding) gameBoard.getPlayerTile(playerTurn)).getDevelopment()) + " for Rent!\nThe Rent has gone to Player " + (gameBoard.getPlayerIndex(playerOwed) + 1));
-                                        else
-                                            payedRent.setContentText("Player " + (playerTurn + 1) + " has payed " + ((TileStation) gameBoard.getPlayerTile(playerTurn)).getRent().get(((TileStation) gameBoard.getPlayerTile(playerTurn)).getOwnedStations(gameBoard.getPlayer(playerTurn))) + " for Rent!\nThe Rent has gone to Player " + (gameBoard.getPlayerIndex(playerOwed) + 1));
+
+                                        //Let the players know how much rent was payed
+                                        payedRent.setContentText("Player " + (playerTurn + 1) + " has payed £" + (previousBalance-afterBalance) + " for Rent!\nThe Rent has gone to Player " + (gameBoard.getPlayerIndex(playerOwed) + 1));
+
+                                        //Show alert
                                         payedRent.showAndWait();
 
                                         //Property Owned by Player
@@ -1166,7 +1132,13 @@ public class GUI extends Application {
         Build.setPrefSize(100,50);
         Build.setOnAction(e ->
         {
-                if (gameBoard.getPlayer(playerTurn).getProperties().size() > 0)
+                if (!finishedTurn && rolledDouble == 0)
+                {
+                    Alert d = new Alert(AlertType.WARNING);
+                    d.setContentText("Roll dies and move before playing another action!");
+                    d.showAndWait();
+                }
+                else if (gameBoard.getPlayer(playerTurn).getProperties().size() > 0)
                 {
                     Stage build = new Stage();
                     build.setScene(new Scene((Parent) buildScene(),screenBounds.getMaxX()/2,screenBounds.getMaxY()/2));
@@ -1222,6 +1194,10 @@ public class GUI extends Application {
         return final_control;
     }
 
+    /**
+     *
+     * @return
+     */
     private Node buildScene()
     {
         //Pause transition taken from https://stackoverflow.com/questions/55768170/temporarily-change-color-of-a-button-when-clicked
@@ -1297,23 +1273,29 @@ public class GUI extends Application {
         mainPane.setCenter(playerProperties);
         return mainPane;
     }
+
+    /**
+     *
+     * @param players
+     */
     private void auctionHouse(ArrayList<Player> players)
     {
-        //Remove players in jail from the arrayList
-        players.removeIf(Player::isInJail);
-
         //Initialise auction for the backend
         gameBoard.auctionInitialise();
         gameBoard.auctionStart();
         auctionWindow = new Stage();
         auctionWindow.setResizable(false);
-        auctionArray = new ArrayList<>();
         auctionWindow.setScene(new Scene((Parent) auctionNode(players), 800, 800));
         auctionWindow.show();
         //https://stackoverflow.com/questions/17003906/prevent-cancel-closing-of-primary-stage-in-javafx-2-2
         auctionWindow.setOnCloseRequest(Event::consume);
     }
 
+    /**
+     *
+     * @param outstanding
+     * @param playerOwed
+     */
     private void checkIfBankrupt(int outstanding, Player playerOwed)
     {
         Stage bankrupt = new Stage();
@@ -1400,6 +1382,9 @@ public class GUI extends Application {
         }
     }
 
+    /**
+     *
+     */
     private void removePlayer()
     {
         ArrayList<Player> newPlayerList = new ArrayList<>();
@@ -1471,10 +1456,10 @@ public class GUI extends Application {
             }
         }
 
-        if ( buildingSelected instanceof  TileStation)
+        if ( buildingSelected instanceof  TileStation || buildingSelected instanceof  TileUtility)
         {
             Alert cannotBuildOnStation = new Alert(AlertType.WARNING);
-            cannotBuildOnStation.setContentText("Cannot build on Station!");
+            cannotBuildOnStation.setContentText("Cannot build Here!");
             cannotBuildOnStation.showAndWait();
         }
         assert buildingSelected != null;
@@ -1504,7 +1489,7 @@ public class GUI extends Application {
     private Text getPlayerInfo(int playerNo)
     {
         return new Text("Player " + (playerNo + 1)  + "\n" +
-                "Player Bank Deposit: " + gameBoard.getPlayer(playerNo).getBalance() + "\n" +
+                "Player Bank Deposit: £" + gameBoard.getPlayer(playerNo).getBalance() + "\n" +
                 "Number of properties owned: " + gameBoard.getPlayer(playerNo).getProperties().size() + "\n");
     }
 
@@ -1772,7 +1757,6 @@ public class GUI extends Application {
                     if (type == ButtonType.YES)
                     {
                         playerSelection.close();
-                        aiPlayer = new AIPlayer(gameBoard);
                         choosePlayerOrder();
                     }
                 });
@@ -1780,7 +1764,6 @@ public class GUI extends Application {
             else
             {
                 playerSelection.close();
-                aiPlayer = new AIPlayer(gameBoard);
                 choosePlayerOrder();
             }
         });
@@ -1822,30 +1805,16 @@ public class GUI extends Application {
             int colorNum = i;
             playerWindow.setOnAction(e ->
             {
-                if (!selectedHumanPlayer[colorNum] && !selectedNPCPlayer[colorNum])
+                if (!selectedHumanPlayer[colorNum])
                 {
                     playerWindow.setStyle("\n" +
                             "    -fx-background-color:transparent ;\n" +
                             "    -fx-background-radius:0;\n" +
                             "    -fx-border-color: #" + colors_Color[colorNum].toString().substring(2)+";\n" +
                             "    -fx-border-width: 10 10 10 10;\n");
-                  selectedHumanPlayer[colorNum] = true;
                   player_Index.put(Integer.valueOf(String.valueOf(playerNumber)), colors_Color[colorNum]);
+                  selectedHumanPlayer[colorNum] = true;
                   playerNumber.getAndIncrement();
-                }
-
-                //If player has already been selected, then the selected player will become a NPC
-                else if (selectedHumanPlayer[colorNum] && !selectedNPCPlayer[colorNum])
-                {
-                    playerWindow.setStyle("""
-                        -fx-background-color:transparent ;
-                        -fx-background-radius:0;
-                        -fx-border-color:black;
-                        -fx-border-width: 10 10 10 10;
-                    """);
-                    selectedHumanPlayer[colorNum] = false;
-                    selectedNPCPlayer[colorNum] = true;
-                    player_Index.remove(Integer.valueOf(String.valueOf(playerNumber)), colors_Color[colorNum].invert());
                 }
                 else
                 {
@@ -1857,7 +1826,6 @@ public class GUI extends Application {
                         -fx-border-width: 10 10 10 10;
                     """);
                     selectedHumanPlayer[colorNum] = false;
-                    selectedNPCPlayer[colorNum] = false;
                     player_Index.remove(Integer.valueOf(String.valueOf(playerNumber)));
                     playerNumber.getAndDecrement();
                 }
@@ -1907,6 +1875,7 @@ public class GUI extends Application {
        //AI
         if (gameBoard.getPlayers().size() < 5)
         {
+            aiPlayer = new AIPlayer(gameBoard);
             gameBoard.addPlayer(aiPlayer);
             gameBoard.getPlayer(gameBoard.getPlayers().size() - 1).addMoney(1500);
             playerInformation[gameBoard.getPlayers().size() - 1] = new PlayerInformation("idk", Color.GRAY, gameBoard.getPlayers().size() - 1, "file:resources/Tokens/catto.png");
@@ -2044,7 +2013,6 @@ public class GUI extends Application {
                 {
                     mainBox.getChildren().add(cardInfo[x]);
                     BorderPane.setAlignment(cardInfo[x],Pos.CENTER);
-                    System.out.println(4);
                 }
                 mainPane.setTop(cardInfo[0]);
                 BorderPane.setAlignment(cardInfo[0],Pos.CENTER);
@@ -2444,7 +2412,14 @@ public class GUI extends Application {
                         }
                         else aiMessage += agentPlayerTurn();
                     }
-                    case Move, GoneToJail -> {
+                    case Move  ->
+                            {
+                                //update token
+                                playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                                playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
+                            }
+                            case GoneToJail -> {
+                        gameBoard.getPlayer(playerTurn).toJail();
                         //update token
                         playerInformation[playerTurn].getPlayerToken().setTranslateY(getCoordinates('Y',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));
                         playerInformation[playerTurn].getPlayerToken().setTranslateX(getCoordinates('X',gameBoard.getPlayer(playerTurn).getPosition(),playerTurn));

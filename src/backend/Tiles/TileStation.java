@@ -2,14 +2,13 @@ package backend.Tiles;
 
 import backend.Exception.IsInJail;
 import backend.Exception.IsMortgagedException;
-import backend.Exception.PropertyDevelopedException;
 import backend.Player.Player;
 
 import java.util.ArrayList;
 
 public class TileStation extends TileProperty{
 
-    private ArrayList<Integer> rent;
+    private final ArrayList<Integer> rent;
 
     public TileStation(ArrayList<Integer> rent,
                        int price, String name, Player owner, ArrayList<TileProperty> neighborhood, boolean mortgaged) {
@@ -30,7 +29,7 @@ public class TileStation extends TileProperty{
             throw new IsInJail();
         }
         if (!isMortgaged()) {
-            int amountOutstanding = 0;
+            int amountOutstanding;
             int ownedStation = 0;
             for (TileProperty each: getOwner().getProperties()) {
                 if (each instanceof TileStation){
@@ -49,18 +48,5 @@ public class TileStation extends TileProperty{
     public ArrayList<Integer> getRent()
     {
         return rent;
-    }
-
-    public int getOwnedStations(Player player)
-    {
-        int ownedStation = 0;
-
-        for (TileProperty each: getOwner().getProperties()) {
-            if (each instanceof TileStation){
-                ownedStation+= 1;
-            }
-        }
-        return ownedStation;
-
     }
 }

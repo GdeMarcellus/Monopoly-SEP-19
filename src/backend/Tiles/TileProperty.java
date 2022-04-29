@@ -54,7 +54,7 @@ public abstract class TileProperty extends Tile {
      */
     public int mortgage() throws IsMortgagedException, PropertyDevelopedException {
         if (!mortgaged){
-            int amountPaid = 0;
+            int amountPaid;
             mortgaged = true;
             amountPaid = price/2;
             getOwner().addMoney(amountPaid);
@@ -100,10 +100,6 @@ public abstract class TileProperty extends Tile {
         return price;
     }
 
-    public void addToNeighborhood(TileProperty property) {
-        this.neighborhood.add(property);
-    }
-
     public void setNeighborhood(ArrayList<TileProperty> neighborhood) {
         this.neighborhood = neighborhood;
     }
@@ -116,7 +112,4 @@ public abstract class TileProperty extends Tile {
         return mortgaged;
     }
 
-    public void setMortgaged(boolean mortgaged) {
-        this.mortgaged = mortgaged;
-    }
 }

@@ -32,7 +32,6 @@ public class Card {
             currentID = pair.getKey();
             current = pair.getValue();
         }
-        System.out.println(current);
             int amount = (int) current.getOrDefault("amount", 0 );
             int houseCost = (int) current.getOrDefault("houseCost", 0 );
             int hotelCost = (int) current.getOrDefault("hotelCost", 0 );
@@ -196,23 +195,18 @@ public class Card {
      * @param tileName name of tile to be moved to
      * @param tiles arraylist of all tiles
      */
-    //TODO need validation somewhere to check that name is actual tile
     public void moveForwardTo(Player player, String tileName, Tile[] tiles){
         int pos = 0;
         boolean passedGo;
 
         //find tile position
         for(int i = 0; i < tiles.length-1; i++) {
-            System.out.println("TileName" + tiles[i].getName());
-            System.out.println("TileName Find:" + tileName);
             if (tiles[i].getName().equals(tileName)) {
-                System.out.println("Chosen: " + i);
                 pos = i;
             }
         }
 
         passedGo = player.setPosition(pos);
-        //TODO return value to indicate? let GUI handle giving money?
         if (passedGo) {
             player.addMoney(200);
         }
@@ -228,7 +222,6 @@ public class Card {
         int pos = 0;
         //find tile position
         for(int i = 0; i < tiles.length-1; i++) {
-            System.out.println(tiles[i].getName());
             if (Objects.equals(tiles[i].getName(), tileName))
             {
                 pos = i;
